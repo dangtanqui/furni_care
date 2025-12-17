@@ -3806,3 +3806,101 @@ Completed 200 OK in 4ms (Views: 0.1ms | ActiveRecord: 0.7ms | Allocations: 1477)
 Completed 200 OK in 8ms (Views: 0.2ms | ActiveRecord: 1.6ms | Allocations: 3738)
 
 
+Started GET "/api/users/technicians" for ::1 at 2025-12-17 22:39:48 +0700
+Started GET "/api/cases/2" for ::1 at 2025-12-17 22:39:48 +0700
+Started GET "/api/auth/me" for ::1 at 2025-12-17 22:39:48 +0700
+Processing by Api::AuthController#me as HTML
+Processing by Api::CasesController#show as HTML
+  Parameters: {"id"=>"2"}
+  [1m[36mUser Load (0.9ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+  [1m[36mUser Load (0.9ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+Completed 200 OK in 29ms (Views: 0.1ms | ActiveRecord: 1.5ms | Allocations: 7131)
+
+
+Started GET "/api/auth/me" for ::1 at 2025-12-17 22:39:48 +0700
+  [1m[36mCase Load (1.1ms)[0m  [1m[34mSELECT `cases`.* FROM `cases` WHERE `cases`.`id` = 2 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:94:in `set_case'
+  [1m[36mClient Load (1.4ms)[0m  [1m[34mSELECT `clients`.* FROM `clients` WHERE `clients`.`id` = 2 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:147:in `case_detail_json'
+  [1m[36mSite Load (0.9ms)[0m  [1m[34mSELECT `sites`.* FROM `sites` WHERE `sites`.`id` = 3 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:148:in `case_detail_json'
+Processing by Api::AuthController#me as HTML
+  [1m[36mContact Load (2.4ms)[0m  [1m[34mSELECT `contacts`.* FROM `contacts` WHERE `contacts`.`id` = 4 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:149:in `case_detail_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:150:in `case_detail_json'
+Completed 500 Internal Server Error in 135ms (ActiveRecord: 7.2ms | Allocations: 42930)
+
+
+  
+NameError (undefined local variable or method `attachments_hash' for #<Api::CasesController:0x00000000016558>):
+  
+app/controllers/api/cases_controller.rb:184:in `case_detail_json'
+app/controllers/api/cases_controller.rb:20:in `show'
+  [1m[36mUser Load (4.5ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+Completed 200 OK in 8ms (Views: 0.1ms | ActiveRecord: 4.5ms | Allocations: 5314)
+
+
+Processing by Api::UsersController#technicians as HTML
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+  [1m[36mUser Load (112.7ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`role` = 'technician' ORDER BY `users`.`name` ASC[0m
+  ↳ app/controllers/api/users_controller.rb:4:in `map'
+Completed 200 OK in 119ms (Views: 0.2ms | ActiveRecord: 113.0ms | Allocations: 89322)
+
+
+Started GET "/api/users/technicians" for ::1 at 2025-12-17 22:39:48 +0700
+Processing by Api::UsersController#technicians as HTML
+  [1m[36mUser Load (0.2ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`role` = 'technician' ORDER BY `users`.`name` ASC[0m
+  ↳ app/controllers/api/users_controller.rb:4:in `map'
+Completed 200 OK in 4ms (Views: 0.1ms | ActiveRecord: 0.5ms | Allocations: 3376)
+
+
+Started GET "/api/cases/2" for ::1 at 2025-12-17 22:39:49 +0700
+Processing by Api::CasesController#show as HTML
+  Parameters: {"id"=>"2"}
+  [1m[36mUser Load (0.5ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/application_controller.rb:12:in `authorize_request'
+  [1m[36mCase Load (0.7ms)[0m  [1m[34mSELECT `cases`.* FROM `cases` WHERE `cases`.`id` = 2 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:94:in `set_case'
+  [1m[36mClient Load (0.7ms)[0m  [1m[34mSELECT `clients`.* FROM `clients` WHERE `clients`.`id` = 2 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:147:in `case_detail_json'
+  [1m[36mSite Load (0.6ms)[0m  [1m[34mSELECT `sites`.* FROM `sites` WHERE `sites`.`id` = 3 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:148:in `case_detail_json'
+  [1m[36mContact Load (0.6ms)[0m  [1m[34mSELECT `contacts`.* FROM `contacts` WHERE `contacts`.`id` = 4 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:149:in `case_detail_json'
+  [1m[36mCACHE User Load (0.0ms)[0m  [1m[34mSELECT `users`.* FROM `users` WHERE `users`.`id` = 1 LIMIT 1[0m
+  ↳ app/controllers/api/cases_controller.rb:150:in `case_detail_json'
+Completed 500 Internal Server Error in 18ms (ActiveRecord: 3.0ms | Allocations: 3125)
+
+
+  
+NameError (undefined local variable or method `attachments_hash' for #<Api::CasesController:0x00000000016828>):
+  
+app/controllers/api/cases_controller.rb:184:in `case_detail_json'
+app/controllers/api/cases_controller.rb:20:in `show'
+[dotenv] Set [36mDATABASE_PASSWORD[0m, [36mDATABASE_PORT[0m, [36mJWT_SECRET[0m
+[dotenv] Loaded [33m.env[0m
+[dotenv] Set [36mDATABASE_PASSWORD[0m, [36mDATABASE_PORT[0m, [36mJWT_SECRET[0m
+[dotenv] Loaded [33m.env[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT GET_LOCK('2287916445801775215', 0)[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.8ms)[0m  [1m[34mSELECT `schema_migrations`.`version` FROM `schema_migrations` ORDER BY `schema_migrations`.`version` ASC[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.6ms)[0m  [1m[34mSELECT * FROM `ar_internal_metadata` WHERE `ar_internal_metadata`.`key` = 'environment' ORDER BY `ar_internal_metadata`.`key` ASC LIMIT 1[0m
+Migrating to CreateActiveStorageTables (20251217154243)
+  [1m[35m (44.1ms)[0m  [1m[35mCREATE TABLE `active_storage_blobs` (`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, `key` varchar(255) NOT NULL, `filename` varchar(255) NOT NULL, `content_type` varchar(255), `metadata` text, `service_name` varchar(255) NOT NULL, `byte_size` bigint NOT NULL, `checksum` varchar(255), `created_at` datetime(6) NOT NULL, UNIQUE INDEX `index_active_storage_blobs_on_key` (`key`))[0m
+  [1m[35m (50.5ms)[0m  [1m[35mCREATE TABLE `active_storage_attachments` (`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, `name` varchar(255) NOT NULL, `record_type` varchar(255) NOT NULL, `record_id` bigint NOT NULL, `blob_id` bigint NOT NULL, `created_at` datetime(6) NOT NULL, INDEX `index_active_storage_attachments_on_blob_id` (`blob_id`), UNIQUE INDEX `index_active_storage_attachments_uniqueness` (`record_type`, `record_id`, `name`, `blob_id`), CONSTRAINT `fk_rails_c3b3935057`
+FOREIGN KEY (`blob_id`)
+  REFERENCES `active_storage_blobs` (`id`)
+)[0m
+  [1m[35m (40.7ms)[0m  [1m[35mCREATE TABLE `active_storage_variant_records` (`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY, `blob_id` bigint NOT NULL, `variation_digest` varchar(255) NOT NULL, UNIQUE INDEX `index_active_storage_variant_records_uniqueness` (`blob_id`, `variation_digest`), CONSTRAINT `fk_rails_993965df05`
+FOREIGN KEY (`blob_id`)
+  REFERENCES `active_storage_blobs` (`id`)
+)[0m
+  [1m[36mActiveRecord::SchemaMigration Create (2.6ms)[0m  [1m[32mINSERT INTO `schema_migrations` (`version`) VALUES ('20251217154243')[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT RELEASE_LOCK('2287916445801775215')[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT `schema_migrations`.`version` FROM `schema_migrations` ORDER BY `schema_migrations`.`version` ASC[0m

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createCase } from '../api/cases';
+import { createCase, uploadAttachments } from '../api/cases';
 import { getClients, getSites, getContacts } from '../api/data';
 import type { Client, Site, Contact } from '../api/data';
 import { ArrowLeft, Upload } from 'lucide-react';
@@ -55,7 +55,7 @@ export default function CreateCase() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createCase({
+    const res = await createCase({
       client_id: Number(form.client_id),
       site_id: Number(form.site_id),
       contact_id: Number(form.contact_id),
@@ -63,6 +63,11 @@ export default function CreateCase() {
       case_type: form.case_type,
       priority: form.priority,
     } as any);
+    if (files.length) {
+      await uploadAttachments(res.data.id, 1, files, 'case_creation');
+    }
+    setFiles([]);
+    setPreviews([]);
     navigate('/');
   };
 

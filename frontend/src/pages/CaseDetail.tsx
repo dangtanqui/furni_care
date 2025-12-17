@@ -184,11 +184,13 @@ interface StageSectionProps {
   onApproveCost: () => void;
   onRejectCost: () => void;
   onRedo: () => void;
+  onUploadAttachments: (stage: number, files: File[]) => Promise<void>;
 }
 
 function StageSection({
   stage, caseData, expanded, onToggle, canEdit, isCS, isLeader, technicians,
-  editData, setEditData, onUpdate, onAdvance, onApproveCost, onRejectCost, onRedo
+  editData, setEditData, onUpdate, onAdvance, onApproveCost, onRejectCost, onRedo,
+  onUploadAttachments
 }: StageSectionProps) {
   const isCompleted = stage.num < caseData.current_stage;
   const isCurrent = stage.num === caseData.current_stage;
@@ -224,6 +226,7 @@ function StageSection({
               technicians={technicians}
               onUpdate={onUpdate}
               onAdvance={onAdvance}
+              onUploadAttachments={onUploadAttachments}
             />
           )}
           {stage.num === 2 && (
@@ -234,6 +237,7 @@ function StageSection({
               isLeader={isLeader}
               onUpdate={onUpdate}
               onAdvance={onAdvance}
+              onUploadAttachments={onUploadAttachments}
             />
           )}
           {stage.num === 3 && (
@@ -245,6 +249,7 @@ function StageSection({
               onAdvance={onAdvance}
               onApproveCost={onApproveCost}
               onRejectCost={onRejectCost}
+              onUploadAttachments={onUploadAttachments}
             />
           )}
           {stage.num === 4 && (
@@ -270,22 +275,25 @@ function StageSection({
 }
 
 // Stage 1 - Input & Categorization
-function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvance }: any) {
+interface Stage1Props {
+  caseData: CaseDetailType;
+  canEdit: boolean;
+  isCS: boolean;
+  technicians: { id: number; name: string }[];
+  onUpdate: (data: Partial<CaseDetailType>) => void;
+  onAdvance: () => void;
+  onUploadAttachments: (stage: number, files: File[]) => Promise<void>;
+}
+
+function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvance, onUploadAttachments }: Stage1Props) {
   const [assignedTo, setAssignedTo] = useState(caseData.assigned_to?.id || '');
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const attachments = caseData.stage_attachments?.['1'] || [];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selectedFiles]);
-
-    selectedFiles.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = ev => setPreviews(prev => [...prev, ev.target?.result as string]);
-        reader.readAsDataURL(file);
-      }
-    });
+    if (!selectedFiles.length) return;
+    await onUploadAttachments(1, selectedFiles);
+    e.target.value = '';
   };
 
   return (
@@ -316,22 +324,15 @@ function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvan
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Photos / Attachments</label>
-        {canEdit ? (
+        {canEdit && (
           <label className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#0d9488] cursor-pointer block mb-2">
             <input type="file" multiple className="hidden" accept="image/*,.pdf" onChange={handleFileChange} />
             <span className="text-[#0d9488] font-medium">+ Upload</span>
           </label>
-        ) : (
-          <p className="text-gray-500 text-sm">No attachments</p>
         )}
-        {previews.length > 0 && (
-          <div className="mt-2 grid grid-cols-4 gap-3">
-            {previews.map((src, idx) => (
-              <div key={idx} className="relative">
-                <img src={src} alt={`Attach ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
-              </div>
-            ))}
-          </div>
+        <AttachmentGrid attachments={attachments} />
+        {!canEdit && attachments.length === 0 && (
+          <p className="text-gray-500 text-sm">No attachments</p>
         )}
       </div>
 
@@ -368,18 +369,26 @@ function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvan
 }
 
 // Stage 2 - Site Investigation
-function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader }: any) {
+interface Stage2Props {
+  caseData: CaseDetailType;
+  canEdit: boolean;
+  onUpdate: (data: Partial<CaseDetailType>) => void;
+  onAdvance: () => void;
+  isCS: boolean;
+  isLeader: boolean;
+  onUploadAttachments: (stage: number, files: File[]) => Promise<void>;
+}
+
+function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader, onUploadAttachments }: Stage2Props) {
   const [report, setReport] = useState(caseData.investigation_report || '');
   const [checklist, setChecklist] = useState<boolean[]>(() => {
     try {
       return JSON.parse(caseData.investigation_checklist || '[]');
     } catch { return [false, false, false]; }
   });
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
   const isCurrent = caseData.current_stage === 2;
-
   const checklistItems = ['Check furniture condition', 'Document damage areas', 'Take measurements'];
+  const attachments = caseData.stage_attachments?.['2'] || [];
 
   const toggleChecklist = (idx: number) => {
     const newChecklist = [...checklist];
@@ -387,24 +396,11 @@ function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader 
     setChecklist(newChecklist);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selectedFiles]);
-    
-    selectedFiles.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          setPreviews(prev => [...prev, ev.target?.result as string]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  };
-
-  const removeFile = (idx: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== idx));
-    setPreviews(prev => prev.filter((_, i) => i !== idx));
+    if (!selectedFiles.length) return;
+    await onUploadAttachments(2, selectedFiles);
+    e.target.value = '';
   };
 
   const handleFinish = () => {
@@ -436,24 +432,8 @@ function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader 
             <span className="text-[#0d9488] font-medium">+ Upload</span>
           </label>
         )}
-        {previews.length > 0 && (
-          <div className="grid grid-cols-4 gap-3">
-            {previews.map((src, idx) => (
-              <div key={idx} className="relative group">
-                <img src={src} alt={`Upload ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                {canEdit && (
-                  <button
-                    onClick={() => removeFile(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        {!canEdit && previews.length === 0 && (
+        <AttachmentGrid attachments={attachments} />
+        {!canEdit && attachments.length === 0 && (
           <p className="text-gray-500 text-sm">No attachments</p>
         )}
       </div>
@@ -492,7 +472,18 @@ function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader 
 }
 
 // Stage 3 - Solution & Plan
-function Stage3Content({ caseData, canEdit, isLeader, onUpdate, onAdvance, onApproveCost, onRejectCost }: any) {
+interface Stage3Props {
+  caseData: CaseDetailType;
+  canEdit: boolean;
+  isLeader: boolean;
+  onUpdate: (data: Partial<CaseDetailType>) => void;
+  onAdvance: () => void;
+  onApproveCost: () => void;
+  onRejectCost: () => void;
+  onUploadAttachments: (stage: number, files: File[]) => Promise<void>;
+}
+
+function Stage3Content({ caseData, canEdit, isLeader, onUpdate, onAdvance, onApproveCost, onRejectCost, onUploadAttachments }: Stage3Props) {
   const [form, setForm] = useState({
     root_cause: caseData.root_cause || '',
     solution_description: caseData.solution_description || '',
@@ -506,10 +497,9 @@ function Stage3Content({ caseData, canEdit, isLeader, onUpdate, onAdvance, onApp
       return JSON.parse(caseData.solution_checklist || '[]');
     } catch { return [false, false]; }
   });
-  const [files, setFiles] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-
   const checklistItems = ['Prepare materials', 'Schedule with client'];
+  const canAdvance = !form.cost_required || caseData.cost_status === 'approved';
+  const attachments = caseData.stage_attachments?.['3'] || [];
 
   const toggleChecklist = (idx: number) => {
     const newChecklist = [...checklist];
@@ -517,27 +507,12 @@ function Stage3Content({ caseData, canEdit, isLeader, onUpdate, onAdvance, onApp
     setChecklist(newChecklist);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    setFiles(prev => [...prev, ...selectedFiles]);
-    
-    selectedFiles.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          setPreviews(prev => [...prev, ev.target?.result as string]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    if (!selectedFiles.length) return;
+    await onUploadAttachments(3, selectedFiles);
+    e.target.value = '';
   };
-
-  const removeFile = (idx: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== idx));
-    setPreviews(prev => prev.filter((_, i) => i !== idx));
-  };
-
-  const canAdvance = !form.cost_required || caseData.cost_status === 'approved';
 
   const handleSubmit = () => {
     onUpdate({ ...form, solution_checklist: JSON.stringify(checklist) });
@@ -580,24 +555,8 @@ function Stage3Content({ caseData, canEdit, isLeader, onUpdate, onAdvance, onApp
             <span className="text-[#0d9488] font-medium">+ Upload</span>
           </label>
         )}
-        {previews.length > 0 && (
-          <div className="grid grid-cols-4 gap-3">
-            {previews.map((src, idx) => (
-              <div key={idx} className="relative group">
-                <img src={src} alt={`Upload ${idx + 1}`} className="w-full h-24 object-cover rounded-lg" />
-                {canEdit && (
-                  <button
-                    onClick={() => removeFile(idx)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-        {!canEdit && previews.length === 0 && (
+        <AttachmentGrid attachments={attachments} />
+        {!canEdit && attachments.length === 0 && (
           <p className="text-gray-500 text-sm">No attachments</p>
         )}
       </div>
@@ -876,6 +835,21 @@ function Stage5Content({ caseData, canEdit, onUpdate, onRedo }: any) {
           <Check className="w-5 h-5" /> Case has been closed successfully
         </div>
       )}
+    </div>
+  );
+}
+
+function AttachmentGrid({ attachments }: { attachments: CaseAttachmentItem[] }) {
+  if (!attachments?.length) return null;
+
+  return (
+    <div className="grid grid-cols-4 gap-3">
+      {attachments.map(att => (
+        <div key={att.id} className="relative group">
+          <img src={att.url} alt={att.filename} className="w-full h-24 object-cover rounded-lg" />
+          <div className="mt-1 text-xs text-gray-500 text-center">{att.filename}</div>
+        </div>
+      ))}
     </div>
   );
 }
