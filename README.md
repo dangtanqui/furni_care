@@ -40,6 +40,19 @@ Backend sẽ chạy tại `http://localhost:3000`
 
 ### 3. Frontend Setup
 
+Tạo file `.env` trong folder `frontend` (hoặc copy từ `.env.example`):
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+**Lưu ý**: Nếu backend chạy ở port khác (ví dụ 3001), thay đổi giá trị:
+```env
+VITE_API_URL=http://localhost:3001
+```
+
+Sau đó cài đặt và chạy:
+
 ```bash
 cd frontend
 npm install
@@ -142,3 +155,4 @@ npm run preview
 - Đảm bảo MySQL đang chạy trước khi start backend
 - Backend và Frontend cần chạy đồng thời để ứng dụng hoạt động đầy đủ
 - File `.env` không được commit vào git (đã được ignore)
+- Nếu backend chạy ở port khác, nhớ cập nhật `VITE_API_URL` trong `frontend/.env`
