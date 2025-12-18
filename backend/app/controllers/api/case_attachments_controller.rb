@@ -20,7 +20,7 @@ class Api::CaseAttachmentsController < ApplicationController
   private
 
   def set_case
-    @case = Case.find(params[:case_id])
+    @case = Case.find(params[:id])
   end
 
   def serialize_attachment(attachment)

@@ -23,17 +23,29 @@ body {
   @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors;
 }
 
+.btn-secondary {
+  @apply bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors;
+}
+
 .card {
   @apply bg-white rounded-xl shadow-sm border border-gray-100;
 }
 
 .input-field {
-  @apply w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg;
+  padding-right: 0.75rem;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .input-field:focus-visible {
-  box-shadow: inset 0 0 0 2px var(--accent);
+  outline: none;
   border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 /* Better dropdown arrow spacing */
@@ -44,4 +56,21 @@ select.input-field {
   background-repeat: no-repeat;
   background-size: 22px 22px;
   padding-right: 3rem; /* ensure arrow not clipped */
+}
+
+/* Number input spinner positioning - browser handles spacing automatically */
+input[type="number"].input-field {
+  appearance: textfield; /* Standard property */
+  -moz-appearance: textfield; /* Firefox - hide spinner */
+}
+
+input[type="number"].input-field::-webkit-inner-spin-button,
+input[type="number"].input-field::-webkit-outer-spin-button {
+  -webkit-appearance: inner-spin-button;
+  opacity: 1;
+}
+
+/* Select dropdown needs extra padding for arrow */
+select.input-field {
+  padding-right: 3rem;
 }

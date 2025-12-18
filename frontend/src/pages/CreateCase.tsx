@@ -4,6 +4,7 @@ import { createCase, uploadAttachments } from '../api/cases';
 import { getClients, getSites, getContacts } from '../api/data';
 import type { Client, Site, Contact } from '../api/data';
 import { ArrowLeft, Upload } from 'lucide-react';
+import Select from '../components/Select';
 
 export default function CreateCase() {
   const navigate = useNavigate();
@@ -82,55 +83,57 @@ export default function CreateCase() {
         
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
-            <select
+            <label htmlFor="client_id" className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
+            <Select
+              id="client_id"
+              name="client_id"
               value={form.client_id}
-              onChange={e => setForm({ ...form, client_id: e.target.value })}
-              className="input-field"
+              onChange={(value) => setForm({ ...form, client_id: value })}
+              options={[
+                { value: '', label: 'Select client...' },
+                ...clients.map(c => ({ value: String(c.id), label: c.name })),
+              ]}
               required
-            >
-              <option value="">Select client...</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Site *</label>
-            <select
+            <label htmlFor="site_id" className="block text-sm font-medium text-gray-700 mb-1">Site *</label>
+            <Select
+              id="site_id"
+              name="site_id"
               value={form.site_id}
-              onChange={e => setForm({ ...form, site_id: e.target.value })}
-              className="input-field"
-              required
+              onChange={(value) => setForm({ ...form, site_id: value })}
+              options={[
+                { value: '', label: 'Select site...' },
+                ...sites.map(s => ({ value: String(s.id), label: `${s.name} - ${s.city}` })),
+              ]}
               disabled={!form.client_id}
-            >
-              <option value="">Select site...</option>
-              {sites.map(s => (
-                <option key={s.id} value={s.id}>{s.name} - {s.city}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person *</label>
-            <select
-              value={form.contact_id}
-              onChange={e => setForm({ ...form, contact_id: e.target.value })}
-              className="input-field"
               required
-              disabled={!form.site_id}
-            >
-              <option value="">Select contact...</option>
-              {contacts.map(c => (
-                <option key={c.id} value={c.id}>{c.name} - {c.phone}</option>
-              ))}
-            </select>
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label htmlFor="contact_id" className="block text-sm font-medium text-gray-700 mb-1">Contact Person *</label>
+            <Select
+              id="contact_id"
+              name="contact_id"
+              value={form.contact_id}
+              onChange={(value) => setForm({ ...form, contact_id: value })}
+              options={[
+                { value: '', label: 'Select contact...' },
+                ...contacts.map(c => ({ value: String(c.id), label: `${c.name} - ${c.phone}` })),
+              ]}
+              disabled={!form.site_id}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
+              id="description"
+              name="description"
               value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
               className="input-field h-32"
@@ -139,9 +142,9 @@ export default function CreateCase() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Photos / Attachments</label>
-            <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0d9488] cursor-pointer block mb-3">
-              <input type="file" multiple className="hidden" accept="image/*,.pdf,.doc,.docx" onChange={handleFileChange} />
+            <label htmlFor="attachments" className="block text-sm font-medium text-gray-700 mb-1">Photos / Attachments</label>
+            <label htmlFor="attachments" className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0d9488] cursor-pointer block mb-3">
+              <input id="attachments" name="attachments" type="file" multiple className="hidden" accept="image/*,.pdf,.doc,.docx" onChange={handleFileChange} />
               <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
               <p className="text-sm text-gray-500">Click to upload photos/documents</p>
             </label>
@@ -158,28 +161,32 @@ export default function CreateCase() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Case Type</label>
-              <select
+              <label htmlFor="case_type" className="block text-sm font-medium text-gray-700 mb-1">Case Type</label>
+              <Select
+                id="case_type"
+                name="case_type"
                 value={form.case_type}
-                onChange={e => setForm({ ...form, case_type: e.target.value })}
-                className="input-field"
-              >
-                <option value="warranty">Warranty</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="repair">Repair</option>
-              </select>
+                onChange={(value) => setForm({ ...form, case_type: value })}
+                options={[
+                  { value: 'warranty', label: 'Warranty' },
+                  { value: 'maintenance', label: 'Maintenance' },
+                  { value: 'repair', label: 'Repair' },
+                ]}
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-              <select
+              <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <Select
+                id="priority"
+                name="priority"
                 value={form.priority}
-                onChange={e => setForm({ ...form, priority: e.target.value })}
-                className="input-field"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+                onChange={(value) => setForm({ ...form, priority: value })}
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                ]}
+              />
             </div>
           </div>
 

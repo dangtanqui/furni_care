@@ -7,13 +7,56 @@ class Api::CasesController < ApplicationController
     
     cases = cases.where(status: params[:status]) if params[:status].present?
     cases = cases.where(case_type: params[:case_type]) if params[:case_type].present?
-    cases = cases.where(assigned_to_id: params[:assigned_to]) if params[:assigned_to].present?
-    cases = cases.where(assigned_to_id: nil) if params[:assigned_to] == 'unassigned'
+    if params[:assigned_to].present?
+      if params[:assigned_to] == 'unassigned'
+        cases = cases.where(assigned_to_id: nil)
+      else
+        cases = cases.where(assigned_to_id: params[:assigned_to])
+      end
+    end
     cases = cases.where(current_stage: params[:stage]) if params[:stage].present?
     
-    cases = cases.order(created_at: :desc)
+    # Sorting
+    sort_by = params[:sort_by] || 'created_at'
+    sort_direction = params[:sort_direction]&.downcase == 'asc' ? 'asc' : 'desc'
     
-    render json: cases.map { |c| case_json(c) }
+    # Map frontend column names to database columns (whitelist for security)
+    case sort_by
+    when 'case_number'
+      cases = cases.order(case_number: sort_direction.to_sym)
+    when 'client'
+      cases = cases.joins(:client).order('clients.name' => sort_direction.to_sym)
+    when 'site'
+      cases = cases.joins(:site).order('sites.name' => sort_direction.to_sym)
+    when 'current_stage'
+      cases = cases.order(current_stage: sort_direction.to_sym)
+    when 'status'
+      cases = cases.order(status: sort_direction.to_sym)
+    when 'priority'
+      cases = cases.order(priority: sort_direction.to_sym)
+    when 'assigned_to'
+      cases = cases.order(assigned_to_id: sort_direction.to_sym)
+    else
+      cases = cases.order(created_at: :desc)
+    end
+    
+    # Pagination
+    page = params[:page]&.to_i || 1
+    per_page = params[:per_page]&.to_i || 20
+    per_page = [per_page, 100].min # Max 100 per page
+    
+    total = cases.count
+    paginated_cases = cases.offset((page - 1) * per_page).limit(per_page)
+    
+    render json: {
+      data: paginated_cases.map { |c| case_json(c) },
+      pagination: {
+        page: page,
+        per_page: per_page,
+        total: total,
+        total_pages: (total.to_f / per_page).ceil
+      }
+    }
   end
   
   def show
@@ -34,7 +77,30 @@ class Api::CasesController < ApplicationController
   end
   
   def update
+    # Check if cost fields are being updated
+    cost_fields_updated = case_params.key?(:estimated_cost) || case_params.key?(:cost_description) || case_params.key?(:cost_required)
+    
     if @case.update(case_params)
+      # If cost fields are updated and cost was previously rejected, reset cost_status to nil and status to pending
+      if cost_fields_updated && @case.cost_status == 'rejected'
+        @case.update(cost_status: nil, status: 'pending')
+        @case.reload
+      end
+      
+      # If cost fields are updated and cost was previously approved, reset cost_status to nil and status to pending
+      # This allows Technician to update cost and re-submit for approval
+      if cost_fields_updated && @case.cost_status == 'approved'
+        @case.update(cost_status: nil, status: 'pending', cost_approved_by_id: nil)
+        @case.reload
+      end
+      
+      # If Stage 3 cost is required but not approved, and case has advanced past Stage 3,
+      # roll back to Stage 3 to wait for approval
+      if @case.cost_required && @case.cost_status != 'approved' && @case.current_stage > 3
+        @case.update(current_stage: 3)
+        @case.reload
+      end
+      
       render json: case_detail_json(@case)
     else
       render json: { errors: @case.errors.full_messages }, status: :unprocessable_entity
@@ -47,6 +113,7 @@ class Api::CasesController < ApplicationController
   end
   
   def advance_stage
+    @case.reload # Ensure we have the latest data
     if @case.current_stage < 5
       # Check cost approval for stage 3
       if @case.current_stage == 3 && @case.cost_required && @case.cost_status != 'approved'
@@ -66,6 +133,13 @@ class Api::CasesController < ApplicationController
     end
     
     @case.update(cost_status: 'approved', cost_approved_by: current_user)
+    
+    # If Stage 3 cost is approved and current_stage is 3, automatically advance to Stage 4
+    if @case.current_stage == 3 && @case.cost_required && @case.cost_status == 'approved'
+      @case.update(current_stage: 4)
+      @case.reload
+    end
+    
     render json: case_detail_json(@case)
   end
   
@@ -74,7 +148,7 @@ class Api::CasesController < ApplicationController
       return render json: { error: 'Only leaders can reject costs' }, status: :forbidden
     end
     
-    @case.update(cost_status: 'rejected')
+    @case.update(cost_status: 'rejected', status: 'rejected')
     render json: case_detail_json(@case)
   end
   
@@ -83,7 +157,9 @@ class Api::CasesController < ApplicationController
     @case.update(
       current_stage: 3,
       attempt_number: @case.attempt_number + 1,
-      status: 'in_progress'
+      status: 'in_progress',
+      cost_status: nil, # Reset cost_status to allow Technician to edit and re-submit
+      cost_approved_by_id: nil # Clear previous approval
     )
     render json: case_detail_json(@case)
   end
@@ -135,6 +211,18 @@ class Api::CasesController < ApplicationController
   end
   
   def case_detail_json(c)
+    attachments_hash = c.case_attachments.includes(file_attachment: :blob).group_by(&:stage).transform_values do |atts|
+      atts.map do |attachment|
+        {
+          id: attachment.id,
+          filename: attachment.file.filename.to_s,
+          url: rails_blob_url(attachment.file, host: request.base_url),
+          stage: attachment.stage,
+          attachment_type: attachment.attachment_type
+        }
+      end
+    end
+
     {
       id: c.id,
       case_number: c.case_number,

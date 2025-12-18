@@ -1,0 +1,273 @@
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronDown } from 'lucide-react';
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: SelectOption[];
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  id?: string;
+  name?: string;
+}
+
+export default function Select({
+  value,
+  onChange,
+  options,
+  placeholder = 'Select...',
+  className = '',
+  disabled = false,
+  id,
+  name,
+}: SelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0, showAbove: false });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  // Calculate dropdown position
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const updatePosition = () => {
+        if (buttonRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const dropdownMaxHeight = 240; // max-h-60 = 240px
+          const spaceBelow = viewportHeight - rect.bottom;
+          const spaceAbove = rect.top;
+          
+          // Show above if not enough space below, but enough space above
+          const showAbove = spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow;
+          
+          // Calculate actual dropdown height (estimate based on options)
+          const estimatedHeight = Math.min(options.length * 40 + 8, dropdownMaxHeight); // ~40px per option + padding
+          
+          // Use fixed positioning - no need for scroll offsets
+          const position = {
+            top: showAbove ? rect.top - estimatedHeight - 2 : rect.bottom + 2,
+            left: rect.left,
+            width: Math.max(rect.width, 120), // Ensure minimum width
+            showAbove,
+          };
+          setDropdownPosition(position);
+        }
+      };
+      
+      // Update immediately
+      updatePosition();
+      
+      // Also update on scroll/resize
+      window.addEventListener('scroll', updatePosition, true);
+      window.addEventListener('resize', updatePosition);
+      
+      // Also update after a small delay to handle any layout shifts
+      const timeoutId = setTimeout(updatePosition, 10);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', updatePosition);
+      };
+    } else {
+      // Reset position when closed
+      setDropdownPosition({ top: 0, left: 0, width: 0, showAbove: false });
+    }
+  }, [isOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Check if click is outside both button and dropdown
+      const isClickOnButton = containerRef.current?.contains(target);
+      const isClickOnDropdown = dropdownRef.current?.contains(target);
+      
+      if (!isClickOnButton && !isClickOnDropdown) {
+        setIsOpen(false);
+        setIsFocused(false);
+      }
+    };
+
+    if (isOpen) {
+      // Use a small delay to avoid closing immediately when opening
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside, true);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside, true);
+      };
+    }
+  }, [isOpen]);
+
+  // Close dropdown when another select opens
+  useEffect(() => {
+    const handleOtherSelectClick = () => {
+      if (isOpen) {
+        setIsOpen(false);
+        setIsFocused(false);
+      }
+    };
+
+    // Listen for clicks on other selects
+    const allSelects = document.querySelectorAll('[data-custom-select]');
+    allSelects.forEach(select => {
+      if (select !== containerRef.current) {
+        select.addEventListener('click', handleOtherSelectClick);
+      }
+    });
+
+    return () => {
+      allSelects.forEach(select => {
+        select.removeEventListener('click', handleOtherSelectClick);
+      });
+    };
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    setIsFocused(!isOpen);
+  };
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+    setIsFocused(false);
+    // Small delay to ensure click is processed
+    setTimeout(() => {
+      buttonRef.current?.blur();
+    }, 0);
+  };
+
+  return (
+    <div ref={containerRef} className={`relative ${className}`} data-custom-select>
+      <button
+        ref={buttonRef}
+        type="button"
+        id={id}
+        name={name}
+        aria-label={placeholder}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        onClick={handleToggle}
+        onMouseDown={(e) => {
+          // Prevent form submission when clicking dropdown
+          if (e.button === 0) {
+            e.preventDefault();
+          }
+        }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => {
+          // Delay to allow option click to register
+          setTimeout(() => {
+            if (!isOpen) {
+              setIsFocused(false);
+            }
+          }, 100);
+        }}
+        disabled={disabled}
+        className={`
+          w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg
+          flex items-center justify-between
+          ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white cursor-pointer'}
+          transition-all text-left relative
+        `}
+        style={{
+          boxShadow: isFocused && isOpen ? 'inset 0 0 0 2px var(--accent)' : 'none',
+          borderColor: isFocused && isOpen ? 'transparent' : 'rgb(209 213 219)',
+          outline: 'none',
+        }}
+      >
+        <span className={`flex-1 truncate text-left pr-2 ${selectedOption ? 'text-gray-900' : 'text-gray-500'}`}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform`}
+          style={{ 
+            position: 'absolute', 
+            right: '0.75rem', 
+            top: '50%', 
+            transform: `translateY(-50%) ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}` 
+          }}
+        />
+      </button>
+
+      {isOpen && dropdownPosition.width > 0 &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed bg-white border border-gray-200 rounded-lg overflow-y-auto"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              minWidth: '120px',
+              maxHeight: '240px', // max-h-60
+              zIndex: 99999,
+              display: 'block',
+              visibility: 'visible',
+              opacity: 1,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              // Adjust shadow based on position
+              boxShadow: dropdownPosition.showAbove 
+                ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' // Shadow above
+                : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Shadow below
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onWheel={(e) => {
+              // Allow scrolling within dropdown
+              e.stopPropagation();
+            }}
+          >
+            {options.length > 0 ? (
+              options.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelect(option.value);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className={`
+                    w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors whitespace-nowrap
+                    ${value === option.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-medium' : 'text-gray-900'}
+                  `}
+                >
+                  {option.label}
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-gray-500 text-sm">No options</div>
+            )}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+

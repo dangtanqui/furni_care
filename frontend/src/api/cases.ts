@@ -13,6 +13,16 @@ export interface CaseListItem {
   created_at: string;
 }
 
+export interface CasesResponse {
+  data: CaseListItem[];
+  pagination: {
+    page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
 export interface CaseDetail {
   id: number;
   case_number: string;
@@ -25,6 +35,7 @@ export interface CaseDetail {
   contact: { id: number; name: string; phone: string };
   created_by: { id: number; name: string };
   assigned_to: { id: number; name: string } | null;
+  assigned_to_id?: number; // For updates
   description: string;
   case_type: string;
   priority: string;
@@ -69,7 +80,7 @@ export interface CaseAttachmentItem {
 }
 
 export const getCases = (params?: Record<string, string>) =>
-  api.get<CaseListItem[]>('/cases', { params });
+  api.get<CasesResponse>('/cases', { params });
 
 export const getCase = (id: number) =>
   api.get<CaseDetail>(`/cases/${id}`);
