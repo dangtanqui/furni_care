@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "../../../../utilities.css";
+
+.stage4-container {
+  @apply space-y-4;
+}
+
+.stage4-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.stage4-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-32;
+  padding-right: 0.75rem;
+}
+
+.stage4-readonly-content {
+  @apply p-3 bg-gray-50 rounded-lg;
+}
+
+.stage4-upload-area {
+  @apply border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0d9488] cursor-pointer block mb-3;
+}
+
+.stage4-upload-text {
+  @apply text-sm text-gray-500;
+}
+
+.stage4-no-attachments {
+  @apply text-gray-500 text-sm;
+}
+
+.stage4-checklist-label {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.stage4-checklist-container {
+  @apply space-y-2;
+}
+
+.stage4-checklist-item {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.stage4-checklist-checkbox {
+  @apply w-5 h-5 text-[#0d9488] rounded;
+}
+
+.stage4-checklist-completed {
+  @apply line-through text-gray-400;
+}
+
+.stage4-signature-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.stage4-signature-container {
+  @apply border border-gray-300 rounded-lg p-4;
+}
+
+.stage4-signature-canvas {
+  @apply border border-gray-200 rounded bg-white cursor-crosshair w-full touch-none;
+}
+
+.stage4-signature-controls {
+  @apply mt-2 flex gap-2;
+}
+
+.stage4-signature-button {
+  @apply text-sm px-3 py-1 rounded;
+}
+
+.stage4-signature-button-enabled {
+  @apply text-gray-700 hover:bg-gray-100 bg-gray-50;
+}
+
+.stage4-signature-button-disabled {
+  @apply text-gray-400 cursor-not-allowed;
+}
+
+.stage4-signature-clear {
+  @apply text-sm text-gray-600 hover:text-gray-800 underline;
+}
+
+.stage4-signature-display {
+  @apply border border-gray-300 rounded-lg p-4 bg-white;
+}
+
+.stage4-feedback-section {
+  @apply p-4 bg-gray-50 rounded-lg;
+}
+
+.stage4-feedback-title {
+  @apply font-medium mb-3;
+}
+
+.stage4-rating-label {
+  @apply text-sm text-gray-500;
+}
+
+.stage4-rating-container {
+  @apply flex gap-2 mt-1;
+}
+
+.stage4-rating-button {
+  @apply w-10 h-10 rounded-full;
+}
+
+.stage4-rating-button-active {
+  @apply bg-yellow-400 text-white;
+}
+
+.stage4-rating-button-inactive {
+  @apply bg-gray-200;
+}
+
+.stage4-feedback-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-20;
+  padding-right: 0.75rem;
+}
+
+.stage4-waiting-message {
+  @apply p-3 bg-blue-50 rounded-lg text-blue-700 text-sm;
+}
+
+.stage4-upload-icon {
+  @apply w-8 h-8 mx-auto text-gray-400 mb-2;
+}
+
+.stage4-signature-image {
+  @apply max-w-full h-auto;
+}
+
+.stage4-signature-empty {
+  @apply text-gray-500 text-sm;
+}
+

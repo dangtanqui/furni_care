@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
+import '../styles/components/Select.css';
 
 interface SelectOption {
   value: string;
@@ -212,7 +213,7 @@ export default function Select({
         createPortal(
           <div
             ref={dropdownRef}
-            className="fixed bg-white border border-gray-200 rounded-lg overflow-y-auto"
+            className="select-dropdown"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -253,16 +254,13 @@ export default function Select({
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className={`
-                    w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors whitespace-nowrap
-                    ${value === option.value ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-medium' : 'text-gray-900'}
-                  `}
+                  className={`select-option ${value === option.value ? 'select-option-selected' : 'select-option-default'}`}
                 >
                   {option.label}
                 </button>
               ))
             ) : (
-              <div className="px-3 py-2 text-gray-500 text-sm">No options</div>
+              <div className="select-no-options">No options</div>
             )}
           </div>,
           document.body

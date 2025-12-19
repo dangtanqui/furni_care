@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "../../../utilities.css";
+
+.case-form {
+  @apply space-y-5;
+}
+
+.case-form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.case-form-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-32;
+  padding-right: 0.75rem;
+}
+
+.case-form-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.case-form-submit-button {
+  @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors w-full mt-5;
+}
+

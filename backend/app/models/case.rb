@@ -11,7 +11,7 @@ class Case < ApplicationRecord
   
   validates :case_number, presence: true, uniqueness: true
   validates :current_stage, inclusion: { in: 1..5 }
-  validates :status, inclusion: { in: %w[open pending in_progress completed closed rejected] }
+  validates :status, inclusion: { in: %w[open pending in_progress completed closed rejected cancelled] }
   
   before_validation :generate_case_number, on: :create
   

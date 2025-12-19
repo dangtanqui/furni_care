@@ -103,6 +103,9 @@ export const rejectCost = (id: number) =>
 export const redoCase = (id: number) =>
   api.post<CaseDetail>(`/cases/${id}/redo_case`);
 
+export const cancelCase = (id: number) =>
+  api.post<CaseDetail>(`/cases/${id}/cancel_case`);
+
 export const uploadAttachments = (
   id: number,
   stage: number,

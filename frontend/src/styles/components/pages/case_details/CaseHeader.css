@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@import "../../../utilities.css";
+
+.case-header-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6;
+}
+
+.case-header-grid {
+  @apply grid grid-cols-2 gap-4 mb-4;
+}
+
+.case-header-field {
+  @apply flex items-center gap-2;
+}
+
+.case-header-label {
+  @apply text-gray-500;
+}
+
+.case-header-value {
+  @apply font-bold text-[#1e3a5f];
+}
+
+.case-header-status-closed {
+  @apply px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700;
+}
+
+.case-header-status-rejected {
+  @apply px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700;
+}
+
+.case-header-status-pending {
+  @apply px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-700;
+}
+
+.case-header-status-default {
+  @apply px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700;
+}
+
+.case-header-priority-high {
+  @apply text-red-600;
+}
+
+.case-header-priority-medium {
+  @apply text-yellow-600;
+}
+
+.case-header-priority-low {
+  @apply text-gray-600;
+}
+
+.case-header-stage-info {
+  @apply flex items-center gap-2 pb-4 border-b border-gray-100;
+}
+
+.case-header-stage-value {
+  @apply font-bold text-[#0d9488];
+}
+
+.case-header-attempt-badge {
+  @apply text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded;
+}
+
+.case-header-progress {
+  @apply mt-6 flex items-center gap-1 md:gap-2;
+}
+
+.case-header-progress-item {
+  @apply flex items-center;
+}
+
+.case-header-progress-circle {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium;
+}
+
+.case-header-progress-circle-completed {
+  @apply bg-green-500 text-white;
+}
+
+.case-header-progress-circle-current {
+  @apply bg-[#0d9488] text-white;
+}
+
+.case-header-progress-circle-default {
+  @apply bg-gray-200 text-gray-500;
+}
+
+.case-header-progress-connector {
+  @apply w-8 md:w-12 h-1;
+}
+
+.case-header-progress-connector-completed {
+  @apply bg-green-500;
+}
+
+.case-header-progress-connector-default {
+  @apply bg-gray-200;
+}
+
+.case-header-check-icon {
+  @apply w-4 h-4;
+}
+

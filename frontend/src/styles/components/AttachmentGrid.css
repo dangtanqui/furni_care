@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+.attachment-grid {
+  @apply grid grid-cols-4 gap-3;
+}
+
+.attachment-item {
+  @apply relative;
+}
+
+.attachment-image {
+  @apply w-full h-24 object-cover rounded-lg;
+}
+
+.attachment-filename {
+  @apply mt-1 text-xs text-gray-500 text-center;
+}
+

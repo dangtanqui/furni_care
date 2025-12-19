@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@import "../../../../utilities.css";
+
+.stage1-container {
+  @apply space-y-4;
+}
+
+.stage1-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.stage1-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.stage1-content {
+  @apply text-gray-900;
+}
+
+.stage1-capitalize {
+  @apply capitalize;
+}
+
+.stage1-no-attachments {
+  @apply text-gray-500 text-sm mt-1;
+}
+
+.stage1-assign-section {
+  @apply pt-4 border-t;
+}
+
+.stage1-assign-container {
+  @apply flex items-center gap-4;
+}
+
+.stage1-assign-button {
+  @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.stage1-waiting-message {
+  @apply p-3 bg-blue-50 rounded-lg text-blue-700 text-sm;
+}
+
+.stage1-user-icon {
+  @apply w-5 h-5 text-gray-400;
+}
+
+.stage1-select-flex {
+  @apply flex-1;
+}
+

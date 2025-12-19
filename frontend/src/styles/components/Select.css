@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+.select-dropdown {
+  @apply fixed bg-white border border-gray-200 rounded-lg overflow-y-auto;
+}
+
+.select-option {
+  @apply w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors whitespace-nowrap;
+}
+
+.select-option-selected {
+  @apply bg-[var(--accent)]/10 text-[var(--accent)] font-medium;
+}
+
+.select-option-default {
+  @apply text-gray-900;
+}
+
+.select-no-options {
+  @apply px-3 py-2 text-gray-500 text-sm;
+}
+

@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
-import Login from './pages/Login';
 import CaseList from './pages/CaseList';
 import CreateCase from './pages/CreateCase';
-import CaseDetail from './pages/CaseDetail';
+import Login from './pages/Login';
+import CaseDetail from './pages/CaseDetails';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuth();

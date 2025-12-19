@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "../utilities.css";
+
+.case-list-page {
+  @apply p-6;
+}
+
+.case-list-header {
+  @apply mb-6;
+}
+
+.case-list-title {
+  @apply text-2xl font-bold text-[#1e3a5f] mb-4;
+}
+
+.case-list-create-container {
+  @apply mt-4;
+}
+
+.case-list-create-button {
+  @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2;
+}
+
+.case-list-create-icon {
+  @apply w-5 h-5;
+}
+

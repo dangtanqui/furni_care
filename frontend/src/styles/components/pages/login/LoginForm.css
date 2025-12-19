@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@import "../../../utilities.css";
+
+.login-error {
+  @apply bg-red-50 text-red-600 p-3 rounded-lg mb-4;
+}
+
+.login-form {
+  @apply space-y-4;
+}
+
+.login-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.login-input-field {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg;
+  padding-right: 0.75rem;
+}
+
+.login-password-field {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg pr-10;
+  padding-right: 0.75rem;
+}
+
+.login-password-toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none;
+}
+
+.login-submit-button {
+  @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors w-full;
+}
+
+.login-demo-info {
+  @apply mt-6 text-center text-sm text-gray-500;
+}
+
+.login-password-toggle-icon {
+  @apply w-5 h-5;
+}
+

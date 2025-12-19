@@ -1,6 +1,6 @@
 class Api::CasesController < ApplicationController
   include Rails.application.routes.url_helpers
-  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost]
+  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :cancel_case]
   
   def index
     cases = Case.includes(:client, :site, :contact, :assigned_to, :created_by)
@@ -120,7 +120,18 @@ class Api::CasesController < ApplicationController
         return render json: { error: 'Cost approval required before advancing' }, status: :unprocessable_entity
       end
       
-      @case.update(current_stage: @case.current_stage + 1)
+      new_stage = @case.current_stage + 1
+      
+      # If advancing from Stage 4 to Stage 5, automatically set status to completed
+      if new_stage == 5
+        @case.update(current_stage: 5, status: 'completed')
+      # If advancing from Stage 1 to Stage 2, set status to in_progress
+      elsif @case.current_stage == 1
+        @case.update(current_stage: 2, status: 'in_progress')
+      # Otherwise, keep status as is (in_progress) when advancing Stage 2→3, 3→4
+      else
+        @case.update(current_stage: new_stage)
+      end
       render json: case_detail_json(@case)
     else
       render json: { error: 'Already at final stage' }, status: :unprocessable_entity
@@ -135,8 +146,10 @@ class Api::CasesController < ApplicationController
     @case.update(cost_status: 'approved', cost_approved_by: current_user)
     
     # If Stage 3 cost is approved and current_stage is 3, automatically advance to Stage 4
+    # Set status to in_progress if it was pending
     if @case.current_stage == 3 && @case.cost_required && @case.cost_status == 'approved'
-      @case.update(current_stage: 4)
+      status_to_set = @case.status == 'pending' ? 'in_progress' : @case.status
+      @case.update(current_stage: 4, status: status_to_set)
       @case.reload
     end
     
@@ -161,6 +174,15 @@ class Api::CasesController < ApplicationController
       cost_status: nil, # Reset cost_status to allow Technician to edit and re-submit
       cost_approved_by_id: nil # Clear previous approval
     )
+    render json: case_detail_json(@case)
+  end
+
+  def cancel_case
+    unless current_user.cs?
+      return render json: { error: 'Only CS can cancel cases' }, status: :forbidden
+    end
+    
+    @case.update(status: 'cancelled')
     render json: case_detail_json(@case)
   end
   

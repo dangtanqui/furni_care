@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
-import { Armchair, Eye, EyeOff } from 'lucide-react';
+import { Armchair } from 'lucide-react';
+import LoginForm from '../components/pages/login/LoginForm';
+import '../styles/pages/Login.css';
 
 export default function Login() {
   const [email, setEmail] = useState('cs@demo.com');
@@ -24,59 +26,24 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] to-[#0d9488] px-4">
-      <div className="card p-8 w-full max-w-md">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <Armchair className="w-10 h-10 text-[#0d9488]" />
-          <h1 className="text-2xl font-bold text-[#1e3a5f]">FurniCare</h1>
+    <div className="login-page">
+      <div className="login-card">
+        <div className="login-header">
+          <Armchair className="login-logo" />
+          <h1 className="login-title">FurniCare</h1>
         </div>
-        <p className="text-center text-gray-500 mb-6">Warranty Management System</p>
+        <p className="login-subtitle">Warranty Management System</p>
         
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="input-field"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="input-field pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-          <button type="submit" className="btn-accent w-full">Login</button>
-        </form>
-        
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Demo accounts:</p>
-          <p>cs@demo.com | tech@demo.com | leader@demo.com</p>
-          <p>Password: password</p>
-        </div>
+        <LoginForm
+          email={email}
+          password={password}
+          showPassword={showPassword}
+          error={error}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
+          onSubmit={handleSubmit}
+        />
       </div>
     </div>
   );

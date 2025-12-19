@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "../utilities.css";
+
+.login-page {
+  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] to-[#0d9488] px-4;
+}
+
+.login-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full max-w-md;
+}
+
+.login-header {
+  @apply flex items-center justify-center gap-3 mb-6;
+}
+
+.login-logo {
+  @apply w-10 h-10 text-[#0d9488];
+}
+
+.login-title {
+  @apply text-2xl font-bold text-[#1e3a5f];
+}
+
+.login-subtitle {
+  @apply text-center text-gray-500 mb-6;
+}
+

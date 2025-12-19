@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "../utilities.css";
+
+.create-case-page {
+  @apply p-6 max-w-2xl mx-auto;
+}
+
+.create-case-back-button {
+  @apply flex items-center gap-2 text-gray-600 mb-6 hover:text-[#1e3a5f];
+}
+
+.create-case-back-icon {
+  @apply w-5 h-5;
+}
+
+.create-case-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+}
+
+.create-case-title {
+  @apply text-2xl font-bold text-[#1e3a5f] mb-6;
+}
+

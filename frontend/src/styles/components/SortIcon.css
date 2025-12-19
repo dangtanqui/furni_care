@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+.sort-icon-default {
+  @apply w-4 h-4 text-gray-400;
+}
+
+.sort-icon-active {
+  @apply w-4 h-4 text-[var(--accent)];
+}
+

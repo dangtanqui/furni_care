@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "../../../utilities.css";
+
+.case-filters-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6;
+}
+
+.case-filters-container {
+  @apply flex flex-col md:flex-row md:flex-nowrap md:items-center gap-3 md:overflow-x-auto;
+}
+
+.case-filters-label {
+  @apply flex items-center gap-1 pl-1 flex-shrink-0;
+}
+
+.case-filters-icon {
+  @apply w-5 h-5 text-gray-400;
+}
+
+.case-filters-text {
+  @apply text-xs font-semibold uppercase tracking-wide text-gray-500;
+}
+
+.case-filters-select {
+  @apply w-full md:flex-1 md:min-w-[160px];
+}
+
+.case-filters-select-wide {
+  @apply w-full md:flex-1 md:min-w-[192px];
+}
+

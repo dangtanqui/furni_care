@@ -1,0 +1,66 @@
+import { Eye, EyeOff } from 'lucide-react';
+import Button from '../../../fields/Button';
+import '../../../styles/components/pages/login/LoginForm.css';
+import type { LoginFormProps } from '../../../types/components/pages/Login';
+
+export default function LoginForm({ 
+  email, 
+  password, 
+  showPassword, 
+  error, 
+  onEmailChange, 
+  onPasswordChange, 
+  onTogglePassword, 
+  onSubmit 
+}: LoginFormProps) {
+  return (
+    <>
+      {error && <div className="login-error">{error}</div>}
+      
+      <form onSubmit={onSubmit} className="login-form">
+        <div>
+          <label htmlFor="email" className="login-label">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={e => onEmailChange(e.target.value)}
+            className="login-input-field"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="login-label">Password</label>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => onPasswordChange(e.target.value)}
+              className="login-password-field"
+              required
+            />
+            <button
+              type="button"
+              onClick={onTogglePassword}
+              className="login-password-toggle"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="login-password-toggle-icon" /> : <Eye className="login-password-toggle-icon" />}
+            </button>
+          </div>
+        </div>
+        <Button type="submit" variant="primary">Login</Button>
+      </form>
+      
+      <div className="login-demo-info">
+        <p>Demo accounts:</p>
+        <p>cs@demo.com | tech@demo.com | leader@demo.com</p>
+        <p>Password: password</p>
+      </div>
+    </>
+  );
+}
+

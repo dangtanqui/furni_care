@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@import "../../../../utilities.css";
+
+.stage3-container {
+  @apply space-y-4;
+}
+
+.stage3-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.stage3-label-checklist {
+  @apply block text-sm font-medium text-gray-700 mb-2;
+}
+
+.stage3-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg;
+  padding-right: 0.75rem;
+}
+
+.stage3-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-24;
+  padding-right: 0.75rem;
+}
+
+.stage3-readonly-content {
+  @apply p-3 bg-gray-50 rounded-lg;
+}
+
+.stage3-upload-area {
+  @apply border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#0d9488] cursor-pointer block mb-3;
+}
+
+.stage3-upload-text {
+  @apply text-sm text-gray-500;
+}
+
+.stage3-no-attachments {
+  @apply text-gray-500 text-sm;
+}
+
+.stage3-checklist-container {
+  @apply space-y-2;
+}
+
+.stage3-checklist-item {
+  @apply flex items-center gap-3 p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100;
+}
+
+.stage3-checklist-checkbox {
+  @apply w-5 h-5 text-[#0d9488] rounded;
+}
+
+.stage3-checklist-completed {
+  @apply line-through text-gray-400;
+}
+
+.stage3-cost-section {
+  @apply p-4 bg-gray-50 rounded-lg;
+}
+
+.stage3-cost-checkbox-label {
+  @apply flex items-center gap-2 mb-3;
+}
+
+.stage3-cost-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.stage3-cost-input-wrapper {
+  @apply flex items-center border border-gray-300 rounded-lg overflow-hidden;
+}
+
+.stage3-cost-currency {
+  @apply px-3 py-2 bg-gray-50 text-gray-700 border-r border-gray-300 flex-shrink-0;
+}
+
+.stage3-cost-input {
+  @apply flex-1 px-3 py-2 border-0 rounded-none focus:outline-none focus:ring-0;
+}
+
+.stage3-cost-display {
+  @apply flex items-center h-10;
+}
+
+.stage3-cost-status-approved {
+  @apply flex items-center h-10 text-green-600;
+}
+
+.stage3-cost-status-rejected {
+  @apply flex items-center h-10 text-red-600;
+}
+
+.stage3-cost-status-pending {
+  @apply flex items-center h-10 text-yellow-600;
+}
+
+.stage3-cost-actions {
+  @apply flex flex-col gap-2 pt-3 border-t;
+}
+
+.stage3-cost-reject-button {
+  @apply bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2;
+}
+
+.stage3-buttons-container {
+  @apply flex gap-3 items-center;
+}
+
+.stage3-button-group {
+  @apply flex items-center gap-2 sm:gap-3 flex-wrap;
+}
+
+.stage3-alert-yellow {
+  @apply flex items-center gap-2 text-yellow-600 text-sm;
+}
+
+.stage3-alert-red {
+  @apply flex items-center gap-2 text-red-600 text-sm;
+}
+
+.stage3-alert-icon {
+  @apply w-4 h-4 flex-shrink-0;
+}
+
+.stage3-alert-text {
+  @apply whitespace-normal;
+}
+
+.stage3-cancel-section {
+  @apply pt-4 border-t;
+}
+
+.stage3-cancel-section .btn-primary {
+  @apply w-full md:w-auto;
+}
+
+.stage3-waiting-message {
+  @apply p-3 bg-blue-50 rounded-lg text-blue-700 text-sm;
+}
+
+.stage3-upload-icon {
+  @apply w-8 h-8 mx-auto text-gray-400 mb-2;
+}
+
+.stage3-cost-flex-col {
+  @apply flex flex-col;
+}
+
+.stage3-cost-space-y {
+  @apply space-y-3;
+}
+
+.stage3-button-accent-flex {
+  @apply bg-[var(--accent)] hover:bg-[var(--accent-light)] text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2;
+}
+
+.stage3-button-primary {
+  @apply bg-[var(--primary)] hover:bg-[var(--primary-light)] text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap flex-shrink-0;
+}
+
+.stage3-button-secondary {
+  @apply bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap flex-shrink-0;
+}
+
