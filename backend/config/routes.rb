@@ -13,6 +13,7 @@ Rails.application.routes.draw do
         post :cancel_case
         post :attachments, to: 'case_attachments#create'
       end
+      resources :case_attachments, only: [:destroy], controller: 'case_attachments', param: :id
     end
     
     resources :clients, only: [:index] do

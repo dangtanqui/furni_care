@@ -7,7 +7,7 @@ import type { Stage3Props } from '../../../../types/components/pages/CaseDetails
 import { getCase } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage3Content.css';
 
-export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTechnician, onUpdate, onAdvance, onApproveCost, onRejectCost, onCancelCase, onUploadAttachments, onCloseAccordion, onOpenStage }: Stage3Props) {
+export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTechnician, onUpdate, onAdvance, onApproveCost, onRejectCost, onCancelCase, onUploadAttachments, onDeleteAttachment, onCloseAccordion, onOpenStage }: Stage3Props) {
   const [form, setForm] = useState({
     root_cause: caseData.root_cause || '',
     solution_description: caseData.solution_description || '',
@@ -23,15 +23,11 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
   });
   const checklistItems = ['Prepare materials', 'Schedule with client'];
   const isCurrent = caseData.current_stage === 3;
+  const canEditStage3 = isTechnician && caseData.current_stage >= 3 && caseData.status !== 'closed' && caseData.status !== 'cancelled';
+  // Allow editing if canEdit OR canEditStage3 (fallback for technician)
+  const editable = canEdit || canEditStage3;
   const canAdvance = !form.cost_required || caseData.cost_status === 'approved';
-  const showSavePlan = caseData.status !== 'pending' && form.cost_required && caseData.cost_status !== 'approved' && caseData.cost_status !== 'rejected';
   const isRejected = caseData.cost_status === 'rejected';
-  // Check pending approval using caseData (not form) to ensure consistency
-  // cost_status can be 'pending', null, or undefined when waiting for approval
-  const isPendingApproval = caseData.cost_required && 
-    caseData.status === 'pending' && 
-    caseData.cost_status !== 'approved' && 
-    caseData.cost_status !== 'rejected';
   const attachments = caseData.stage_attachments?.['3'] || [];
   const costAttachments = attachments.filter((att: any) => att.attachment_type === 'cost');
   const stageAttachments = attachments.filter((att: any) => att.attachment_type !== 'cost');
@@ -99,7 +95,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
     <div className="stage3-container">
       <div>
         <label htmlFor="root_cause" className="stage3-label">Root Cause</label>
-        {canEdit ? (
+        {editable ? (
           <input
             id="root_cause"
             name="root_cause"
@@ -115,7 +111,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
 
       <div>
         <label htmlFor="solution_description" className="stage3-label">Solution Description</label>
-        {canEdit ? (
+        {editable ? (
           <textarea
             id="solution_description"
             name="solution_description"
@@ -129,18 +125,18 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
       </div>
 
       <div>
-        {canEdit ? (
+        {editable ? (
           <FileUpload
             id="stage3-attachments"
             name="stage3-attachments"
             accept="image/*,.pdf"
             onFileChange={handleFileChange}
-            disabled={!canEdit}
+            disabled={!editable}
           />
         ) : (
           <label className="stage3-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={stageAttachments} />
+        <AttachmentGrid attachments={stageAttachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
         {!canEdit && stageAttachments.length === 0 && (
           <p className="stage3-no-attachments">No attachments</p>
         )}
@@ -156,8 +152,8 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
                 name={`stage3-checklist-${idx}`}
                 type="checkbox"
                 checked={checklist[idx] || false}
-                onChange={() => canEdit && toggleChecklist(idx)}
-                disabled={!canEdit}
+                onChange={() => editable && toggleChecklist(idx)}
+                disabled={!editable}
                 className="stage3-checklist-checkbox"
               />
               <span className={checklist[idx] ? 'stage3-checklist-completed' : ''}>{item}</span>
@@ -168,7 +164,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
 
       <div>
         <label htmlFor="planned_execution_date" className="stage3-label">Planned Execution Date</label>
-        {canEdit ? (
+        {editable ? (
           <input
             id="planned_execution_date"
             name="planned_execution_date"
@@ -191,7 +187,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
             type="checkbox"
             checked={form.cost_required}
             onChange={e => setForm({ ...form, cost_required: e.target.checked })}
-            disabled={!canEdit}
+            disabled={!editable}
           />
           <span className="font-medium">Cost Required</span>
         </label>
@@ -201,9 +197,9 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
             <div className="stage3-cost-grid">
               <div className="stage3-cost-flex-col">
                 <label htmlFor="estimated_cost" className="stage3-label">Estimated Cost</label>
-                {canEdit ? (
-                  <div className="stage3-cost-input-wrapper">
-                    <span className="stage3-cost-currency">$</span>
+                {editable ? (
+                  <div className="stage3-cost-input-with-prefix">
+                    <span className="stage3-cost-prefix">$</span>
                     <input
                       id="estimated_cost"
                       name="estimated_cost"
@@ -231,7 +227,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
             </div>
             <div>
               <label htmlFor="cost_description" className="stage3-label">Cost Description</label>
-              {canEdit ? (
+              {editable ? (
                 <input
                   id="cost_description"
                   name="cost_description"
@@ -245,7 +241,7 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
               )}
             </div>
             <div>
-              {canEdit ? (
+              {editable ? (
                 <FileUpload
                   id="cost-attachments"
                   name="cost-attachments"
@@ -253,107 +249,148 @@ export default function Stage3Content({ caseData, canEdit, isLeader, isCS, isTec
                   onFileChange={handleCostFileChange}
                   label="Cost Attachments"
                   uploadText="Click to upload cost documents"
-                  disabled={!canEdit}
+                  disabled={!editable}
                 />
               ) : (
                 <label className="stage3-label">Cost Attachments</label>
               )}
-              <AttachmentGrid attachments={costAttachments} />
+              <AttachmentGrid attachments={costAttachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
             </div>
 
             {isLeader && caseData.status === 'pending' && caseData.cost_status !== 'approved' && caseData.cost_status !== 'rejected' && (
               <div className="stage3-cost-actions">
-                <Button onClick={onApproveCost} variant="primary" leftIcon={<Check />}>
-                  Approve Cost
-                </Button>
-                <Button onClick={onRejectCost} variant="danger" leftIcon={<X />}>
-                  Reject
-                </Button>
+                <div className="stage3-approve-reject-buttons">
+                  <Button onClick={onApproveCost} variant="primary" leftIcon={<Check />} alwaysAutoWidth>
+                    Approve Cost
+                  </Button>
+                  <Button onClick={onRejectCost} variant="secondary" leftIcon={<X />} alwaysAutoWidth>
+                    Reject
+                  </Button>
+                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {canEdit && !isLeader && (
-        <div className="button-container">
-          {canAdvance ? (
-            <Button onClick={handleSubmit} variant={isCurrent ? 'primary' : 'secondary'}>
-              {isCurrent ? 'Complete' : 'Update'}
-            </Button>
-          ) : showSavePlan ? (
-            <>
+      {(canEdit || canEditStage3) && (
+        <>
+          {isCurrent ? (
+            /* Stage is current (not completed) */
+            form.cost_required ? (
+              /* Checkbox is selected */
+              <>
+                <Button 
+                  onClick={async () => {
+                    await onUpdate({ 
+                      ...form, 
+                      solution_checklist: JSON.stringify(checklist), 
+                      status: 'pending',
+                      estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
+                    });
+                    setTimeout(() => {
+                      onCloseAccordion();
+                    }, 100);
+                  }} 
+                  variant="primary"
+                >
+                  Save Plan
+                </Button>
+                <p className="button-message button-message-warning">
+                  <AlertCircle className="inline w-4 h-4 mr-1" /> 
+                  {isRejected 
+                    ? 'Cost plan was rejected. Please update and resubmit for approval'
+                    : 'Save first, then wait for Leader approval'
+                  }
+                </p>
+              </>
+            ) : (
+              /* Checkbox is not selected - Complete without approval, clear pending status */
               <Button 
                 onClick={async () => {
-                  await onUpdate({ 
+                  const updateData: any = { 
                     ...form, 
-                    solution_checklist: JSON.stringify(checklist), 
-                    status: 'pending',
-                    estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
-                  });
-                  // Wait a bit for the update to complete before closing accordion
-                  setTimeout(() => {
-                    onCloseAccordion();
+                    solution_checklist: JSON.stringify(checklist),
+                    cost_required: false
+                  };
+                  // Only include status if it needs to be changed from pending
+                  if (caseData.status === 'pending') {
+                    updateData.status = 'in_progress';
+                  }
+                  // Remove cost fields if they exist (set to null for backend)
+                  updateData.estimated_cost = null;
+                  updateData.cost_description = null;
+                  await onUpdate(updateData);
+                  if (caseData.current_stage === 3 && canAdvance) {
+                    await onAdvance();
+                    setTimeout(() => {
+                      onOpenStage(4);
+                    }, 100);
+                  }
+                }} 
+                variant="primary"
+              >
+                Complete
+              </Button>
+            )
+          ) : (
+            /* Stage is completed */
+            form.cost_required ? (
+              /* Checkbox is selected */
+              <>
+                <Button 
+                  onClick={async () => {
+                    await onUpdate({ 
+                      ...form, 
+                      solution_checklist: JSON.stringify(checklist),
+                      status: 'pending',
+                      estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
+                    });
+                    setTimeout(() => {
+                      onCloseAccordion();
+                    }, 100);
+                  }} 
+                  variant="primary"
+                >
+                  Update
+                </Button>
+                <p className="button-message button-message-warning">
+                  <AlertCircle className="inline w-4 h-4 mr-1" /> 
+                  {isRejected 
+                    ? 'Cost plan was rejected. Please update and resubmit for approval'
+                    : 'Save first, then wait for Leader approval'
+                  }
+                </p>
+              </>
+            ) : (
+              /* Checkbox is not selected - Update without setting status to pending, clear pending if exists */
+              <Button 
+                onClick={async () => {
+                  const updateData: any = { 
+                    ...form, 
+                    solution_checklist: JSON.stringify(checklist),
+                    cost_required: false
+                  };
+                  // Only include status if it needs to be changed from pending
+                  if (caseData.status === 'pending') {
+                    updateData.status = 'in_progress';
+                  }
+                  // Remove cost fields if they exist (set to null for backend)
+                  updateData.estimated_cost = null;
+                  updateData.cost_description = null;
+                  await onUpdate(updateData);
+                  setTimeout(async () => {
+                    const updatedCase = await getCase(caseData.id);
+                    onOpenStage(updatedCase.data.current_stage);
                   }, 100);
                 }} 
                 variant="primary"
               >
-                Save Plan
+                Update
               </Button>
-              <p className="button-message button-message-warning">
-                <AlertCircle className="inline w-4 h-4 mr-1" /> Save first, then wait for Leader approval
-              </p>
-            </>
-          ) : (
-            <>
-              {/* When cost is rejected */}
-              {isRejected && caseData.cost_required ? (
-                <>
-                  <Button 
-                    onClick={async () => {
-                      await onUpdate({ 
-                        ...form, 
-                        solution_checklist: JSON.stringify(checklist),
-                        estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
-                      });
-                      setTimeout(() => {
-                        onCloseAccordion();
-                      }, 100);
-                    }} 
-                    variant="secondary"
-                  >
-                    Update Plan
-                  </Button>
-                  <p className="button-message button-message-error">
-                    <AlertCircle className="inline w-4 h-4 mr-1" /> Cost has been rejected. Please update the cost plan.
-                  </p>
-                </>
-              ) : isPendingApproval ? (
-                <>
-                  <Button 
-                    onClick={async () => {
-                      await onUpdate({ 
-                        ...form, 
-                        solution_checklist: JSON.stringify(checklist), 
-                        status: 'pending',
-                        estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
-                      });
-                      setTimeout(() => {
-                        onCloseAccordion();
-                      }, 100);
-                    }} 
-                    variant="secondary"
-                  >
-                    Update Plan
-                  </Button>
-                  <p className="button-message button-message-warning">
-                    <AlertCircle className="inline w-4 h-4 mr-1" /> Waiting for Leader approval. You can still update the plan.
-                  </p>
-                </>
-              ) : null}
-            </>
+            )
           )}
-        </div>
+        </>
       )}
 
       {/* CS can cancel case when cost is rejected */}

@@ -227,6 +227,7 @@ GEM
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2025.3)
       tzinfo (>= 1.0.0)
+    wdm (0.2.0)
     websocket-driver (0.8.0)
       base64
       websocket-extensions (>= 0.1.0)
@@ -250,6 +251,7 @@ DEPENDENCIES
   rack-cors
   rails (~> 7.1.6)
   tzinfo-data
+  wdm (>= 0.1.0)
 
 RUBY VERSION
    ruby 3.2.6p234

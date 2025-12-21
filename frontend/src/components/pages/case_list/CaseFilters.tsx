@@ -24,6 +24,7 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
             { value: 'rejected', label: 'Rejected' },
             { value: 'cancelled', label: 'Cancelled' },
           ]}
+          placeholder="Filter by Status"
           className="case-filters-select"
         />
         <Select
@@ -35,6 +36,7 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
             { value: 'maintenance', label: 'Maintenance' },
             { value: 'repair', label: 'Repair' },
           ]}
+          placeholder="Filter by Type"
           className="case-filters-select"
         />
         <Select
@@ -45,6 +47,7 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
             { value: 'unassigned', label: 'Unassigned' },
             ...technicians.map(t => ({ value: String(t.id), label: t.name })),
           ]}
+          placeholder="Filter by Technician"
           className="case-filters-select-wide"
         />
       </div>

@@ -17,6 +17,12 @@ class Api::CaseAttachmentsController < ApplicationController
     render json: { stage: stage, attachments: attachments }, status: :created
   end
 
+  def destroy
+    attachment = @case.case_attachments.find(params[:id])
+    attachment.destroy
+    head :no_content
+  end
+
   private
 
   def set_case

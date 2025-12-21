@@ -13,7 +13,7 @@
 }
 
 .layout-logo-link {
-  @apply flex items-center gap-3;
+  @apply flex items-center gap-3 cursor-pointer;
 }
 
 .layout-logo-icon {
@@ -41,7 +41,7 @@
 }
 
 .layout-logout-button {
-  @apply p-2 hover:bg-white/10 rounded-lg;
+  @apply p-2 hover:bg-white/10 rounded-lg cursor-pointer;
 }
 
 .layout-logout-icon {

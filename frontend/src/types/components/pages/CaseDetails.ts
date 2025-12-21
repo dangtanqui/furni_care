@@ -20,6 +20,7 @@ export interface StageSectionProps {
   onCancelCase: () => void;
   onRedo: () => void;
   onUploadAttachments: (stage: number, files: File[], attachmentType?: string) => Promise<void>;
+  onDeleteAttachment?: (attachmentId: number) => Promise<void>;
 }
 
 export interface Stage1Props {
@@ -30,6 +31,7 @@ export interface Stage1Props {
   onUpdate: (data: Partial<CaseDetailType>) => void;
   onAdvance: () => void;
   onOpenStage: (stageNum: number) => void;
+  onDeleteAttachment?: (attachmentId: number) => Promise<void>;
 }
 
 export interface Stage2Props {
@@ -68,6 +70,7 @@ export interface Stage4Props {
   onAdvance: () => void;
   onOpenStage: (stageNum: number) => void;
   onUploadAttachments: (stage: number, files: File[], attachmentType?: string) => Promise<void>;
+  onDeleteAttachment?: (attachmentId: number) => Promise<void>;
 }
 
 export interface Stage5Props {

@@ -18,13 +18,13 @@ export default function CaseHeader({ caseData }: CaseHeaderProps) {
         </div>
         <div className="case-header-field">
           <span className="case-header-label">Status:</span>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[caseData.status] || statusColors.open}`}>
-            {caseData.status.charAt(0).toUpperCase() + caseData.status.slice(1).replace('_', ' ')}
+          <span className={`px-3 py-1 rounded-full text-sm capitalize ${statusColors[caseData.status] || statusColors.open}`}>
+            {caseData.status.replace('_', ' ')}
           </span>
         </div>
         <div className="case-header-field">
           <span className="case-header-label">Client:</span>
-          <span>{caseData.client.name}</span>
+          <span className="case-header-value">{caseData.client.name}</span>
         </div>
         <div className="case-header-field">
           <span className="case-header-label">Priority:</span>
@@ -48,8 +48,8 @@ export default function CaseHeader({ caseData }: CaseHeaderProps) {
       {/* Stage Progress */}
       <div className="case-header-progress">
         {STAGES.map((s, i) => {
-          const isStageCompleted = s.num < caseData.current_stage || ((caseData.status === 'closed' || caseData.status === 'completed') && s.num === 5);
           const isStageCurrent = s.num === caseData.current_stage && caseData.status !== 'closed' && caseData.status !== 'cancelled';
+          const isStageCompleted = !isStageCurrent && (s.num < caseData.current_stage || (caseData.status === 'closed' && s.num === 5));
           return (
             <div key={s.num} className="case-header-progress-item">
               <div className={`case-header-progress-circle ${

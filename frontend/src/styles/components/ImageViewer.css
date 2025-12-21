@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+.image-viewer-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+.image-viewer-container {
+  @apply relative w-full h-full flex items-center justify-center p-4;
+}
+
+.image-viewer-close {
+  @apply absolute top-4 right-4 z-10 text-white rounded-full p-2 transition-all duration-200 cursor-pointer;
+  @apply flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.image-viewer-close:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.image-viewer-nav {
+  @apply absolute top-1/2 -translate-y-1/2 z-10 text-white rounded-full p-3 transition-all duration-200 cursor-pointer;
+  @apply flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.image-viewer-nav:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.image-viewer-nav-left {
+  @apply left-4;
+}
+
+.image-viewer-nav-right {
+  @apply right-4;
+}
+
+.image-viewer-toolbar {
+  @apply absolute top-4 left-1/2 -translate-x-1/2 z-10 rounded-lg px-4 py-2 flex items-center gap-3;
+  background-color: rgba(0, 0, 0, 0.5);
+  min-width: fit-content;
+}
+
+.image-viewer-toolbar-button {
+  @apply text-white rounded p-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  @apply flex items-center justify-center;
+}
+
+.image-viewer-toolbar-button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.image-viewer-zoom-indicator {
+  @apply text-white text-sm font-medium min-w-[3rem] text-center;
+}
+
+.image-viewer-content {
+  @apply w-full h-full flex items-center justify-center overflow-auto;
+}
+
+.image-viewer-image {
+  @apply max-w-full max-h-full object-contain transition-transform duration-200 cursor-zoom-in;
+}
+
+.image-viewer-counter {
+  @apply absolute bottom-4 left-1/2 -translate-x-1/2 z-10 text-white rounded-lg px-4 py-2 text-sm;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+

@@ -9,6 +9,8 @@ export interface FileUploadProps {
   previews?: string[];
   /** Callback when files are selected */
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** Callback when a preview is deleted */
+  onDeletePreview?: (index: number) => void;
   /** Input id and name */
   id?: string;
   name?: string;

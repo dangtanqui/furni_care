@@ -14,13 +14,35 @@
 }
 
 .login-input-field {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg;
+  @apply w-full px-3 py-2 border rounded-lg;
   padding-right: 0.75rem;
+  border-color: rgb(209 213 219);
+}
+
+.login-input-field::placeholder {
+  @apply text-gray-400;
+}
+
+.login-input-field:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .login-password-field {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg pr-10;
+  @apply w-full px-3 py-2 border rounded-lg pr-10;
   padding-right: 0.75rem;
+  border-color: rgb(209 213 219);
+}
+
+.login-password-field::placeholder {
+  @apply text-gray-400;
+}
+
+.login-password-field:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .login-password-toggle {

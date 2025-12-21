@@ -9,7 +9,14 @@
 }
 
 .case-details-back-button {
-  @apply flex items-center gap-2 text-gray-600 mb-6 hover:text-[#1e3a5f];
+  @apply text-[var(--accent)] mb-6 hover:text-[var(--accent-dark)] !w-auto;
+  @apply relative z-10;
+}
+
+.case-details-back-button .lucide {
+  color: inherit;
+  stroke: currentColor;
+  fill: none;
 }
 
 .case-details-back-icon {

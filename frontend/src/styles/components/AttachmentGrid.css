@@ -1,15 +1,51 @@
 @import "tailwindcss";
 
 .attachment-grid {
-  @apply grid grid-cols-4 gap-3;
+  @apply grid grid-cols-2 md:grid-cols-4 gap-3;
 }
 
 .attachment-item {
   @apply relative;
 }
 
+.attachment-item:hover .attachment-delete-button {
+  @apply opacity-100;
+}
+
+.attachment-delete-button {
+  @apply absolute top-1 right-1 text-white rounded-full p-1 shadow-lg transition-all duration-200;
+  @apply flex items-center justify-center opacity-0;
+  background-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .attachment-delete-button {
+    @apply opacity-100;
+  }
+}
+
+.attachment-delete-button:hover {
+  background-color: var(--accent-light);
+}
+
+.attachment-delete-button:active {
+  background-color: var(--accent-dark);
+}
+
+.attachment-image-clickable {
+  @apply cursor-pointer transition-opacity duration-200;
+}
+
+.attachment-item:hover .attachment-image-clickable {
+  @apply opacity-70;
+}
+
 .attachment-image {
-  @apply w-full h-24 object-cover rounded-lg;
+  @apply w-full h-24 object-cover rounded-lg transition-opacity duration-200;
+}
+
+.attachment-item:hover .attachment-image {
+  @apply opacity-70;
 }
 
 .attachment-filename {

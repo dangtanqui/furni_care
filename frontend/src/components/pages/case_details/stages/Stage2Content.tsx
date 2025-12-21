@@ -6,7 +6,7 @@ import type { Stage2Props } from '../../../../types/components/pages/CaseDetails
 import { getCase } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage2Content.css';
 
-export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader, onUploadAttachments, onOpenStage }: Stage2Props) {
+export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader, onUploadAttachments, onDeleteAttachment, onOpenStage }: Stage2Props) {
   const [report, setReport] = useState(caseData.investigation_report || '');
   const [checklist, setChecklist] = useState<boolean[]>(() => {
     try {
@@ -88,7 +88,7 @@ export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, 
         ) : (
           <label className="stage2-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={attachments} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
         {!canEdit && attachments.length === 0 && (
           <p className="stage2-no-attachments">No attachments</p>
         )}
@@ -114,9 +114,9 @@ export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, 
         </div>
       </div>
 
-      {canEdit && isCurrent && (
+      {canEdit && (
         <Button onClick={handleFinish} variant="primary">
-          Complete
+          {isCurrent ? 'Complete' : 'Update'}
         </Button>
       )}
 

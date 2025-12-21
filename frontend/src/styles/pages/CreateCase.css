@@ -6,7 +6,14 @@
 }
 
 .create-case-back-button {
-  @apply flex items-center gap-2 text-gray-600 mb-6 hover:text-[#1e3a5f];
+  @apply flex items-center gap-2 text-[var(--accent)] mb-6 hover:text-[var(--accent-dark)];
+  @apply relative z-10;
+}
+
+.create-case-back-button .lucide {
+  color: inherit;
+  stroke: currentColor;
+  fill: none;
 }
 
 .create-case-back-icon {
@@ -19,5 +26,9 @@
 
 .create-case-title {
   @apply text-2xl font-bold text-[#1e3a5f] mb-6;
+}
+
+.create-case-general-error {
+  @apply bg-red-50 text-red-600 px-4 py-2 rounded-lg mb-4;
 }
 

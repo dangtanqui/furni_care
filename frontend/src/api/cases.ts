@@ -106,6 +106,9 @@ export const redoCase = (id: number) =>
 export const cancelCase = (id: number) =>
   api.post<CaseDetail>(`/cases/${id}/cancel_case`);
 
+export const deleteCaseAttachment = (caseId: number, attachmentId: number) =>
+  api.delete(`/cases/${caseId}/case_attachments/${attachmentId}`);
+
 export const uploadAttachments = (
   id: number,
   stage: number,

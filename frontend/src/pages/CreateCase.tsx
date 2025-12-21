@@ -7,18 +7,27 @@ import '../styles/pages/CreateCase.css';
 export default function CreateCase() {
   const {
     form,
-    setForm,
+    handleFormChange,
     clients,
     sites,
     contacts,
     previews,
     handleFileChange,
+    handleDeletePreview,
     handleSubmit,
+    errors,
+    clearFieldError,
   } = useCreateCase();
 
   return (
     <div className="create-case-page">
-      <Button variant="tertiary" onClick={() => window.history.back()} leftIcon={<ArrowLeft />} alwaysAutoWidth>
+      <Button
+        variant="tertiary"
+        onClick={() => window.history.back()}
+        leftIcon={<ArrowLeft />}
+        alwaysAutoWidth
+        className="create-case-back-button"
+      >
         Back
       </Button>
       
@@ -31,9 +40,12 @@ export default function CreateCase() {
           sites={sites}
           contacts={contacts}
           previews={previews}
-          onFormChange={setForm}
+          onFormChange={handleFormChange}
           onFileChange={handleFileChange}
+          onDeletePreview={handleDeletePreview}
           onSubmit={handleSubmit}
+          errors={errors}
+          onClearFieldError={clearFieldError}
         />
       </div>
     </div>

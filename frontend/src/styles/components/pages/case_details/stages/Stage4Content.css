@@ -10,8 +10,19 @@
 }
 
 .stage4-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-32;
+  @apply w-full px-3 py-2 border rounded-lg h-32;
   padding-right: 0.75rem;
+  border-color: rgb(209 213 219);
+}
+
+.stage4-textarea::placeholder {
+  @apply text-gray-400;
+}
+
+.stage4-textarea:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .stage4-readonly-content {
@@ -39,11 +50,60 @@
 }
 
 .stage4-checklist-item {
-  @apply flex items-center gap-2 cursor-pointer;
+  @apply flex items-center gap-2 cursor-pointer p-2 rounded-lg;
+}
+
+.stage4-checklist-item:has(.stage4-checklist-checkbox:disabled) {
+  cursor: default !important;
 }
 
 .stage4-checklist-checkbox {
-  @apply w-5 h-5 text-[#0d9488] rounded;
+  @apply w-5 h-5 rounded transition-colors duration-200 cursor-pointer;
+  accent-color: var(--accent);
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid var(--accent);
+}
+
+.stage4-checklist-checkbox:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.stage4-checklist-checkbox:hover:not(:disabled) {
+  border-color: var(--accent-light);
+}
+
+.stage4-checklist-checkbox:hover:not(:disabled):checked {
+  background-color: var(--accent-light);
+  border-color: var(--accent-light);
+}
+
+.stage4-checklist-checkbox:active:not(:disabled) {
+  border-color: var(--accent-dark);
+}
+
+.stage4-checklist-checkbox:active:not(:disabled):checked {
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.stage4-checklist-checkbox:disabled {
+  cursor: default !important;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.stage4-checklist-checkbox:checked::before {
+  content: '✓';
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  line-height: 1rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
 }
 
 .stage4-checklist-completed {
@@ -95,28 +155,124 @@
 }
 
 .stage4-rating-label {
-  @apply text-sm text-gray-500;
+  @apply text-sm font-medium text-gray-700;
 }
 
 .stage4-rating-container {
   @apply flex gap-2 mt-1;
 }
 
+.stage4-rating-button:disabled {
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Disable hover effects when disabled */
+.stage4-rating-container:has(.stage4-rating-button:disabled) .stage4-rating-button:hover {
+  background-color: inherit;
+  color: inherit;
+}
+
 .stage4-rating-button {
-  @apply w-10 h-10 rounded-full;
+  @apply w-10 h-10 rounded-full transition-all duration-200 cursor-pointer;
+  @apply active:scale-[0.98];
+}
+
+/* Active effect: highlight from 1 to pressed number */
+.stage4-rating-container:has(.stage4-rating-button:nth-child(1):active) .stage4-rating-button:nth-child(1) {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(2):active) .stage4-rating-button:nth-child(-n+2) {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(3):active) .stage4-rating-button:nth-child(-n+3) {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(4):active) .stage4-rating-button:nth-child(-n+4) {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(5):active) .stage4-rating-button:nth-child(-n+5) {
+  background-color: var(--accent-dark) !important;
+  color: white !important;
 }
 
 .stage4-rating-button-active {
-  @apply bg-yellow-400 text-white;
+  @apply bg-[var(--accent)] text-white;
 }
 
 .stage4-rating-button-inactive {
-  @apply bg-gray-200;
+  @apply bg-gray-200 text-gray-600;
+}
+
+/* Hover effect: highlight from 1 to hovered number, reset numbers after hovered */
+.stage4-rating-container:has(.stage4-rating-button:nth-child(1):hover) .stage4-rating-button:nth-child(1) {
+  background-color: var(--accent-light);
+  color: white;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(1):hover) .stage4-rating-button:nth-child(n+2) {
+  background-color: rgb(229 231 235);
+  color: rgb(75 85 99);
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(2):hover) .stage4-rating-button:nth-child(-n+2) {
+  background-color: var(--accent-light);
+  color: white;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(2):hover) .stage4-rating-button:nth-child(n+3) {
+  background-color: rgb(229 231 235);
+  color: rgb(75 85 99);
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(3):hover) .stage4-rating-button:nth-child(-n+3) {
+  background-color: var(--accent-light);
+  color: white;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(3):hover) .stage4-rating-button:nth-child(n+4) {
+  background-color: rgb(229 231 235);
+  color: rgb(75 85 99);
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(4):hover) .stage4-rating-button:nth-child(-n+4) {
+  background-color: var(--accent-light);
+  color: white;
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(4):hover) .stage4-rating-button:nth-child(n+5) {
+  background-color: rgb(229 231 235);
+  color: rgb(75 85 99);
+}
+
+.stage4-rating-container:has(.stage4-rating-button:nth-child(5):hover) .stage4-rating-button:nth-child(-n+5) {
+  background-color: var(--accent-light);
+  color: white;
 }
 
 .stage4-feedback-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-20;
+  @apply w-full px-3 py-2 border rounded-lg h-20;
   padding-right: 0.75rem;
+  border-color: rgb(209 213 219);
+}
+
+.stage4-feedback-textarea::placeholder {
+  @apply text-gray-400;
+}
+
+.stage4-feedback-textarea:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .stage4-waiting-message {

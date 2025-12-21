@@ -18,9 +18,27 @@
   padding-right: 0.75rem;
 }
 
+.stage3-input:focus,
+.stage3-input:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
 .stage3-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg h-24;
+  @apply w-full px-3 py-2 border rounded-lg h-24;
   padding-right: 0.75rem;
+  border-color: rgb(209 213 219);
+}
+
+.stage3-textarea::placeholder {
+  @apply text-gray-400;
+}
+
+.stage3-textarea:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .stage3-readonly-content {
@@ -47,8 +65,61 @@
   @apply flex items-center gap-3 p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100;
 }
 
+.stage3-checklist-item:has(.stage3-checklist-checkbox:disabled) {
+  cursor: default !important;
+}
+
+.stage3-checklist-item:has(.stage3-checklist-checkbox:disabled):hover {
+  background-color: rgb(249 250 251) !important;
+}
+
 .stage3-checklist-checkbox {
-  @apply w-5 h-5 text-[#0d9488] rounded;
+  @apply w-5 h-5 rounded transition-colors duration-200 cursor-pointer;
+  accent-color: var(--accent);
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid var(--accent);
+}
+
+.stage3-checklist-checkbox:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.stage3-checklist-checkbox:hover:not(:disabled) {
+  border-color: var(--accent-light);
+}
+
+.stage3-checklist-checkbox:hover:not(:disabled):checked {
+  background-color: var(--accent-light);
+  border-color: var(--accent-light);
+}
+
+.stage3-checklist-checkbox:active:not(:disabled) {
+  border-color: var(--accent-dark);
+}
+
+.stage3-checklist-checkbox:active:not(:disabled):checked {
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.stage3-checklist-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.stage3-checklist-checkbox:checked::before {
+  content: '✓';
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  line-height: 1rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
 }
 
 .stage3-checklist-completed {
@@ -63,20 +134,77 @@
   @apply flex items-center gap-2 mb-3;
 }
 
+.stage3-cost-checkbox-label input[type="checkbox"] {
+  @apply w-5 h-5 rounded transition-colors duration-200 cursor-pointer;
+  accent-color: var(--accent);
+  appearance: none;
+  background-color: transparent;
+  border: 2px solid var(--accent);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:hover:not(:disabled) {
+  border-color: var(--accent-light);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:hover:not(:disabled):checked {
+  background-color: var(--accent-light);
+  border-color: var(--accent-light);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:active:not(:disabled) {
+  border-color: var(--accent-dark);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:active:not(:disabled):checked {
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.stage3-cost-checkbox-label input[type="checkbox"]:checked::before {
+  content: '✓';
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  line-height: 1rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
 .stage3-cost-grid {
   @apply grid grid-cols-2 gap-4;
 }
 
-.stage3-cost-input-wrapper {
-  @apply flex items-center border border-gray-300 rounded-lg overflow-hidden;
+.stage3-cost-input-with-prefix {
+  @apply relative flex items-center;
 }
 
-.stage3-cost-currency {
-  @apply px-3 py-2 bg-gray-50 text-gray-700 border-r border-gray-300 flex-shrink-0;
+.stage3-cost-prefix {
+  @apply absolute left-3 text-gray-600 pointer-events-none z-10;
 }
 
 .stage3-cost-input {
-  @apply flex-1 px-3 py-2 border-0 rounded-none focus:outline-none focus:ring-0;
+  @apply w-full px-3 py-2 pl-6 border border-gray-300 rounded-lg focus:outline-none;
+  box-sizing: border-box;
+}
+
+.stage3-cost-input:focus,
+.stage3-cost-input:focus-visible {
+  outline: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 .stage3-cost-display {
@@ -125,6 +253,15 @@
 
 .stage3-alert-text {
   @apply whitespace-normal;
+}
+
+.stage3-approve-reject-buttons {
+  @apply flex flex-col gap-2 md:flex-row;
+}
+
+.stage3-approve-reject-buttons > button,
+.stage3-approve-reject-buttons > a {
+  @apply w-full md:w-auto;
 }
 
 .stage3-cancel-section {

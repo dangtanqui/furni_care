@@ -31,7 +31,7 @@ export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRed
   return (
     <div className="stage5-container">
       <div>
-        <label htmlFor="cs_notes" className="stage5-label">CS Notes</label>
+        <label htmlFor="cs_notes" className="stage5-label">Note</label>
         {canEdit ? (
           <textarea
             id="cs_notes"
@@ -45,46 +45,50 @@ export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRed
         )}
       </div>
 
-      <div>
-        <label htmlFor="final_feedback" className="stage5-label">Final Client Feedback</label>
-        {canEdit ? (
-          <textarea
-            id="final_feedback"
-            name="final_feedback"
-            value={form.final_feedback}
-            onChange={e => setForm({ ...form, final_feedback: e.target.value })}
-            className="stage5-textarea-small"
-          />
-        ) : (
-          <p className="stage5-readonly-content">{caseData.final_feedback || '-'}</p>
-        )}
-      </div>
-
-      <div className="stage5-rating-section">
-        <label className="stage5-rating-label">Final Rating</label>
-        {canEdit ? (
-          <div className="stage5-rating-container">
-            {[1, 2, 3, 4, 5].map(n => (
-              <button
-                key={n}
-                onClick={() => setForm({ ...form, final_rating: n })}
-                className={`stage5-rating-button ${form.final_rating >= n ? 'stage5-rating-button-active' : 'stage5-rating-button-inactive'}`}
-              >
-                {n}
-              </button>
-            ))}
+      <div className="stage5-feedback-section">
+        <h4 className="stage5-feedback-title">Client Feedback</h4>
+        <div className="space-y-3">
+          <div>
+            <label className="stage5-rating-label">Rating</label>
+            {canEdit ? (
+              <div className="stage5-rating-container">
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setForm({ ...form, final_rating: n })}
+                    className={`stage5-rating-button ${form.final_rating >= n ? 'stage5-rating-button-active' : 'stage5-rating-button-inactive'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p>{caseData.final_rating ? `${caseData.final_rating}/5` : '-'}</p>
+            )}
           </div>
-        ) : (
-          <p>{caseData.final_rating ? `${caseData.final_rating}/5` : '-'}</p>
-        )}
+          <div>
+            <label htmlFor="final_feedback" className="stage5-label">Feedback</label>
+            {canEdit ? (
+              <textarea
+                id="final_feedback"
+                name="final_feedback"
+                value={form.final_feedback}
+                onChange={e => setForm({ ...form, final_feedback: e.target.value })}
+                className="stage5-feedback-textarea"
+              />
+            ) : (
+              <p>{caseData.final_feedback || '-'}</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {canEdit && caseData.status !== 'closed' && caseData.status !== 'cancelled' && (
         <div className="stage5-actions">
-          <Button onClick={handleClose} variant="primary">
+          <Button onClick={handleClose} variant="primary" alwaysAutoWidth>
             Complete
           </Button>
-          <Button onClick={onRedo} variant="secondary">
+          <Button onClick={onRedo} variant="secondary" alwaysAutoWidth>
             Redo → Back to Stage 3
           </Button>
         </div>

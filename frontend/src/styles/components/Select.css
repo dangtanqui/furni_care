@@ -5,11 +5,19 @@
 }
 
 .select-option {
-  @apply w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors whitespace-nowrap;
+  @apply w-full px-3 py-2 text-left transition-colors whitespace-nowrap;
+}
+
+.select-option:hover {
+  background-color: rgba(13, 148, 136, 0.15);
 }
 
 .select-option-selected {
   @apply bg-[var(--accent)]/10 text-[var(--accent)] font-medium;
+}
+
+.select-option-selected:hover {
+  background-color: rgba(13, 148, 136, 0.2);
 }
 
 .select-option-default {

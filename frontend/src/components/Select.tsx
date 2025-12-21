@@ -17,6 +17,8 @@ interface SelectProps {
   disabled?: boolean;
   id?: string;
   name?: string;
+  error?: boolean;
+  onOpen?: () => void;
 }
 
 export default function Select({
@@ -28,6 +30,8 @@ export default function Select({
   disabled = false,
   id,
   name,
+  error = false,
+  onOpen,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -37,6 +41,7 @@ export default function Select({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find(opt => opt.value === value);
+  const isPlaceholder = !value || value === '' || !selectedOption;
 
   // Calculate dropdown position
   useEffect(() => {
@@ -142,8 +147,12 @@ export default function Select({
     e.preventDefault();
     e.stopPropagation();
     if (disabled) return;
-    setIsOpen(!isOpen);
-    setIsFocused(!isOpen);
+    const willOpen = !isOpen;
+    setIsOpen(willOpen);
+    setIsFocused(willOpen);
+    if (willOpen && onOpen) {
+      onOpen();
+    }
   };
 
   const handleSelect = (optionValue: string) => {
@@ -184,19 +193,23 @@ export default function Select({
         }}
         disabled={disabled}
         className={`
-          w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg
+          w-full px-3 py-2 pr-10 border rounded-lg
           flex items-center justify-between
           ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white cursor-pointer'}
+          ${error ? 'border-red-500' : 'border-gray-300'}
           transition-all text-left relative
         `}
         style={{
-          boxShadow: isFocused && isOpen ? 'inset 0 0 0 2px var(--accent)' : 'none',
-          borderColor: isFocused && isOpen ? 'transparent' : 'rgb(209 213 219)',
+          boxShadow: isFocused && isOpen ? 'inset 0 0 0 2px var(--accent)' : error ? 'inset 0 0 0 1px rgb(239 68 68)' : 'none',
+          borderColor: error ? 'rgb(239 68 68)' : (isFocused && isOpen ? 'transparent' : 'rgb(209 213 219)'),
           outline: 'none',
         }}
       >
-        <span className={`flex-1 truncate text-left pr-2 ${selectedOption ? 'text-gray-900' : 'text-gray-500'}`}>
-          {selectedOption ? selectedOption.label : placeholder}
+        <span 
+          className={`flex-1 truncate text-left pr-2 whitespace-nowrap ${isPlaceholder ? 'text-gray-400' : 'text-gray-900'}`}
+          style={isPlaceholder ? { color: 'rgb(156 163 175)' } : undefined}
+        >
+          {isPlaceholder ? placeholder : (selectedOption?.label || placeholder)}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform`}

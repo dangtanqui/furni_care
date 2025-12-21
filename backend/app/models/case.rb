@@ -1,7 +1,7 @@
 class Case < ApplicationRecord
-  belongs_to :client
-  belongs_to :site
-  belongs_to :contact
+  belongs_to :client, optional: true
+  belongs_to :site, optional: true
+  belongs_to :contact, optional: true
   belongs_to :created_by, class_name: 'User'
   belongs_to :assigned_to, class_name: 'User', optional: true
   belongs_to :cost_approved_by, class_name: 'User', optional: true
@@ -12,6 +12,9 @@ class Case < ApplicationRecord
   validates :case_number, presence: true, uniqueness: true
   validates :current_stage, inclusion: { in: 1..5 }
   validates :status, inclusion: { in: %w[open pending in_progress completed closed rejected cancelled] }
+  validates :client_id, presence: { message: "is required" }
+  validates :site_id, presence: { message: "is required" }
+  validates :contact_id, presence: { message: "is required" }
   
   before_validation :generate_case_number, on: :create
   

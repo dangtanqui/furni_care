@@ -6,7 +6,7 @@ import AttachmentGrid from '../../../AttachmentGrid';
 import type { Stage1Props } from '../../../../types/components/pages/CaseDetails';
 import '../../../../styles/components/pages/case_details/stages/Stage1Content.css';
 
-export default function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvance, onOpenStage }: Stage1Props) {
+export default function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvance, onOpenStage, onDeleteAttachment }: Stage1Props) {
   const [assignedTo, setAssignedTo] = useState('');
   const attachments = caseData.stage_attachments?.['1'] || [];
   const isCurrent = caseData.current_stage === 1;
@@ -47,38 +47,40 @@ export default function Stage1Content({ caseData, canEdit, isCS, technicians, on
 
       <div>
         <label className="stage1-label">Photos / Attachments</label>
-        <AttachmentGrid attachments={attachments} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
         {attachments.length === 0 && (
           <p className="stage1-no-attachments">No attachments</p>
         )}
       </div>
 
-      {isCS && isCurrent && canEdit && (
+      {isCS && canEdit && (
         <div className="stage1-assign-section">
           <div className="stage1-assign-container">
-            <User className="stage1-user-icon" />
-            <Select
-              id="assigned_to"
-              name="assigned_to"
-              value={assignedTo || currentAssignedId}
-              onChange={(value) => setAssignedTo(value)}
-              options={[
-                { value: '', label: 'Assign Technician...' },
-                ...technicians.map((t: any) => ({ value: String(t.id), label: t.name })),
-              ]}
-              className="stage1-select-flex"
-            />
+            <div className="stage1-assign-row">
+              <User className="stage1-user-icon" />
+              <Select
+                id="assigned_to"
+                name="assigned_to"
+                value={assignedTo || currentAssignedId || ''}
+                onChange={(value) => setAssignedTo(value)}
+                options={technicians.map((t: any) => ({ value: String(t.id), label: t.name }))}
+                placeholder="Assign Technician"
+                className="stage1-select-flex"
+              />
+            </div>
             <Button
               onClick={async () => {
                 const selectedId = assignedTo || currentAssignedId;
                 if (!selectedId || selectedId === '') return;
                 try {
                   await onUpdate({ assigned_to_id: Number(selectedId) });
-                  await onAdvance();
-                  // Open Stage 2 after advancing
-                  setTimeout(() => {
-                    onOpenStage(2);
-                  }, 100);
+                  if (isCurrent) {
+                    await onAdvance();
+                    // Open Stage 2 after advancing
+                    setTimeout(() => {
+                      onOpenStage(2);
+                    }, 100);
+                  }
                 } catch (error) {
                   console.error('Failed to assign technician:', error);
                 }
@@ -86,7 +88,7 @@ export default function Stage1Content({ caseData, canEdit, isCS, technicians, on
               variant="primary"
               disabled={(!assignedTo || assignedTo === '') && !currentAssignedId}
             >
-              Complete
+              {isCurrent ? 'Complete' : 'Update'}
             </Button>
           </div>
         </div>

@@ -54,31 +54,38 @@ export default function Button({
   const sizeClass = sizeMap[size];
   
   // Width logic:
-  // - alwaysAutoWidth: luôn auto-width (cho back button)
-  // - fullWidth: luôn full-width
-  // - Mặc định: responsive (w-full md:w-auto từ CSS)
+  // - alwaysAutoWidth: luôn auto-width kể cả mobile (cho back button) - override CSS với !important
+  // - fullWidth: luôn full-width kể cả desktop - override CSS
+  // - Mặc định: responsive (w-full trên mobile, w-auto trên desktop từ CSS trong utilities.css)
+  //   CSS mặc định đã có: w-full md:w-auto cho tất cả button variants
   let widthClass = '';
   if (alwaysAutoWidth) {
-    widthClass = 'w-auto';
+    widthClass = '!w-auto';
   } else if (fullWidth) {
-    widthClass = 'w-full';
+    widthClass = '!w-full';
   }
+  // Nếu không có widthClass, CSS mặc định w-full md:w-auto sẽ được áp dụng
   
   const iconSize = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
   
-  // Nếu có icon, đảm bảo căn giữa
-  const hasIcon = leftIcon || rightIcon;
-  const justifyClass = hasIcon ? 'justify-center' : '';
-  
   const buttonContent = (
     <>
-      {leftIcon && <span className={`${iconSize} flex-shrink-0`}>{leftIcon}</span>}
-      <span>{children}</span>
-      {rightIcon && <span className={`${iconSize} flex-shrink-0`}>{rightIcon}</span>}
+      {leftIcon && (
+        <span className={`${iconSize} flex-shrink-0 flex items-center justify-center`}>
+          {leftIcon}
+        </span>
+      )}
+      <span className="text-center">{children}</span>
+      {rightIcon && (
+        <span className={`${iconSize} flex-shrink-0 flex items-center justify-center`}>
+          {rightIcon}
+        </span>
+      )}
     </>
   );
   
-  const buttonClasses = `${variantClass} ${sizeClass} ${widthClass} flex items-center ${justifyClass} gap-2 ${className}`;
+  // Đảm bảo widthClass được apply sau className để override nếu cần
+  const buttonClasses = `${variantClass} ${sizeClass} flex items-center justify-center gap-2 text-center ${className} ${widthClass}`.trim();
   
   // Nếu có 'to' prop, render như Link từ react-router-dom
   if (to) {
@@ -86,6 +93,7 @@ export default function Button({
       <Link
         to={to}
         className={buttonClasses}
+        style={alwaysAutoWidth ? { width: 'auto', display: 'inline-flex' } : undefined}
         {...(props as any)}
       >
         {buttonContent}

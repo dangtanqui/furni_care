@@ -6,5 +6,7 @@ export interface AttachmentItem {
 
 export interface AttachmentGridProps {
   attachments: AttachmentItem[];
+  canEdit?: boolean;
+  onDelete?: (attachmentId: number) => void;
 }
 

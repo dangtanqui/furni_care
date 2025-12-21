@@ -3,9 +3,10 @@ import Button from '../../../../fields/Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
 import type { Stage4Props } from '../../../../types/components/pages/CaseDetails';
+import { getCase } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage4Content.css';
 
-export default function Stage4Content({ caseData, canEdit, isCS, isLeader, onUpdate, onAdvance, onOpenStage, onUploadAttachments }: Stage4Props) {
+export default function Stage4Content({ caseData, canEdit, isCS, isLeader, onUpdate, onAdvance, onOpenStage, onUploadAttachments, onDeleteAttachment }: Stage4Props) {
   const [form, setForm] = useState({
     execution_report: caseData.execution_report || '',
     client_feedback: caseData.client_feedback || '',
@@ -369,7 +370,7 @@ export default function Stage4Content({ caseData, canEdit, isCS, isLeader, onUpd
         ) : (
           <label className="stage4-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={attachments} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
         {!canEdit && attachments.length === 0 && (
           <p className="stage4-no-attachments">No attachments</p>
         )}
@@ -457,6 +458,7 @@ export default function Stage4Content({ caseData, canEdit, isCS, isLeader, onUpd
                 <button
                   key={n}
                   onClick={() => canEdit && setForm({ ...form, client_rating: n })}
+                  disabled={!canEdit}
                   className={`stage4-rating-button ${form.client_rating >= n ? 'stage4-rating-button-active' : 'stage4-rating-button-inactive'}`}
                 >
                   {n}
@@ -481,22 +483,31 @@ export default function Stage4Content({ caseData, canEdit, isCS, isLeader, onUpd
         </div>
       </div>
 
-      {canEdit && isCurrent && (
+      {canEdit && (
         <Button 
           onClick={async () => {
             await onUpdate({
               ...form,
               execution_checklist: JSON.stringify(checklist),
             });
-            await onAdvance();
-            // Open Stage 5 after advancing
-            setTimeout(() => {
-              onOpenStage(5);
-            }, 100);
+            // Only advance if Stage 4 is the current stage
+            if (isCurrent) {
+              await onAdvance();
+              // Open Stage 5 after advancing
+              setTimeout(() => {
+                onOpenStage(5);
+              }, 100);
+            } else {
+              // If updating a completed stage, reload case data to get updated current_stage, then open it
+              const updatedCase = await getCase(caseData.id);
+              setTimeout(() => {
+                onOpenStage(updatedCase.data.current_stage);
+              }, 100);
+            }
           }} 
           variant="primary"
         >
-          Complete
+          {isCurrent ? 'Complete' : 'Update'}
         </Button>
       )}
 

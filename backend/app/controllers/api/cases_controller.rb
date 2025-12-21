@@ -72,7 +72,7 @@ class Api::CasesController < ApplicationController
     if @case.save
       render json: case_detail_json(@case), status: :created
     else
-      render json: { errors: @case.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @case.errors.messages }, status: :unprocessable_entity
     end
   end
   
@@ -103,7 +103,7 @@ class Api::CasesController < ApplicationController
       
       render json: case_detail_json(@case)
     else
-      render json: { errors: @case.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @case.errors.messages }, status: :unprocessable_entity
     end
   end
   

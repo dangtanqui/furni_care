@@ -14,7 +14,10 @@ export interface CaseFormProps {
   previews: string[];
   onFormChange: (form: any) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDeletePreview: (index: number) => void;
   onSubmit: (e: React.FormEvent) => void;
+  errors?: Record<string, string>;
+  onClearFieldError?: (keys: string[]) => void;
 }
 
 

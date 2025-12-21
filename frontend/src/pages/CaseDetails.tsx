@@ -7,7 +7,6 @@ import StageSection from '../components/pages/case_details/StageSection';
 import '../styles/pages/CaseDetails.css';
 
 export default function CaseDetail() {
-  const navigate = useNavigate();
   const {
     caseData,
     expandedStage,
@@ -18,6 +17,7 @@ export default function CaseDetail() {
     isLeader,
     handleUpdate,
     handleAttachmentsUpload,
+    handleAttachmentDelete,
     handleAdvance,
     handleApproveCost,
     handleRejectCost,
@@ -30,8 +30,14 @@ export default function CaseDetail() {
 
   return (
     <div className="case-details-page">
-      <Button variant="tertiary" to="/" leftIcon={<ArrowLeft />} alwaysAutoWidth>
-        Back to List
+      <Button
+        variant="tertiary"
+        to="/"
+        leftIcon={<ArrowLeft />}
+        alwaysAutoWidth
+        className="case-details-back-button"
+      >
+        Back
       </Button>
 
       <CaseHeader caseData={caseData} />
@@ -57,6 +63,7 @@ export default function CaseDetail() {
           onCancelCase={handleCancelCase}
           onRedo={handleRedo}
           onUploadAttachments={handleAttachmentsUpload}
+          onDeleteAttachment={handleAttachmentDelete}
         />
       ))}
     </div>

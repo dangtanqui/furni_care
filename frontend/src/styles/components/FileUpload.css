@@ -21,14 +21,42 @@
 }
 
 .file-upload-preview-grid {
-  @apply grid grid-cols-4 gap-3;
+  @apply grid grid-cols-2 md:grid-cols-4 gap-3;
 }
 
 .file-upload-preview-item {
   @apply relative;
 }
 
+.file-upload-preview-item:hover .file-upload-delete-button {
+  @apply opacity-100;
+}
+
+.file-upload-delete-button {
+  @apply absolute top-1 right-1 text-white rounded-full p-1 shadow-lg transition-all duration-200;
+  @apply flex items-center justify-center opacity-0;
+  background-color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .file-upload-delete-button {
+    @apply opacity-100;
+  }
+}
+
+.file-upload-delete-button:hover {
+  background-color: var(--accent-light);
+}
+
+.file-upload-delete-button:active {
+  background-color: var(--accent-dark);
+}
+
 .file-upload-preview-image {
-  @apply w-full h-24 object-cover rounded-lg;
+  @apply w-full h-24 object-cover rounded-lg cursor-pointer transition-opacity duration-200;
+}
+
+.file-upload-preview-item:hover .file-upload-preview-image {
+  @apply opacity-70;
 }
 

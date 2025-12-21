@@ -10,11 +10,12 @@ import '../../../styles/components/pages/case_details/StageSection.css';
 export default function StageSection({
   stage, caseData, expanded, onToggle, onOpenStage, canEdit, isCS, isLeader, isTechnician, technicians,
   onUpdate, onAdvance, onApproveCost, onRejectCost, onCancelCase, onRedo,
-  onUploadAttachments
+  onUploadAttachments, onDeleteAttachment
 }: StageSectionProps) {
-  // Stage is completed if it's before current_stage, or if case is closed/cancelled/completed and it's Stage 5
-  const isCompleted = stage.num < caseData.current_stage || ((caseData.status === 'closed' || caseData.status === 'cancelled' || caseData.status === 'completed') && stage.num === 5);
+  // Stage is current if it matches current_stage and case is not closed/cancelled
   const isCurrent = stage.num === caseData.current_stage && caseData.status !== 'closed' && caseData.status !== 'cancelled';
+  // Stage is completed if it's not current AND (it's before current_stage OR case is closed/cancelled and it's Stage 5)
+  const isCompleted = !isCurrent && (stage.num < caseData.current_stage || ((caseData.status === 'closed' || caseData.status === 'cancelled') && stage.num === 5));
 
   return (
     <div className={`stage-section-card ${isCurrent ? 'stage-section-card-current' : ''}`}>
@@ -49,6 +50,7 @@ export default function StageSection({
             onUpdate={onUpdate}
             onAdvance={onAdvance}
             onOpenStage={onOpenStage}
+            onDeleteAttachment={onDeleteAttachment}
           />
         )}
         {stage.num === 2 && (
@@ -60,6 +62,7 @@ export default function StageSection({
             onUpdate={onUpdate}
             onAdvance={onAdvance}
             onUploadAttachments={onUploadAttachments}
+            onDeleteAttachment={onDeleteAttachment}
             onOpenStage={onOpenStage}
           />
         )}
@@ -76,6 +79,7 @@ export default function StageSection({
             onRejectCost={onRejectCost}
             onCancelCase={onCancelCase}
             onUploadAttachments={onUploadAttachments}
+            onDeleteAttachment={onDeleteAttachment}
             onCloseAccordion={() => onToggle()}
             onOpenStage={onOpenStage}
           />
@@ -90,6 +94,7 @@ export default function StageSection({
             onAdvance={onAdvance}
             onOpenStage={onOpenStage}
             onUploadAttachments={onUploadAttachments}
+            onDeleteAttachment={onDeleteAttachment}
           />
         )}
         {stage.num === 5 && (

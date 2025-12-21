@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCase, updateCase, advanceStage, approveCost, rejectCost, redoCase, cancelCase, uploadAttachments } from '../../api/cases';
+import { getCase, updateCase, advanceStage, approveCost, rejectCost, redoCase, cancelCase, uploadAttachments, deleteCaseAttachment } from '../../api/cases';
 import type { CaseDetail as CaseDetailType } from '../../api/cases';
 import { getTechnicians } from '../../api/data';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,20 +18,23 @@ export function useCaseDetails() {
     getTechnicians().then(res => setTechnicians(res.data));
   }, [id]);
 
-  const loadCase = async () => {
+  const loadCase = async (preserveExpandedStage = false) => {
     if (!id) return;
     const res = await getCase(Number(id));
     setCaseData(res.data);
-    // If case is closed or cancelled, close all accordions.
-    // If case is rejected but cost_status is rejected (cost rejected), still open Stage 3 for CS to cancel.
-    // Otherwise, expand current stage.
-    if (res.data.status === 'closed' || res.data.status === 'cancelled') {
-      setExpandedStage(null);
-    } else if (res.data.status === 'rejected' && res.data.cost_status === 'rejected' && res.data.current_stage === 3) {
-      // When cost is rejected, open Stage 3 so CS can cancel
-      setExpandedStage(3);
-    } else {
-      setExpandedStage(res.data.current_stage);
+    // Only auto-expand stage on initial load, not when reloading after updates
+    if (!preserveExpandedStage) {
+      // If case is closed or cancelled, close all accordions.
+      // If case is rejected but cost_status is rejected (cost rejected), still open Stage 3 for CS to cancel.
+      // Otherwise, expand current stage.
+      if (res.data.status === 'closed' || res.data.status === 'cancelled') {
+        setExpandedStage(null);
+      } else if (res.data.status === 'rejected' && res.data.cost_status === 'rejected' && res.data.current_stage === 3) {
+        // When cost is rejected, open Stage 3 so CS can cancel
+        setExpandedStage(3);
+      } else {
+        setExpandedStage(res.data.current_stage);
+      }
     }
   };
 
@@ -55,7 +58,18 @@ export function useCaseDetails() {
     }
     if (!files.length) return;
     await uploadAttachments(Number(id!), stage, files, attachmentType || `stage_${stage}`);
-    await loadCase();
+    await loadCase(true); // Preserve expanded stage when uploading
+  };
+
+  const handleAttachmentDelete = async (attachmentId: number) => {
+    // Prevent any deletions if case is closed or cancelled
+    // Allow deletions when completed (CS may need to delete in Stage 5)
+    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+      console.warn('Cannot delete attachment: case is already closed or cancelled');
+      return;
+    }
+    await deleteCaseAttachment(Number(id!), attachmentId);
+    await loadCase(true); // Preserve expanded stage when deleting
   };
 
   const handleAdvance = async () => {
@@ -145,15 +159,21 @@ export function useCaseDetails() {
       // For other stages, cannot edit if case is rejected or cancelled
       if (caseData.status === 'rejected' || caseData.status === 'cancelled') return false;
       
+      // Role-based editing permissions
+      if (stage === 1) {
+        // CS can always edit Stage 1 (to update assignment) when case is not closed/cancelled/rejected
+        return isCS;
+      }
+      
+      if (stage === 2 || stage === 4) {
+        // Technician can edit Stage 2/4 when stage is current or already completed (stage <= current_stage)
+        if (stage > caseData.current_stage) return false;
+        // Technician can edit when case is not closed/cancelled/rejected (already checked above)
+        return isTechnician;
+      }
+      
       // Allow editing if stage is current or already completed (stage <= current_stage)
       if (stage > caseData.current_stage) return false;
-      
-      // Role-based editing permissions
-      if (stage === 1) return isCS;
-      if (stage === 2 || stage === 4) {
-        // Technician can edit when status is in_progress or open
-        return isTechnician && (caseData.status === 'in_progress' || caseData.status === 'open');
-      }
       if (stage === 5) {
         // CS can edit Stage 5 when status is completed (to close the case)
         return isCS && caseData.status === 'completed';
@@ -172,6 +192,7 @@ export function useCaseDetails() {
     isLeader,
     handleUpdate,
     handleAttachmentsUpload,
+    handleAttachmentDelete,
     handleAdvance,
     handleApproveCost,
     handleRejectCost,
