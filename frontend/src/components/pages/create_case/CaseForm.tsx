@@ -1,13 +1,13 @@
 import Select from '../../Select';
 import FileUpload from '../../FileUpload';
-import Button from '../../../fields/Button';
+import Button from '../../Button';
 import '../../../styles/components/pages/create_case/CaseForm.css';
 import type { CaseFormProps } from '../../../types/components/pages/CreateCase';
 
 export default function CaseForm({ form, clients, sites, contacts, previews, onFormChange, onFileChange, onDeletePreview, onSubmit, errors, onClearFieldError }: CaseFormProps) {
   const getFieldError = (keys: string[]) => {
     const key = keys.find(k => !!errors?.[k]);
-    return key ? errors[key] : null;
+    return key ? errors?.[key] : null;
   };
 
   const hasError = (keys: string[]) => {
@@ -141,7 +141,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
         </div>
       </div>
 
-      <Button type="submit" variant="primary">Submit Case</Button>
+      <Button type="submit" variant="primary">Submit</Button>
     </form>
   );
 }

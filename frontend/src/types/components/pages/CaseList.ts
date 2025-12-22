@@ -1,4 +1,4 @@
-import type { CaseListItem } from '../../../../api/cases';
+import type { CaseListItem } from '../../../api/cases';
 
 export interface CaseFiltersProps {
   filter: { status: string; case_type: string; assigned_to: string };

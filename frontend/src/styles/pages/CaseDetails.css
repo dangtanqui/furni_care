@@ -23,3 +23,11 @@
   @apply w-5 h-5;
 }
 
+.case-details-error {
+  @apply p-4 mb-4 bg-red-50 text-red-700 rounded-lg border border-red-200;
+}
+
+.case-details-loading-processing {
+  @apply p-4 text-center;
+}
+

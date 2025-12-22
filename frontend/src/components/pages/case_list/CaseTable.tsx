@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Clock, CheckCircle } from 'lucide-react';
-import { statusColors, priorityColors } from '../../../constants/pages/CaseList';
+import { getStatusColorClass, getPriorityColorClass } from '../../../utils/caseHelpers';
 import SortIcon from '../../SortIcon';
 import Pagination from '../../Pagination';
 import '../../../styles/components/pages/case_list/CaseTable.css';
@@ -12,12 +12,14 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
   return (
     <div className="case-table-container">
       <div className="overflow-x-auto">
-        <table className="case-table" style={{ minWidth: '800px' }}>
+        <table className="case-table case-table-min-width">
           <thead className="case-table-header">
             <tr>
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('case_number')}
+                role="columnheader"
+                aria-sort={sort.column === 'case_number' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Case ID
@@ -27,6 +29,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('client')}
+                role="columnheader"
+                aria-sort={sort.column === 'client' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Client
@@ -36,6 +40,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('site')}
+                role="columnheader"
+                aria-sort={sort.column === 'site' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Site
@@ -45,6 +51,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('current_stage')}
+                role="columnheader"
+                aria-sort={sort.column === 'current_stage' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Stage
@@ -54,6 +62,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('status')}
+                role="columnheader"
+                aria-sort={sort.column === 'status' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Status
@@ -63,6 +73,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('priority')}
+                role="columnheader"
+                aria-sort={sort.column === 'priority' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Priority
@@ -72,6 +84,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
               <th 
                 className="case-table-header-cell-full"
                 onClick={() => onSort('assigned_to')}
+                role="columnheader"
+                aria-sort={sort.column === 'assigned_to' ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
                 <div className="case-table-header-content">
                   Assigned
@@ -100,6 +114,15 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
                   key={c.id}
                   className="case-table-row"
                   onClick={() => navigate(`/cases/${c.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/cases/${c.id}`);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View case ${c.case_number}`}
                 >
                   <td className="case-table-cell-number">{c.case_number}</td>
                   <td className="case-table-cell-full">{c.client}</td>
@@ -115,12 +138,12 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
                     </span>
                   </td>
                   <td className="case-table-cell-full">
-                    <span className={`case-table-status-badge ${statusColors[c.status]}`}>
+                    <span className={`case-table-status-badge ${getStatusColorClass(c.status)}`}>
                       {c.status}
                     </span>
                   </td>
                   <td className="case-table-cell-full">
-                    <span className={`case-table-priority-text ${priorityColors[c.priority]}`}>
+                    <span className={`case-table-priority-text ${getPriorityColorClass(c.priority)}`}>
                       {c.priority}
                     </span>
                   </td>

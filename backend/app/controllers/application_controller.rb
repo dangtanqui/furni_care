@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::API
+  include ErrorHandler
+  
   before_action :authorize_request
   
   private
@@ -20,7 +22,20 @@ class ApplicationController < ActionController::API
   end
   
   def jwt_secret
-    ENV['JWT_SECRET'] || 'default_secret'
+    secret = ENV['JWT_SECRET']
+    
+    if secret.blank?
+      if Rails.env.production?
+        raise 'JWT_SECRET environment variable must be set in production'
+      else
+        Rails.logger.warn 'JWT_SECRET not set, using default secret (NOT SECURE FOR PRODUCTION)'
+        'default_secret'
+      end
+    elsif Rails.env.production? && secret == 'default_secret'
+      raise 'JWT_SECRET cannot be "default_secret" in production'
+    else
+      secret
+    end
   end
   
   def encode_token(payload)

@@ -1,31 +1,44 @@
 import { useState, useEffect } from 'react';
-import Button from '../../../../fields/Button';
+import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
-import type { Stage2Props } from '../../../../types/components/pages/CaseDetails';
+import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
+import { TIMING } from '../../../../constants/timing';
 import { getCase } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage2Content.css';
 
-export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, isCS, isLeader, onUploadAttachments, onDeleteAttachment, onOpenStage }: Stage2Props) {
-  const [report, setReport] = useState(caseData.investigation_report || '');
+interface Stage2ContentProps {
+  canEdit: boolean;
+  onOpenStage: (stageNum: number) => void;
+}
+
+export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
+  const { caseData, isCS, isLeader, handleUpdate, handleAdvance, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
+  
+  if (!caseData) return null;
+  
+  // TypeScript: caseData is guaranteed to be non-null here due to check above
+  const nonNullCaseData = caseData;
+  
+  const [report, setReport] = useState(nonNullCaseData.investigation_report || '');
   const [checklist, setChecklist] = useState<boolean[]>(() => {
     try {
-      return JSON.parse(caseData.investigation_checklist || '[]');
+      return JSON.parse(nonNullCaseData.investigation_checklist || '[]');
     } catch { return [false, false, false]; }
   });
-  const isCurrent = caseData.current_stage === 2;
+  const isCurrent = nonNullCaseData.current_stage === 2;
   const checklistItems = ['Check furniture condition', 'Document damage areas', 'Take measurements'];
-  const attachments = caseData.stage_attachments?.['2'] || [];
+  const attachments = nonNullCaseData.stage_attachments?.['2'] || [];
 
   // Sync state with caseData when component mounts or caseData changes
   useEffect(() => {
-    setReport(caseData.investigation_report || '');
+    setReport(nonNullCaseData.investigation_report || '');
     try {
-      setChecklist(JSON.parse(caseData.investigation_checklist || '[]'));
+      setChecklist(JSON.parse(nonNullCaseData.investigation_checklist || '[]'));
     } catch {
       setChecklist([false, false, false]);
     }
-  }, [caseData.id, caseData.investigation_report, caseData.investigation_checklist]);
+  }, [nonNullCaseData.id, nonNullCaseData.investigation_report, nonNullCaseData.investigation_checklist]);
 
   const toggleChecklist = (idx: number) => {
     const newChecklist = [...checklist];
@@ -36,25 +49,25 @@ export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
-    await onUploadAttachments(2, selectedFiles);
+    await handleAttachmentsUpload(2, selectedFiles);
     e.target.value = '';
   };
 
   const handleFinish = async () => {
-    await onUpdate({ investigation_report: report, investigation_checklist: JSON.stringify(checklist) });
+    await handleUpdate({ investigation_report: report, investigation_checklist: JSON.stringify(checklist) });
     // Only advance if Stage 2 is the current stage
-    if (caseData.current_stage === 2) {
-      await onAdvance();
+    if (nonNullCaseData.current_stage === 2) {
+      await handleAdvance();
       // Open Stage 3 after advancing
       setTimeout(() => {
         onOpenStage(3);
-      }, 100);
+      }, TIMING.STAGE_OPEN_DELAY);
     } else {
       // If updating a completed stage, reload case data to get updated current_stage, then open it
-      const updatedCase = await getCase(caseData.id);
+      const updatedCase = await getCase(nonNullCaseData.id);
       setTimeout(() => {
         onOpenStage(updatedCase.data.current_stage);
-      }, 100);
+      }, TIMING.STAGE_OPEN_DELAY);
     }
   };
 
@@ -72,7 +85,7 @@ export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, 
             placeholder="Document findings from site investigation..."
           />
         ) : (
-          <p className="stage2-readonly-content">{caseData.investigation_report || 'No report yet'}</p>
+          <p className="stage2-readonly-content">{nonNullCaseData.investigation_report || 'No report yet'}</p>
         )}
       </div>
 
@@ -88,7 +101,7 @@ export default function Stage2Content({ caseData, canEdit, onUpdate, onAdvance, 
         ) : (
           <label className="stage2-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         {!canEdit && attachments.length === 0 && (
           <p className="stage2-no-attachments">No attachments</p>
         )}

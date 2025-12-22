@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+.error-boundary-container {
+  @apply min-h-screen flex items-center justify-center p-6 bg-gray-50;
+}
+
+.error-boundary-content {
+  @apply bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center;
+}
+
+.error-boundary-title {
+  @apply text-2xl font-bold text-gray-900 mb-4;
+}
+
+.error-boundary-message {
+  @apply text-gray-600 mb-6;
+}
+
+.error-boundary-actions {
+  @apply flex flex-col sm:flex-row gap-3 justify-center;
+}

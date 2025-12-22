@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'reac
 import { Link } from 'react-router-dom';
 import '../styles/utilities.css';
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface BaseButtonProps {
@@ -41,7 +41,6 @@ export default function Button({
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     tertiary: 'btn-tertiary',
-    danger: 'btn-danger',
   };
   
   const sizeMap: Record<ButtonSize, string> = {
@@ -94,7 +93,7 @@ export default function Button({
         to={to}
         className={buttonClasses}
         style={alwaysAutoWidth ? { width: 'auto', display: 'inline-flex' } : undefined}
-        {...(props as any)}
+        {...(props as Omit<React.ComponentProps<typeof Link>, keyof BaseButtonProps>)}
       >
         {buttonContent}
       </Link>
@@ -124,4 +123,3 @@ export default function Button({
     </button>
   );
 }
-

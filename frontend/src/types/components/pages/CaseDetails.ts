@@ -1,4 +1,4 @@
-import type { CaseDetail as CaseDetailType, CaseAttachmentItem } from '../../../../api/cases';
+import type { CaseDetail as CaseDetailType, CaseAttachmentItem } from '../../../api/cases';
 
 export type { CaseDetailType, CaseAttachmentItem };
 
@@ -42,6 +42,7 @@ export interface Stage2Props {
   isCS: boolean;
   isLeader: boolean;
   onUploadAttachments: (stage: number, files: File[], attachmentType?: string) => Promise<void>;
+  onDeleteAttachment?: (attachmentId: number) => Promise<void>;
   onOpenStage: (stageNum: number) => void;
 }
 
@@ -57,6 +58,7 @@ export interface Stage3Props {
   onRejectCost: () => void;
   onCancelCase: () => void;
   onUploadAttachments: (stage: number, files: File[], attachmentType?: string) => Promise<void>;
+  onDeleteAttachment?: (attachmentId: number) => Promise<void>;
   onCloseAccordion: () => void;
   onOpenStage: (stageNum: number) => void;
 }

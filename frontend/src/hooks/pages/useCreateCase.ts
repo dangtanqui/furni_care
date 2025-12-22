@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { createCase, uploadAttachments } from '../../api/cases';
+import type { CaseDetail } from '../../api/cases';
 import { getClients, getSites, getContacts } from '../../api/data';
 import type { Client, Site, Contact } from '../../api/data';
 
@@ -86,7 +87,6 @@ export function useCreateCase() {
           };
           
           reader.onerror = () => {
-            console.error('Error reading file:', file.name);
             // Remove from processed set on error so it can be retried
             processedFilesRef.current.delete(fileKey);
           };
@@ -192,7 +192,7 @@ export function useCreateCase() {
       description: form.description,
       case_type: form.case_type,
       priority: form.priority,
-    } as any);
+    } as Partial<CaseDetail>);
       if (files.length) {
         await uploadAttachments(res.data.id, 1, files, 'case_creation');
       }

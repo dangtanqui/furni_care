@@ -1,5 +1,10 @@
 import api from './client';
 
+export type CaseStatus = 'open' | 'in_progress' | 'pending' | 'completed' | 'closed' | 'cancelled' | 'rejected';
+export type CasePriority = 'low' | 'medium' | 'high';
+export type CostStatus = 'pending' | 'approved' | 'rejected' | null;
+export type CaseType = 'repair' | 'maintenance' | 'installation' | 'other';
+
 export interface CaseListItem {
   id: number;
   case_number: string;
@@ -7,8 +12,8 @@ export interface CaseListItem {
   site: string;
   current_stage: number;
   stage_name: string;
-  status: string;
-  priority: string;
+  status: CaseStatus;
+  priority: CasePriority;
   assigned_to: string | null;
   created_at: string;
 }
@@ -28,7 +33,7 @@ export interface CaseDetail {
   case_number: string;
   current_stage: number;
   stage_name: string;
-  status: string;
+  status: CaseStatus;
   attempt_number: number;
   client: { id: number; name: string };
   site: { id: number; name: string; city: string };
@@ -38,7 +43,7 @@ export interface CaseDetail {
   assigned_to_id?: number; // For updates
   description: string;
   case_type: string;
-  priority: string;
+  priority: CasePriority;
   investigation_report: string;
   investigation_checklist: string;
   root_cause: string;
@@ -48,7 +53,7 @@ export interface CaseDetail {
   cost_required: boolean;
   estimated_cost: number;
   cost_description: string;
-  cost_status: string;
+  cost_status: CostStatus;
   execution_report: string;
   execution_checklist: string;
   client_signature: string;

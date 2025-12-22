@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
+import { TIMING } from '../constants/timing';
 import '../styles/components/Select.css';
 
 interface SelectOption {
@@ -79,7 +80,7 @@ export default function Select({
       window.addEventListener('resize', updatePosition);
       
       // Also update after a small delay to handle any layout shifts
-      const timeoutId = setTimeout(updatePosition, 10);
+      const timeoutId = setTimeout(updatePosition, TIMING.SELECT_UPDATE_DELAY);
       
       return () => {
         clearTimeout(timeoutId);
@@ -189,7 +190,7 @@ export default function Select({
             if (!isOpen) {
               setIsFocused(false);
             }
-          }, 100);
+          }, TIMING.SELECT_BLUR_DELAY);
         }}
         disabled={disabled}
         className={`

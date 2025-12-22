@@ -17,10 +17,6 @@
   @apply text-gray-900;
 }
 
-.stage1-capitalize {
-  @apply capitalize;
-}
-
 .stage1-no-attachments {
   @apply text-gray-500 text-sm mt-1;
 }

@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from 'lucide-react';
-import Button from '../../../fields/Button';
+import Button from '../../Button';
 import '../../../styles/components/pages/login/LoginForm.css';
 import type { LoginFormProps } from '../../../types/components/pages/Login';
 

@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
-import Button from '../fields/Button';
+import Button from '../components/Button';
 import { useCreateCase } from '../hooks/pages/useCreateCase';
 import CaseForm from '../components/pages/create_case/CaseForm';
 import '../styles/pages/CreateCase.css';

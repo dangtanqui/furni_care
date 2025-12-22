@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCase, updateCase, advanceStage, approveCost, rejectCost, redoCase, cancelCase, uploadAttachments, deleteCaseAttachment } from '../../api/cases';
 import type { CaseDetail as CaseDetailType } from '../../api/cases';
-import { getTechnicians } from '../../api/data';
+import { useTechnicians } from '../useTechnicians';
 import { useAuth } from '../../contexts/AuthContext';
+import { canEditStage as checkCanEditStage } from '../../utils/casePermissions';
 
 export function useCaseDetails() {
   const { id } = useParams();
@@ -11,176 +12,251 @@ export function useCaseDetails() {
   
   const [caseData, setCaseData] = useState<CaseDetailType | null>(null);
   const [expandedStage, setExpandedStage] = useState<number | null>(null);
-  const [technicians, setTechnicians] = useState<{ id: number; name: string }[]>([]);
+  const { technicians } = useTechnicians();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isOperationInProgress, setIsOperationInProgress] = useState(false);
+
+  const loadCase = useCallback(async (preserveExpandedStage = false) => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getCase(Number(id));
+      setCaseData(res.data);
+      // Only auto-expand stage on initial load, not when reloading after updates
+      if (!preserveExpandedStage) {
+        // If case is closed or cancelled, close all accordions.
+        // If case is rejected but cost_status is rejected (cost rejected), still open Stage 3 for CS to cancel.
+        // Otherwise, expand current stage.
+        if (res.data.status === 'closed' || res.data.status === 'cancelled') {
+          setExpandedStage(null);
+        } else if (res.data.status === 'rejected' && res.data.cost_status === 'rejected' && res.data.current_stage === 3) {
+          // When cost is rejected, open Stage 3 so CS can cancel
+          setExpandedStage(3);
+        } else {
+          setExpandedStage(res.data.current_stage);
+        }
+      }
+    } catch (err) {
+      setError('Failed to load case. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
     loadCase();
-    getTechnicians().then(res => setTechnicians(res.data));
-  }, [id]);
-
-  const loadCase = async (preserveExpandedStage = false) => {
-    if (!id) return;
-    const res = await getCase(Number(id));
-    setCaseData(res.data);
-    // Only auto-expand stage on initial load, not when reloading after updates
-    if (!preserveExpandedStage) {
-      // If case is closed or cancelled, close all accordions.
-      // If case is rejected but cost_status is rejected (cost rejected), still open Stage 3 for CS to cancel.
-      // Otherwise, expand current stage.
-      if (res.data.status === 'closed' || res.data.status === 'cancelled') {
-        setExpandedStage(null);
-      } else if (res.data.status === 'rejected' && res.data.cost_status === 'rejected' && res.data.current_stage === 3) {
-        // When cost is rejected, open Stage 3 so CS can cancel
-        setExpandedStage(3);
-      } else {
-        setExpandedStage(res.data.current_stage);
-      }
-    }
-  };
+  }, [id, loadCase]);
 
   const handleUpdate = async (data: Partial<CaseDetailType>) => {
+    if (isOperationInProgress) return;
     // Prevent any updates if case is closed or cancelled
     // Allow updates when completed (CS needs to update to close the case)
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot update case: case is already closed or cancelled');
+      setError('Cannot update case: case is already closed or cancelled');
       return;
     }
-    await updateCase(Number(id!), data);
-    await loadCase();
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await updateCase(Number(id), data);
+      await loadCase();
+    } catch (err) {
+      setError('Failed to update case. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleAttachmentsUpload = async (stage: number, files: File[], attachmentType?: string) => {
+    if (isOperationInProgress) return;
     // Prevent any uploads if case is closed or cancelled
     // Allow uploads when completed (CS may need to upload in Stage 5)
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot upload attachments: case is already closed or cancelled');
+      setError('Cannot upload attachments: case is already closed or cancelled');
       return;
     }
     if (!files.length) return;
-    await uploadAttachments(Number(id!), stage, files, attachmentType || `stage_${stage}`);
-    await loadCase(true); // Preserve expanded stage when uploading
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await uploadAttachments(Number(id), stage, files, attachmentType || `stage_${stage}`);
+      await loadCase(true); // Preserve expanded stage when uploading
+    } catch (err) {
+      setError('Failed to upload attachments. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleAttachmentDelete = async (attachmentId: number) => {
+    if (isOperationInProgress) return;
     // Prevent any deletions if case is closed or cancelled
     // Allow deletions when completed (CS may need to delete in Stage 5)
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot delete attachment: case is already closed or cancelled');
+      setError('Cannot delete attachment: case is already closed or cancelled');
       return;
     }
-    await deleteCaseAttachment(Number(id!), attachmentId);
-    await loadCase(true); // Preserve expanded stage when deleting
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteCaseAttachment(Number(id), attachmentId);
+      await loadCase(true); // Preserve expanded stage when deleting
+    } catch (err) {
+      setError('Failed to delete attachment. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleAdvance = async () => {
+    if (isOperationInProgress) return;
     // Prevent any stage advancement if case is closed or cancelled
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot advance stage: case is already closed or cancelled');
+      setError('Cannot advance stage: case is already closed or cancelled');
       return;
     }
-    await advanceStage(Number(id!));
-    await loadCase();
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await advanceStage(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to advance stage. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleApproveCost = async () => {
+    if (isOperationInProgress) return;
     // Prevent cost approval if case is closed or cancelled
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot approve cost: case is already closed or cancelled');
+      setError('Cannot approve cost: case is already closed or cancelled');
       return;
     }
-    await approveCost(Number(id!));
-    await loadCase();
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await approveCost(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to approve cost. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleRejectCost = async () => {
+    if (isOperationInProgress) return;
     // Prevent cost rejection if case is closed or cancelled
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot reject cost: case is already closed or cancelled');
+      setError('Cannot reject cost: case is already closed or cancelled');
       return;
     }
-    await rejectCost(Number(id!));
-    await loadCase();
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await rejectCost(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to reject cost. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleRedo = async () => {
+    if (isOperationInProgress) return;
     // Prevent redo if case is closed or cancelled
     // Allow redo when completed (CS can redo from Stage 5)
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot redo case: case is already closed or cancelled');
+      setError('Cannot redo case: case is already closed or cancelled');
       return;
     }
-    await redoCase(Number(id!));
-    await loadCase();
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await redoCase(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to redo case. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
   };
 
   const handleCancelCase = async () => {
+    if (isOperationInProgress) return;
     // Prevent cancel if case is closed or cancelled
     if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
-      console.warn('Cannot cancel case: case is already closed or cancelled');
+      setError('Cannot cancel case: case is already closed or cancelled');
       return;
     }
-    await cancelCase(Number(id!));
-    await loadCase();
-  };
-
-  const canEditStage = (stage: number) => {
-    if (!caseData) return false;
-    // Cannot edit if case is closed or cancelled
-    if (caseData.status === 'closed' || caseData.status === 'cancelled') return false;
-    
-    // For Stage 3, allow Technician to edit even when cost is rejected, pending approval, or already approved
-    if (stage === 3) {
-      // Allow Technician to edit when cost is rejected (to update rejected cost)
-      if (caseData.status === 'rejected' && caseData.cost_status === 'rejected') {
-        return isTechnician;
-      }
-      // Allow Technician to edit when cost is pending approval (status === 'pending')
-      // This allows editing even if current_stage has advanced past 3 (backend will rollback)
-      // IMPORTANT: Check this BEFORE checking current_stage to allow editing when pending approval
-      // cost_status can be null, undefined, or 'pending' when waiting for approval
-      if (caseData.status === 'pending' && caseData.cost_required && 
-          caseData.cost_status !== 'approved' && caseData.cost_status !== 'rejected') {
-        return isTechnician; // Return immediately, don't check current_stage
-      }
-      // Allow Technician to edit Stage 3 even if cost was already approved (to update cost and re-submit for approval)
-      // This allows editing even if current_stage has advanced past 3 (backend will rollback)
-      if (caseData.cost_required && caseData.cost_status === 'approved' && caseData.current_stage >= 3) {
-        return isTechnician; // Return immediately, don't check current_stage
-      }
-      // Cannot edit if case is rejected or cancelled but not due to cost
-      if (caseData.status === 'rejected' || caseData.status === 'cancelled') return false;
-      
-      // For normal Stage 3 editing, check if stage is current or already completed
-      // Allow editing if stage is completed (stage <= current_stage)
-      if (stage > caseData.current_stage) return false;
-      // Only Technician can edit Stage 3 when status is in_progress or open (Leader can only approve/reject cost)
-      return isTechnician && (caseData.status === 'in_progress' || caseData.status === 'open');
-    } else {
-      // For other stages, cannot edit if case is rejected or cancelled
-      if (caseData.status === 'rejected' || caseData.status === 'cancelled') return false;
-      
-      // Role-based editing permissions
-      if (stage === 1) {
-        // CS can always edit Stage 1 (to update assignment) when case is not closed/cancelled/rejected
-        return isCS;
-      }
-      
-      if (stage === 2 || stage === 4) {
-        // Technician can edit Stage 2/4 when stage is current or already completed (stage <= current_stage)
-        if (stage > caseData.current_stage) return false;
-        // Technician can edit when case is not closed/cancelled/rejected (already checked above)
-        return isTechnician;
-      }
-      
-      // Allow editing if stage is current or already completed (stage <= current_stage)
-      if (stage > caseData.current_stage) return false;
-      if (stage === 5) {
-        // CS can edit Stage 5 when status is completed (to close the case)
-        return isCS && caseData.status === 'completed';
-      }
-      return false;
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await cancelCase(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to cancel case. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
     }
   };
+
+  const canEditStage = useCallback((stage: number) => {
+    return checkCanEditStage(stage, { caseData, isCS, isTechnician, isLeader });
+  }, [caseData, isCS, isTechnician, isLeader]);
 
   return {
     caseData,
@@ -190,6 +266,8 @@ export function useCaseDetails() {
     isCS,
     isTechnician,
     isLeader,
+    error,
+    loading,
     handleUpdate,
     handleAttachmentsUpload,
     handleAttachmentDelete,

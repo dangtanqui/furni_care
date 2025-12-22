@@ -1,42 +1,38 @@
 class Api::CaseAttachmentsController < ApplicationController
-  include Rails.application.routes.url_helpers
+  include ServiceResponse
+  
   before_action :set_case
 
   def create
-    return render json: { error: 'No files uploaded' }, status: :bad_request unless params[:files].present?
-
-    stage = params[:stage].to_i
-    attachment_type = params[:attachment_type].presence || "stage_#{stage}"
-
-    attachments = params[:files].map do |upload|
-      attachment = @case.case_attachments.create!(stage: stage, attachment_type: attachment_type)
-      attachment.file.attach(upload)
-      serialize_attachment(attachment)
+    result = CaseAttachmentService.new(case_record: @case, request: request).create(
+      files: params[:files],
+      stage: params[:stage],
+      attachment_type: params[:attachment_type]
+    )
+    
+    if result.success?
+      render json: result.data, status: :created
+    else
+      render_service_result(result)
     end
-
-    render json: { stage: stage, attachments: attachments }, status: :created
   end
 
   def destroy
-    attachment = @case.case_attachments.find(params[:id])
-    attachment.destroy
-    head :no_content
+    result = CaseAttachmentService.new(case_record: @case, request: request).destroy(
+      attachment_id: params[:id]
+    )
+    
+    if result.success?
+      head :no_content
+    else
+      render_service_result(result)
+    end
   end
 
   private
 
   def set_case
     @case = Case.find(params[:id])
-  end
-
-  def serialize_attachment(attachment)
-    {
-      id: attachment.id,
-      filename: attachment.file.filename.to_s,
-      url: rails_blob_url(attachment.file, host: request.base_url),
-      stage: attachment.stage,
-      attachment_type: attachment.attachment_type
-    }
   end
 end
 

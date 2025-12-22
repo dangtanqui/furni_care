@@ -1,16 +1,29 @@
 import { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
-import Button from '../../../../fields/Button';
+import Button from '../../../Button';
 import Select from '../../../Select';
 import AttachmentGrid from '../../../AttachmentGrid';
-import type { Stage1Props } from '../../../../types/components/pages/CaseDetails';
+import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
+import { TIMING } from '../../../../constants/timing';
 import '../../../../styles/components/pages/case_details/stages/Stage1Content.css';
 
-export default function Stage1Content({ caseData, canEdit, isCS, technicians, onUpdate, onAdvance, onOpenStage, onDeleteAttachment }: Stage1Props) {
+interface Stage1ContentProps {
+  canEdit: boolean;
+  onOpenStage: (stageNum: number) => void;
+}
+
+export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
+  const { caseData, technicians, isCS, handleUpdate, handleAdvance, handleAttachmentDelete } = useCaseDetailsContext();
+  
+  if (!caseData) return null;
+  
+  // TypeScript: caseData is guaranteed to be non-null here due to check above
+  const nonNullCaseData = caseData;
+  
   const [assignedTo, setAssignedTo] = useState('');
-  const attachments = caseData.stage_attachments?.['1'] || [];
-  const isCurrent = caseData.current_stage === 1;
-  const currentAssignedId = caseData.assigned_to?.id?.toString() || '';
+  const attachments = nonNullCaseData.stage_attachments?.['1'] || [];
+  const isCurrent = nonNullCaseData.current_stage === 1;
+  const currentAssignedId = nonNullCaseData.assigned_to?.id?.toString() || '';
   
   // Initialize assignedTo with current assigned technician
   useEffect(() => {
@@ -24,30 +37,30 @@ export default function Stage1Content({ caseData, canEdit, isCS, technicians, on
       <div className="stage1-grid">
         <div>
           <label className="stage1-label">Client</label>
-          <p className="stage1-content">{caseData.client.name}</p>
+          <p className="stage1-content">{nonNullCaseData.client.name}</p>
         </div>
         <div>
           <label className="stage1-label">Site</label>
-          <p className="stage1-content">{caseData.site.name} ({caseData.site.city})</p>
+          <p className="stage1-content">{nonNullCaseData.site.name} ({nonNullCaseData.site.city})</p>
         </div>
         <div>
           <label className="stage1-label">Contact Person</label>
-          <p className="stage1-content">{caseData.contact.name} - {caseData.contact.phone}</p>
+          <p className="stage1-content">{nonNullCaseData.contact.name} - {nonNullCaseData.contact.phone}</p>
         </div>
         <div>
           <label className="stage1-label">Case Type</label>
-          <p className="stage1-content stage1-capitalize">{caseData.case_type}</p>
+          <p className="stage1-content">{nonNullCaseData.case_type}</p>
         </div>
       </div>
       
       <div>
         <label className="stage1-label">Description</label>
-        <p className="stage1-content">{caseData.description || '-'}</p>
+        <p className="stage1-content">{nonNullCaseData.description || '-'}</p>
       </div>
 
       <div>
         <label className="stage1-label">Photos / Attachments</label>
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={onDeleteAttachment} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         {attachments.length === 0 && (
           <p className="stage1-no-attachments">No attachments</p>
         )}
@@ -63,7 +76,7 @@ export default function Stage1Content({ caseData, canEdit, isCS, technicians, on
                 name="assigned_to"
                 value={assignedTo || currentAssignedId || ''}
                 onChange={(value) => setAssignedTo(value)}
-                options={technicians.map((t: any) => ({ value: String(t.id), label: t.name }))}
+                options={technicians.map((t) => ({ value: String(t.id), label: t.name }))}
                 placeholder="Assign Technician"
                 className="stage1-select-flex"
               />
@@ -73,16 +86,16 @@ export default function Stage1Content({ caseData, canEdit, isCS, technicians, on
                 const selectedId = assignedTo || currentAssignedId;
                 if (!selectedId || selectedId === '') return;
                 try {
-                  await onUpdate({ assigned_to_id: Number(selectedId) });
+                  await handleUpdate({ assigned_to_id: Number(selectedId) });
                   if (isCurrent) {
-                    await onAdvance();
+                    await handleAdvance();
                     // Open Stage 2 after advancing
                     setTimeout(() => {
                       onOpenStage(2);
-                    }, 100);
+                    }, TIMING.STAGE_OPEN_DELAY);
                   }
                 } catch (error) {
-                  console.error('Failed to assign technician:', error);
+                  // Error is handled by useCaseDetails hook
                 }
               }}
               variant="primary"

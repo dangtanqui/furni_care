@@ -1,29 +1,39 @@
 import { useState, useEffect } from 'react';
-import type { Stage5Props } from '../../../../types/components/pages/CaseDetails';
-import Button from '../../../../fields/Button';
+import Button from '../../../Button';
+import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import '../../../../styles/components/pages/case_details/stages/Stage5Content.css';
 
-export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRedo }: Stage5Props) {
+interface Stage5ContentProps {
+  canEdit: boolean;
+}
+
+export default function Stage5Content({ canEdit }: Stage5ContentProps) {
+  const { caseData, isCS, handleUpdate, handleRedo } = useCaseDetailsContext();
+  
+  if (!caseData) return null;
+  
+  // TypeScript: caseData is guaranteed to be non-null here due to check above
+  const nonNullCaseData = caseData;
+  
   const [form, setForm] = useState({
-    cs_notes: caseData.cs_notes || '',
-    final_feedback: caseData.final_feedback || '',
-    final_rating: caseData.final_rating || 5,
+    cs_notes: nonNullCaseData.cs_notes || '',
+    final_feedback: nonNullCaseData.final_feedback || '',
+    final_rating: nonNullCaseData.final_rating || 5,
   });
 
   // Sync state with caseData when component mounts or caseData changes
   useEffect(() => {
     setForm({
-      cs_notes: caseData.cs_notes || '',
-      final_feedback: caseData.final_feedback || '',
-      final_rating: caseData.final_rating || 5,
+      cs_notes: nonNullCaseData.cs_notes || '',
+      final_feedback: nonNullCaseData.final_feedback || '',
+      final_rating: nonNullCaseData.final_rating || 5,
     });
-  }, [caseData.id, caseData.cs_notes, caseData.final_feedback, caseData.final_rating]);
+  }, [nonNullCaseData.id, nonNullCaseData.cs_notes, nonNullCaseData.final_feedback, nonNullCaseData.final_rating]);
 
   const handleClose = async () => {
     try {
-      await onUpdate({ ...form, status: 'closed' });
+      await handleUpdate({ ...form, status: 'closed' });
     } catch (error) {
-      console.error('Failed to close case:', error);
       alert('Failed to close case. Please try again.');
     }
   };
@@ -41,7 +51,7 @@ export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRed
             className="stage5-textarea"
           />
         ) : (
-          <p className="stage5-readonly-content">{caseData.cs_notes || '-'}</p>
+          <p className="stage5-readonly-content">{nonNullCaseData.cs_notes || '-'}</p>
         )}
       </div>
 
@@ -63,7 +73,7 @@ export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRed
                 ))}
               </div>
             ) : (
-              <p>{caseData.final_rating ? `${caseData.final_rating}/5` : '-'}</p>
+              <p>{nonNullCaseData.final_rating ? `${nonNullCaseData.final_rating}/5` : '-'}</p>
             )}
           </div>
           <div>
@@ -77,24 +87,24 @@ export default function Stage5Content({ caseData, canEdit, isCS, onUpdate, onRed
                 className="stage5-feedback-textarea"
               />
             ) : (
-              <p>{caseData.final_feedback || '-'}</p>
+              <p>{nonNullCaseData.final_feedback || '-'}</p>
             )}
           </div>
         </div>
       </div>
 
-      {canEdit && caseData.status !== 'closed' && caseData.status !== 'cancelled' && (
+      {canEdit && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled' && (
         <div className="stage5-actions">
           <Button onClick={handleClose} variant="primary" alwaysAutoWidth>
             Complete
           </Button>
-          <Button onClick={onRedo} variant="secondary" alwaysAutoWidth>
+          <Button onClick={handleRedo} variant="secondary" alwaysAutoWidth>
             Redo → Back to Stage 3
           </Button>
         </div>
       )}
 
-      {!canEdit && caseData.current_stage === 5 && !isCS && caseData.status !== 'closed' && caseData.status !== 'cancelled' && (
+      {!canEdit && nonNullCaseData.current_stage === 5 && !isCS && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled' && (
         <div className="stage5-waiting-message">
           <p>⏳ Waiting for CS to complete closing</p>
         </div>

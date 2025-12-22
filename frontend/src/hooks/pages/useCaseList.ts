@@ -1,26 +1,27 @@
 import { useState, useEffect } from 'react';
 import { getCases } from '../../api/cases';
 import type { CaseListItem } from '../../api/cases';
-import { getTechnicians } from '../../api/data';
+import { useTechnicians } from '../useTechnicians';
 
 export function useCaseList() {
   const [cases, setCases] = useState<CaseListItem[]>([]);
   const [filter, setFilter] = useState({ status: '', case_type: '', assigned_to: '' });
-  const [technicians, setTechnicians] = useState<{ id: number; name: string }[]>([]);
+  const { technicians } = useTechnicians();
   const [pagination, setPagination] = useState({ page: 1, per_page: 20, total: 0, total_pages: 0 });
   const [sort, setSort] = useState<{ column: string; direction: 'asc' | 'desc' }>({ column: 'created_at', direction: 'desc' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCases();
   }, [filter, pagination.page, sort]);
 
   useEffect(() => {
-    getTechnicians().then(res => setTechnicians(res.data));
   }, []);
 
   const loadCases = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params: Record<string, string> = {
         page: String(pagination.page),
@@ -35,7 +36,8 @@ export function useCaseList() {
       setCases(res.data.data);
       setPagination(res.data.pagination);
     } catch (error) {
-      console.error('Failed to load cases:', error);
+      setError('Failed to load cases. Please try again.');
+      setCases([]);
     } finally {
       setLoading(false);
     }
@@ -69,6 +71,7 @@ export function useCaseList() {
     pagination,
     sort,
     loading,
+    error,
     handleSort,
     handlePageChange,
     handleFilterChange,

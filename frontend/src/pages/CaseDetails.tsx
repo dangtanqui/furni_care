@@ -1,7 +1,9 @@
+import { useMemo, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import Button from '../fields/Button';
+import Button from '../components/Button';
 import { STAGES } from '../constants/pages/CaseDetails';
 import { useCaseDetails } from '../hooks/pages/useCaseDetails';
+import { CaseDetailsProvider } from '../contexts/CaseDetailsContext';
 import CaseHeader from '../components/pages/case_details/CaseHeader';
 import StageSection from '../components/pages/case_details/StageSection';
 import '../styles/pages/CaseDetails.css';
@@ -15,6 +17,8 @@ export default function CaseDetail() {
     isCS,
     isTechnician,
     isLeader,
+    error,
+    loading,
     handleUpdate,
     handleAttachmentsUpload,
     handleAttachmentDelete,
@@ -26,47 +30,87 @@ export default function CaseDetail() {
     canEditStage,
   } = useCaseDetails();
 
-  if (!caseData) return <div className="case-details-loading">Loading...</div>;
+  const handleToggle = useCallback((stageNum: number) => {
+    setExpandedStage(expandedStage === stageNum ? null : stageNum);
+  }, [expandedStage, setExpandedStage]);
+
+  const handleOpenStage = useCallback((stageNum: number) => {
+    setExpandedStage(stageNum);
+  }, [setExpandedStage]);
+
+  const stageSections = useMemo(() => {
+    return STAGES.map(stage => ({
+      ...stage,
+      canEdit: canEditStage(stage.num),
+      expanded: expandedStage === stage.num,
+    }));
+  }, [canEditStage, expandedStage]);
+
+  if (loading && !caseData) return <div className="case-details-loading">Loading...</div>;
+  if (!caseData) return <div className="case-details-loading">Case not found</div>;
+
+  // TypeScript: caseData is guaranteed to be non-null here due to check above
+  const nonNullCaseData = caseData;
 
   return (
-    <div className="case-details-page">
-      <Button
-        variant="tertiary"
-        to="/"
-        leftIcon={<ArrowLeft />}
-        alwaysAutoWidth
-        className="case-details-back-button"
-      >
-        Back
-      </Button>
+    <CaseDetailsProvider
+      value={{
+        caseData: nonNullCaseData,
+        technicians,
+        isCS,
+        isTechnician,
+        isLeader,
+        error,
+        loading,
+        handleUpdate,
+        handleAttachmentsUpload,
+        handleAttachmentDelete,
+        handleAdvance,
+        handleApproveCost,
+        handleRejectCost,
+        handleRedo,
+        handleCancelCase,
+        canEditStage,
+      }}
+    >
+      <div className="case-details-page">
+        <Button
+          variant="tertiary"
+          to="/"
+          leftIcon={<ArrowLeft />}
+          alwaysAutoWidth
+          className="case-details-back-button"
+        >
+          Back
+        </Button>
 
-      <CaseHeader caseData={caseData} />
+        <CaseHeader caseData={nonNullCaseData} />
 
-      {/* Stage Sections */}
-      {STAGES.map(stage => (
-        <StageSection
-          key={stage.num}
-          stage={stage}
-          caseData={caseData}
-          expanded={expandedStage === stage.num}
-          onToggle={() => setExpandedStage(expandedStage === stage.num ? null : stage.num)}
-          onOpenStage={(stageNum: number) => setExpandedStage(stageNum)}
-          canEdit={canEditStage(stage.num)}
-          isCS={isCS}
-          isLeader={isLeader}
-          isTechnician={isTechnician}
-          technicians={technicians}
-          onUpdate={handleUpdate}
-          onAdvance={handleAdvance}
-          onApproveCost={handleApproveCost}
-          onRejectCost={handleRejectCost}
-          onCancelCase={handleCancelCase}
-          onRedo={handleRedo}
-          onUploadAttachments={handleAttachmentsUpload}
-          onDeleteAttachment={handleAttachmentDelete}
-        />
-      ))}
-    </div>
+        {error && (
+          <div className="case-details-error">
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div className="case-details-loading-processing">
+            Processing...
+          </div>
+        )}
+
+        {/* Stage Sections */}
+        {stageSections.map(stage => (
+          <StageSection
+            key={stage.num}
+            stage={stage}
+            expanded={stage.expanded}
+            onToggle={() => handleToggle(stage.num)}
+            onOpenStage={handleOpenStage}
+            canEdit={stage.canEdit}
+          />
+        ))}
+      </div>
+    </CaseDetailsProvider>
   );
 }
 

@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import Button from '../fields/Button';
+import Button from '../components/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { useCaseList } from '../hooks/pages/useCaseList';
 import CaseFilters from '../components/pages/case_list/CaseFilters';
@@ -15,6 +15,7 @@ export default function CaseList() {
     pagination,
     sort,
     loading,
+    error,
     handleSort,
     handlePageChange,
     handleFilterChange,
@@ -38,6 +39,12 @@ export default function CaseList() {
         technicians={technicians}
         onFilterChange={handleFilterChange}
       />
+
+      {error && (
+        <div className="case-list-error">
+          {error}
+        </div>
+      )}
 
       <CaseTable 
         cases={cases}

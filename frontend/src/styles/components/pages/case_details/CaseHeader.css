@@ -6,7 +6,44 @@
 }
 
 .case-header-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-4 mb-4;
+  @apply grid grid-cols-1 gap-4 mb-4;
+}
+
+@media (min-width: 768px) {
+  .case-header-grid {
+    @apply grid-cols-2;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(3, auto);
+  }
+  
+  /* Cột 1: Case ID, Client, Current Stage */
+  .case-header-order-1,
+  .case-header-order-2,
+  .case-header-order-3 {
+    grid-column: 1;
+  }
+  
+  /* Cột 2: Status, Priority */
+  .case-header-order-4,
+  .case-header-order-5 {
+    grid-column: 2;
+  }
+  
+  .case-header-order-1 {
+    grid-row: 1;
+  }
+  .case-header-order-2 {
+    grid-row: 2;
+  }
+  .case-header-order-3 {
+    grid-row: 3;
+  }
+  .case-header-order-4 {
+    grid-row: 1;
+  }
+  .case-header-order-5 {
+    grid-row: 2;
+  }
 }
 
 .case-header-field {
@@ -49,9 +86,7 @@
   @apply text-gray-600;
 }
 
-.case-header-stage-info {
-  @apply flex items-center gap-2 pb-4 border-b border-gray-100;
-}
+/* Removed - stage info is now in grid */
 
 .case-header-stage-value {
   @apply text-gray-900;

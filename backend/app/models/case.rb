@@ -9,15 +9,7 @@ class Case < ApplicationRecord
   has_many :case_attachments, dependent: :destroy
   has_many_attached :attachments
   
-  validates :case_number, presence: true, uniqueness: true
-  validates :current_stage, inclusion: { in: 1..5 }
-  validates :status, inclusion: { in: %w[open pending in_progress completed closed rejected cancelled] }
-  validates :client_id, presence: { message: "is required" }
-  validates :site_id, presence: { message: "is required" }
-  validates :contact_id, presence: { message: "is required" }
-  
-  before_validation :generate_case_number, on: :create
-  
+  # Constants
   STAGES = {
     1 => 'Input & Categorization',
     2 => 'Site Investigation',
@@ -25,6 +17,21 @@ class Case < ApplicationRecord
     4 => 'Execution',
     5 => 'Closing'
   }.freeze
+
+  STATUSES = %w[open pending in_progress completed closed rejected cancelled].freeze
+  COST_STATUSES = %w[pending approved rejected].freeze
+  CASE_TYPES = %w[repair maintenance installation other].freeze
+  PRIORITIES = %w[low medium high urgent].freeze
+
+  # Validations
+  validates :case_number, presence: true, uniqueness: true
+  validates :current_stage, inclusion: { in: 1..5 }
+  validates :status, inclusion: { in: STATUSES }
+  validates :client_id, presence: { message: "is required" }
+  validates :site_id, presence: { message: "is required" }
+  validates :contact_id, presence: { message: "is required" }
+  
+  before_validation :generate_case_number, on: :create
   
   def stage_name
     STAGES[current_stage]
@@ -34,9 +41,22 @@ class Case < ApplicationRecord
   
   def generate_case_number
     return if case_number.present?
-    last_case = Case.order(created_at: :desc).first
-    next_number = last_case ? last_case.id + 1 : 1
-    self.case_number = "C-#{next_number.to_s.rjust(4, '0')}"
+    
+    # Use database-level locking to prevent race conditions
+    ActiveRecord::Base.transaction do
+      # Lock the last case record to prevent concurrent access
+      last_case = Case.order(id: :desc).lock.first
+      next_number = last_case ? last_case.id + 1 : 1
+      self.case_number = "C-#{next_number.to_s.rjust(4, '0')}"
+      
+      # Retry if case_number already exists (handles edge case)
+      retries = 0
+      while Case.exists?(case_number: self.case_number) && retries < 5
+        next_number += 1
+        self.case_number = "C-#{next_number.to_s.rjust(4, '0')}"
+        retries += 1
+      end
+    end
   end
 end
 
