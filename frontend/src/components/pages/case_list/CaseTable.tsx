@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Clock, CheckCircle } from 'lucide-react';
-import { getStatusColorClass, getPriorityColorClass } from '../../../utils/caseHelpers';
+import { getStatusColorClass, getPriorityColorClass, formatCaseStatus } from '../../../utils/caseHelpers';
 import SortIcon from '../../SortIcon';
 import Pagination from '../../Pagination';
 import '../../../styles/components/pages/case_list/CaseTable.css';
@@ -139,7 +139,7 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
                   </td>
                   <td className="case-table-cell-full">
                     <span className={`case-table-status-badge ${getStatusColorClass(c.status)}`}>
-                      {c.status}
+                      {formatCaseStatus(c.status)}
                     </span>
                   </td>
                   <td className="case-table-cell-full">

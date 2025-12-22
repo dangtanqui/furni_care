@@ -27,3 +27,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright - CHỈ ignore các file generated, KHÔNG ignore test files
+/playwright-report/
+/test-results/
+/playwright/.cache/

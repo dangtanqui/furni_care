@@ -1,8 +1,36 @@
-import type { CaseStatus, CasePriority } from '../api/cases';
+import type { CaseStatus, CasePriority, CostStatus } from '../api/cases';
 
 /**
  * Case-related utility functions
  */
+
+/**
+ * Format case status from snake_case to Title Case
+ * e.g., "in_progress" -> "In Progress", "pending" -> "Pending"
+ */
+export function formatCaseStatus(status: CaseStatus): string {
+  return status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Format cost status to capitalize first letter
+ * e.g., "pending" -> "Pending", "approved" -> "Approved", "rejected" -> "Rejected"
+ */
+export function formatCostStatus(costStatus: CostStatus): string {
+  if (!costStatus) return 'Pending';
+  return costStatus.charAt(0).toUpperCase() + costStatus.slice(1);
+}
+
+/**
+ * Format priority to capitalize first letter
+ * e.g., "low" -> "Low", "medium" -> "Medium", "high" -> "High"
+ */
+export function formatPriority(priority: CasePriority): string {
+  return priority.charAt(0).toUpperCase() + priority.slice(1);
+}
 
 /**
  * Gets the CSS class for a case status badge

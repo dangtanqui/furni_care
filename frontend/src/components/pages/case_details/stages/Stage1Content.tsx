@@ -13,7 +13,7 @@ interface Stage1ContentProps {
 }
 
 export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
-  const { caseData, technicians, isCS, handleUpdate, handleAdvance } = useCaseDetailsContext();
+  const { caseData, technicians, isCS, isTechnician, isLeader, handleUpdate, handleAdvance } = useCaseDetailsContext();
   
   if (!caseData) return null;
   
@@ -32,6 +32,15 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
     }
   }, [currentAssignedId]);
 
+  // Check if selected technician is the same as current assigned technician (when current_stage > 1)
+  const selectedId = assignedTo || currentAssignedId;
+  const isSelectingCurrentTechnician = nonNullCaseData.current_stage > 1 && 
+                                       selectedId && 
+                                       selectedId === currentAssignedId;
+  
+  // Check if technicians list is available
+  const hasTechnicians = technicians && technicians.length > 0;
+
   return (
     <div className="stage1-container">
       <div className="stage1-grid">
@@ -47,11 +56,11 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
           <label className="stage1-label">Contact Person</label>
           <p className="stage1-content">{nonNullCaseData.contact.name} - {nonNullCaseData.contact.phone}</p>
         </div>
-        <div>
-          <label className="stage1-label">Case Type</label>
-          <p className="stage1-content">{nonNullCaseData.case_type}</p>
-        </div>
+      <div>
+        <label className="stage1-label">Case Type</label>
+        <p className="stage1-content">{nonNullCaseData.case_type}</p>
       </div>
+    </div>
       
       <div>
         <label className="stage1-label">Description</label>
@@ -66,6 +75,16 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
         )}
       </div>
 
+      {/* Show Assigned Technician for technician and leader (not for CS since they have dropdown) */}
+      {(isTechnician || isLeader) && (
+        <div>
+          <label className="stage1-label">Assigned Technician</label>
+          <p className="stage1-content">
+            {nonNullCaseData.assigned_to ? nonNullCaseData.assigned_to.name : '-'}
+          </p>
+        </div>
+      )}
+
       {isCS && canEdit && (
         <div className="stage1-assign-section">
           <div className="stage1-assign-container">
@@ -76,8 +95,8 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                 name="assigned_to"
                 value={assignedTo || currentAssignedId || ''}
                 onChange={(value) => setAssignedTo(value)}
-                options={technicians.map((t) => ({ value: String(t.id), label: t.name }))}
-                placeholder="Assign Technician"
+                options={hasTechnicians ? technicians.map((t) => ({ value: String(t.id), label: t.name })) : []}
+                placeholder={hasTechnicians ? "Assign Technician" : "Loading technicians..."}
                 className="stage1-select-flex"
               />
             </div>
@@ -86,12 +105,27 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                 const selectedId = assignedTo || currentAssignedId;
                 if (!selectedId || selectedId === '') return;
                 try {
-                  await handleUpdate({ assigned_to_id: Number(selectedId) });
+                  // If current_stage >= 3, rollback to stage 2 when updating Stage 1
+                  const updateData: any = { 
+                    assigned_to_id: Number(selectedId),
+                    status: 'in_progress' // Set status to in_progress when reassigning
+                  };
+                  if (nonNullCaseData.current_stage >= 3) {
+                    updateData.current_stage = 2;
+                  }
+                  
+                  await handleUpdate(updateData);
                   if (isCurrent) {
                     await handleAdvance();
                     // Open Stage 2 after advancing
                     setTimeout(() => {
                       onOpenStage(2);
+                    }, TIMING.STAGE_OPEN_DELAY);
+                  } else {
+                    // When updating at stage 1 but case is not at stage 1, jump to current stage (or stage 2 if rolled back)
+                    const targetStage = nonNullCaseData.current_stage >= 3 ? 2 : nonNullCaseData.current_stage;
+                    setTimeout(() => {
+                      onOpenStage(targetStage);
                     }, TIMING.STAGE_OPEN_DELAY);
                   }
                 } catch (error) {
@@ -99,7 +133,10 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                 }
               }}
               variant="primary"
-              disabled={(!assignedTo || assignedTo === '') && !currentAssignedId}
+              disabled={
+                (!selectedId || selectedId === '') || 
+                isSelectingCurrentTechnician
+              }
             >
               {isCurrent ? 'Complete' : 'Update'}
             </Button>

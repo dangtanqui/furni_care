@@ -1,6 +1,7 @@
 # Users
 cs = User.create!(email: 'cs@demo.com', password: 'password', name: 'CS Demo', role: 'cs')
 tech = User.create!(email: 'tech@demo.com', password: 'password', name: 'Tech Demo', role: 'technician')
+tech1 = User.create!(email: 'tech1@demo.com', password: 'password', name: 'Tech 1 Demo', role: 'technician')
 leader = User.create!(email: 'leader@demo.com', password: 'password', name: 'Leader Demo', role: 'leader')
 
 # Clients

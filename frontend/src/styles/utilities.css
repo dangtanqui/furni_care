@@ -21,12 +21,39 @@
 
   /* Tertiary Button - Chỉ text màu chủ đạo (link style) */
   .btn-tertiary {
-    @apply bg-transparent text-[var(--accent)] px-4 py-2 rounded-full transition-all duration-200 cursor-pointer border-2;
-    border-color: transparent;
+    @apply bg-transparent text-[var(--accent)] px-4 py-2 rounded-full transition-all duration-200 cursor-pointer;
+    border: none !important;
     @apply hover:text-[var(--accent-light)] hover:underline active:text-[var(--accent-dark)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:no-underline;
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2;
     color: var(--accent);
+  }
+
+  button.btn-tertiary,
+  a.btn-tertiary,
+  .btn-tertiary {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  button.btn-tertiary:hover,
+  button.btn-tertiary:active,
+  button.btn-tertiary:focus,
+  button.btn-tertiary:focus-visible,
+  button.btn-tertiary:visited,
+  a.btn-tertiary:hover,
+  a.btn-tertiary:active,
+  a.btn-tertiary:focus,
+  a.btn-tertiary:focus-visible,
+  a.btn-tertiary:visited,
+  .btn-tertiary:hover,
+  .btn-tertiary:active,
+  .btn-tertiary:focus,
+  .btn-tertiary:focus-visible,
+  .btn-tertiary:visited {
+    border: none !important;
+    outline: none;
+    box-shadow: none !important;
   }
 
   .btn-secondary svg,

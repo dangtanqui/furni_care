@@ -4,6 +4,7 @@ import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
+import { formatCostStatus } from '../../../../utils/caseHelpers';
 import type { CaseAttachmentItem } from '../../../../api/cases';
 
 interface CostApprovalSectionProps {
@@ -17,6 +18,7 @@ interface CostApprovalSectionProps {
   canEdit: boolean;
   costAttachments: CaseAttachmentItem[];
   handleCostFileChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  shouldValidate?: boolean;
 }
 
 export default function CostApprovalSection({
@@ -26,10 +28,10 @@ export default function CostApprovalSection({
   canEdit,
   costAttachments,
   handleCostFileChange,
+  shouldValidate = false,
 }: CostApprovalSectionProps) {
   const { caseData, isLeader, handleApproveCost, handleRejectCost, handleAttachmentDelete } = useCaseDetailsContext();
   const [estimatedCostError, setEstimatedCostError] = useState<string>('');
-  const [estimatedCostTouched, setEstimatedCostTouched] = useState<boolean>(false);
 
   if (!caseData) return null;
   
@@ -37,32 +39,24 @@ export default function CostApprovalSection({
   const nonNullCaseData = caseData;
 
   // Validate estimated_cost when cost_required is true
-  // Only show error if field is empty or invalid (not a number)
-  // Allow 0 as a valid value
+  // Must be a number >= 0
+  // Only show error when shouldValidate is true (when user clicks Save)
   useEffect(() => {
-    if (form.cost_required && editable) {
+    if (shouldValidate && form.cost_required && editable) {
       const costValue = form.estimated_cost.trim();
       const numValue = parseFloat(costValue);
       
-      // If field is empty and not touched, don't show error yet
-      if (!costValue && !estimatedCostTouched) {
-        setEstimatedCostError('');
-        return;
-      }
-      
-      // Show error only if touched and empty, or if value is not a valid number
+      // Validate: must be a valid number >= 0
       // Allow 0 as valid value
-      if (estimatedCostTouched || costValue) {
-        if (!costValue || (costValue !== '0' && isNaN(numValue))) {
-          setEstimatedCostError('is required');
-        } else {
-          setEstimatedCostError('');
-        }
+      if (!costValue || costValue === '' || (costValue !== '0' && isNaN(numValue)) || numValue < 0) {
+        setEstimatedCostError('is required');
+      } else {
+        setEstimatedCostError('');
       }
     } else {
       setEstimatedCostError('');
     }
-  }, [form.cost_required, form.estimated_cost, editable, estimatedCostTouched]);
+  }, [form.cost_required, form.estimated_cost, editable, shouldValidate]);
 
   return (
     <>
@@ -94,7 +88,6 @@ export default function CostApprovalSection({
                       type="number"
                       value={form.estimated_cost}
                       onChange={e => setForm({ ...form, estimated_cost: e.target.value })}
-                      onBlur={() => setEstimatedCostTouched(true)}
                       className={`stage3-cost-input ${estimatedCostError ? 'stage3-input-error' : ''}`}
                       placeholder="0"
                       step="1"
@@ -116,7 +109,7 @@ export default function CostApprovalSection({
                 nonNullCaseData.cost_status === 'rejected' ? 'stage3-cost-status-rejected' :
                 'stage3-cost-status-pending'
               }>
-                {nonNullCaseData.cost_status || 'Pending'}
+                {formatCostStatus(nonNullCaseData.cost_status)}
               </p>
             </div>
           </div>

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { CaseDetailType } from '../../../types/components/pages/CaseDetails';
 import { Check } from 'lucide-react';
 import { STAGES } from '../../../constants/pages/CaseDetails';
-import { getStatusColorClass, getPriorityColorClass } from '../../../utils/caseHelpers';
+import { getStatusColorClass, getPriorityColorClass, formatCaseStatus, formatPriority } from '../../../utils/caseHelpers';
 import '../../../styles/components/pages/case_details/CaseHeader.css';
 
 interface CaseHeaderProps {
@@ -47,9 +47,9 @@ export default function CaseHeader({ caseData }: CaseHeaderProps) {
           <span 
             className={`px-3 py-1 rounded-full text-sm ${getStatusColorClass(caseData.status)}`}
             role="status"
-            aria-label={`Case status: ${caseData.status}`}
+            aria-label={`Case status: ${formatCaseStatus(caseData.status)}`}
           >
-            {caseData.status}
+            {formatCaseStatus(caseData.status)}
           </span>
         </div>
         <div className="case-header-field case-header-order-5">
@@ -57,9 +57,9 @@ export default function CaseHeader({ caseData }: CaseHeaderProps) {
           <span 
             className={getPriorityColorClass(caseData.priority)}
             role="status"
-            aria-label={`Case priority: ${caseData.priority}`}
+            aria-label={`Case priority: ${formatPriority(caseData.priority)}`}
           >
-            {caseData.priority}
+            {formatPriority(caseData.priority)}
           </span>
         </div>
       </div>

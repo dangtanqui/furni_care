@@ -8,7 +8,7 @@ import { canEditStage as checkCanEditStage } from '../../utils/casePermissions';
 
 export function useCaseDetails() {
   const { id } = useParams();
-  const { isCS, isTechnician, isLeader } = useAuth();
+  const { isCS, isTechnician, isLeader, user } = useAuth();
   
   const [caseData, setCaseData] = useState<CaseDetailType | null>(null);
   const [expandedStage, setExpandedStage] = useState<number | null>(null);
@@ -306,8 +306,8 @@ export function useCaseDetails() {
   };
 
   const canEditStage = useCallback((stage: number) => {
-    return checkCanEditStage(stage, { caseData, isCS, isTechnician, isLeader });
-  }, [caseData, isCS, isTechnician, isLeader]);
+    return checkCanEditStage(stage, { caseData, isCS, isTechnician, isLeader, currentUserId: user?.id });
+  }, [caseData, isCS, isTechnician, isLeader, user?.id]);
 
   return {
     caseData,
@@ -317,6 +317,7 @@ export function useCaseDetails() {
     isCS,
     isTechnician,
     isLeader,
+    currentUserId: user?.id,
     error,
     loading,
     handleUpdate,

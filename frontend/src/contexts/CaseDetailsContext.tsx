@@ -8,6 +8,7 @@ interface CaseDetailsContextType {
   isCS: boolean;
   isTechnician: boolean;
   isLeader: boolean;
+  currentUserId?: number;
   error: string | null;
   loading: boolean;
   handleUpdate: (data: Partial<CaseDetailType>) => Promise<void>;

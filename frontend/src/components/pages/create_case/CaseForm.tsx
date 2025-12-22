@@ -14,6 +14,16 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
     return keys.some(k => !!errors?.[k]);
   };
 
+  // Check if all required fields are filled
+  // Required fields: client_id, site_id, contact_id, case_type, priority
+  const isFormValid = Boolean(
+    form.client_id &&
+    form.site_id &&
+    form.contact_id &&
+    form.case_type &&
+    form.priority
+  );
+
   return (
     <form onSubmit={onSubmit} className="case-form">
       <div>
@@ -141,7 +151,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
         </div>
       </div>
 
-      <Button type="submit" variant="primary">Submit</Button>
+      <Button type="submit" variant="primary" disabled={!isFormValid}>Submit</Button>
     </form>
   );
 }

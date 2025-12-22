@@ -263,6 +263,13 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
                   const updateData: any = { ...form };
                   if (form.final_cost !== '') {
                     updateData.final_cost = Number(form.final_cost);
+                    // If final_cost differs from estimated_cost, set status to 'pending' (wait for leader approval)
+                    const finalCost = Number(form.final_cost);
+                    const estimatedCost = nonNullCaseData.estimated_cost;
+                    if (estimatedCost !== null && Math.abs(finalCost - estimatedCost) >= 0.01) {
+                      updateData.status = 'pending';
+                      updateData.final_cost_status = 'pending';
+                    }
                   }
                   await handleUpdate(updateData);
                   setTimeout(() => {

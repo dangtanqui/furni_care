@@ -18,7 +18,7 @@ interface Stage3ContentProps {
 }
 
 export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }: Stage3ContentProps) {
-  const { caseData, isLeader, isCS, isTechnician, handleUpdate, handleAdvance, handleCancelCase, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
+  const { caseData, isLeader, isCS, isTechnician, currentUserId, handleUpdate, handleAdvance, handleCancelCase, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
   
   if (!caseData) return null;
   
@@ -40,11 +40,27 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
   });
   const checklistItems = ['Prepare materials', 'Schedule with client'];
   const isCurrent = nonNullCaseData.current_stage === 3;
-  const canEditStage3 = isTechnician && nonNullCaseData.current_stage >= 3 && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled';
-  // Allow editing if canEdit OR canEditStage3 (fallback for technician)
+  // Fallback check: only assigned technician can edit Stage 3
+  const isAssignedTechnician = isTechnician && 
+                                nonNullCaseData.assigned_to?.id && 
+                                currentUserId && 
+                                nonNullCaseData.assigned_to.id === currentUserId;
+  const canEditStage3 = isAssignedTechnician && 
+                        nonNullCaseData.current_stage >= 3 && 
+                        nonNullCaseData.status !== 'closed' && 
+                        nonNullCaseData.status !== 'cancelled';
+  // Allow editing if canEdit OR canEditStage3 (fallback for assigned technician)
   const editable = canEdit || canEditStage3;
   const canAdvance = !form.cost_required || nonNullCaseData.cost_status === 'approved';
   const isRejected = nonNullCaseData.cost_status === 'rejected';
+  const [shouldValidateCost, setShouldValidateCost] = useState<boolean>(false);
+  
+  // Check if estimated_cost is required but not entered yet
+  // Similar to Stage 5 finalCostMissing logic
+  // Allow 0 as a valid value (cost can be 0)
+  const hasEstimatedCostInForm = form.estimated_cost !== '' && form.estimated_cost !== null && !isNaN(Number(form.estimated_cost));
+  const hasEstimatedCostInData = nonNullCaseData.estimated_cost !== null && nonNullCaseData.estimated_cost !== undefined;
+  const estimatedCostMissing = form.cost_required && !hasEstimatedCostInForm && !hasEstimatedCostInData;
   const attachments = nonNullCaseData.stage_attachments?.['3'] || [];
   const costAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type === 'cost');
   const stageAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type !== 'cost');
@@ -182,11 +198,18 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
             estimated_cost: form.estimated_cost,
             cost_description: form.cost_description,
           }}
-          setForm={(newForm) => setForm({ ...form, ...newForm })}
+          setForm={(newForm) => {
+            setForm({ ...form, ...newForm });
+            // Reset validation when user starts typing
+            if (shouldValidateCost && newForm.estimated_cost !== undefined) {
+              setShouldValidateCost(false);
+            }
+          }}
           editable={editable}
           canEdit={canEdit}
           costAttachments={costAttachments}
           handleCostFileChange={handleCostFileChange}
+          shouldValidate={shouldValidateCost}
         />
       </div>
 
@@ -199,6 +222,28 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
               <>
                 <Button 
                   onClick={async () => {
+                    // Validate estimated_cost when cost_required is true
+                    if (form.cost_required) {
+                      const costValue = form.estimated_cost.trim();
+                      const numValue = parseFloat(costValue);
+                      
+                      // Check if estimated_cost is valid (must be a number >= 0)
+                      if (!costValue || costValue === '' || (costValue !== '0' && isNaN(numValue)) || numValue < 0) {
+                        // Trigger validation to show error
+                        setShouldValidateCost(true);
+                        // Focus on estimated_cost input to show error
+                        const costInput = document.getElementById('estimated_cost');
+                        if (costInput) {
+                          costInput.focus();
+                          costInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return; // Don't save if validation fails
+                      }
+                    }
+                    
+                    // Reset validation state before saving
+                    setShouldValidateCost(false);
+                    
                     await handleUpdate({ 
                       ...form, 
                       solution_checklist: JSON.stringify(checklist), 
@@ -210,6 +255,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                     }, TIMING.ACCORDION_CLOSE_DELAY);
                   }} 
                   variant="primary"
+                  disabled={estimatedCostMissing}
                 >
                   Save
                 </Button>
@@ -258,6 +304,28 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
               <>
                 <Button 
                   onClick={async () => {
+                    // Validate estimated_cost when cost_required is true
+                    if (form.cost_required) {
+                      const costValue = form.estimated_cost.trim();
+                      const numValue = parseFloat(costValue);
+                      
+                      // Check if estimated_cost is valid (must be a number >= 0)
+                      if (!costValue || costValue === '' || (costValue !== '0' && isNaN(numValue)) || numValue < 0) {
+                        // Trigger validation to show error
+                        setShouldValidateCost(true);
+                        // Focus on estimated_cost input to show error
+                        const costInput = document.getElementById('estimated_cost');
+                        if (costInput) {
+                          costInput.focus();
+                          costInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return; // Don't save if validation fails
+                      }
+                    }
+                    
+                    // Reset validation state before saving
+                    setShouldValidateCost(false);
+                    
                     await handleUpdate({ 
                       ...form, 
                       solution_checklist: JSON.stringify(checklist),
@@ -269,6 +337,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                     }, TIMING.ACCORDION_CLOSE_DELAY);
                   }} 
                   variant="primary"
+                  disabled={estimatedCostMissing}
                 >
                   Update
                 </Button>
