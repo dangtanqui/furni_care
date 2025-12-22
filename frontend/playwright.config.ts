@@ -50,6 +50,8 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
+  // Note: webServer will start automatically before tests run
+  // For UI mode, tests will be visible once webServers are ready
   webServer: [
     {
       command: 'npm run dev',
@@ -60,9 +62,9 @@ export default defineConfig({
     // Backend server for E2E tests (using test database)
     {
       command: process.platform === 'win32' 
-        ? 'cd ../backend && $env:RAILS_ENV=\"test\"; bundle exec rails server -p 3000'
+        ? 'powershell -ExecutionPolicy Bypass -File ../backend/scripts/start-test-server.ps1'
         : 'cd ../backend && RAILS_ENV=test bundle exec rails server -p 3000',
-      url: 'http://localhost:3000/api/auth/login',
+      url: 'http://localhost:3000/api/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
       // Wait for backend to be ready (check login endpoint)

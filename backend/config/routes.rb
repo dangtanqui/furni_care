@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
   namespace :api do
+    get 'health', to: 'health#index'
+    
     post 'auth/login', to: 'auth#login'
     post 'auth/register', to: 'auth#register'
     get 'auth/me', to: 'auth#me'
