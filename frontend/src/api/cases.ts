@@ -3,6 +3,7 @@ import api from './client';
 export type CaseStatus = 'open' | 'in_progress' | 'pending' | 'completed' | 'closed' | 'cancelled' | 'rejected';
 export type CasePriority = 'low' | 'medium' | 'high';
 export type CostStatus = 'pending' | 'approved' | 'rejected' | null;
+export type FinalCostStatus = 'pending' | 'approved' | 'rejected' | null;
 export type CaseType = 'repair' | 'maintenance' | 'installation' | 'other';
 
 export interface CaseListItem {
@@ -62,6 +63,9 @@ export interface CaseDetail {
   cs_notes: string;
   final_feedback: string;
   final_rating: number;
+  final_cost: number | null;
+  final_cost_status: FinalCostStatus;
+  final_cost_approved_by: { id: number; name: string } | null;
   stage_attachments: Record<
     string,
     Array<{
@@ -110,6 +114,12 @@ export const redoCase = (id: number) =>
 
 export const cancelCase = (id: number) =>
   api.post<CaseDetail>(`/cases/${id}/cancel_case`);
+
+export const approveFinalCost = (id: number) =>
+  api.post<CaseDetail>(`/cases/${id}/approve_final_cost`);
+
+export const rejectFinalCost = (id: number) =>
+  api.post<CaseDetail>(`/cases/${id}/reject_final_cost`);
 
 export const deleteCaseAttachment = (caseId: number, attachmentId: number) =>
   api.delete(`/cases/${caseId}/case_attachments/${attachmentId}`);

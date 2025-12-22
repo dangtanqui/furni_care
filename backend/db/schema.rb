@@ -84,6 +84,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_17_154243) do
     t.integer "attempt_number", default: 1
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "final_cost", precision: 15, scale: 2
+    t.string "final_cost_status"
+    t.bigint "final_cost_approved_by_id"
     t.index ["assigned_to_id"], name: "index_cases_on_assigned_to_id"
     t.index ["case_number"], name: "index_cases_on_case_number", unique: true
     t.index ["client_id"], name: "index_cases_on_client_id"
@@ -91,6 +94,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_17_154243) do
     t.index ["cost_approved_by_id"], name: "index_cases_on_cost_approved_by_id"
     t.index ["created_by_id"], name: "index_cases_on_created_by_id"
     t.index ["current_stage"], name: "index_cases_on_current_stage"
+    t.index ["final_cost_approved_by_id"], name: "index_cases_on_final_cost_approved_by_id"
     t.index ["site_id"], name: "index_cases_on_site_id"
     t.index ["status"], name: "index_cases_on_status"
   end
@@ -145,6 +149,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_17_154243) do
   add_foreign_key "cases", "users", column: "assigned_to_id"
   add_foreign_key "cases", "users", column: "cost_approved_by_id"
   add_foreign_key "cases", "users", column: "created_by_id"
+  add_foreign_key "cases", "users", column: "final_cost_approved_by_id"
   add_foreign_key "contacts", "sites"
   add_foreign_key "sites", "clients"
 end

@@ -130,6 +130,14 @@
   @apply p-4 bg-gray-50 rounded-lg;
 }
 
+.stage3-cost-checkbox-wrapper {
+  @apply mb-4;
+}
+
+.stage3-cost-content {
+  @apply mt-2;
+}
+
 .stage3-cost-checkbox-label {
   @apply flex items-center gap-2 mb-3;
 }
@@ -205,6 +213,24 @@
   outline: none;
   border-color: transparent;
   box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.stage3-label-error {
+  @apply text-red-600;
+}
+
+.stage3-input-error {
+  border-color: rgb(239 68 68) !important;
+}
+
+.stage3-input-error:focus,
+.stage3-input-error:focus-visible {
+  border-color: transparent !important;
+  box-shadow: inset 0 0 0 2px rgb(239 68 68) !important;
+}
+
+.stage3-error-message {
+  @apply text-sm text-red-600 mt-1;
 }
 
 .stage3-cost-display {

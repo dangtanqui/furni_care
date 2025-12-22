@@ -82,6 +82,7 @@ export default function StageSection({
         {stage.num === 5 && (
           <Stage5Content
             canEdit={canEdit}
+            onCloseAccordion={() => onToggle()}
           />
         )}
       </div>

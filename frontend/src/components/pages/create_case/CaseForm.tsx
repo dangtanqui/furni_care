@@ -96,7 +96,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
 
       <div className="case-form-grid">
         <div>
-          <label htmlFor="case_type" className={`case-form-label ${hasError(['case_type']) ? 'case-form-label-error' : ''}`}>Case Type *</label>
+          <label htmlFor="case_type" className={`case-form-label ${hasError(['case_type']) ? 'case-form-label-error' : ''}`}>Type *</label>
           <Select
             id="case_type"
             name="case_type"
@@ -107,13 +107,13 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
               { value: 'maintenance', label: 'Maintenance' },
               { value: 'repair', label: 'Repair' },
             ]}
-            placeholder="Select Case Type"
+            placeholder="Select Type"
             error={hasError(['case_type'])}
             onOpen={() => onClearFieldError?.(['case_type'])}
           />
           {getFieldError(['case_type']) && (
             <p className="case-form-field-error">
-              Case Type {getFieldError(['case_type'])}
+              Type {getFieldError(['case_type'])}
             </p>
           )}
         </div>

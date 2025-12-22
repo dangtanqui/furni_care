@@ -171,6 +171,7 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
             });
             // Only advance if Stage 4 is the current stage
             if (isCurrent) {
+              // Advance stage after successful update
               await handleAdvance();
               // Open Stage 5 after advancing
               setTimeout(() => {
@@ -192,7 +193,7 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
 
       {!canEdit && isCurrent && (isCS || isLeader) && (
         <div className="stage4-waiting-message">
-          <p>⏳ Waiting for Technician to complete execution</p>
+          <p>⏳ Waiting for Technician to complete</p>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ export interface LoginFormProps {
   password: string;
   showPassword: boolean;
   error: string;
+  loading: boolean;
   onEmailChange: (email: string) => void;
   onPasswordChange: (password: string) => void;
   onTogglePassword: () => void;

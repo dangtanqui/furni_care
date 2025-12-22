@@ -84,9 +84,25 @@ function canEditStage4({ caseData, isTechnician }: PermissionParams): boolean {
 function canEditStage5({ caseData, isCS }: PermissionParams): boolean {
   if (!caseData) return false;
   if (!canEditCase(caseData)) return false;
-  if (caseData.status === 'rejected' || caseData.status === 'cancelled') return false;
+  if (caseData.status === 'cancelled') return false;
   if (caseData.current_stage < 5) return false;
-  return isCS && caseData.status === 'completed';
+  
+  // Allow CS to edit when final cost is rejected (to update rejected final cost)
+  if (caseData.status === 'rejected' && caseData.final_cost_status === 'rejected') {
+    return isCS;
+  }
+  
+  // Allow CS to edit when waiting for Leader approval (status = 'pending', final_cost_status = 'pending')
+  // CS can still update final cost and redo while waiting for approval
+  if (caseData.status === 'pending' && caseData.final_cost_status === 'pending') {
+    return isCS;
+  }
+  
+  // Cannot edit if case is rejected but not due to final cost rejection
+  if (caseData.status === 'rejected') return false;
+  
+  // CS can edit Stage 5 when status is 'completed' (no cost required) or 'in_progress' (cost required, needs final cost input)
+  return isCS && (caseData.status === 'completed' || caseData.status === 'in_progress');
 }
 
 /**

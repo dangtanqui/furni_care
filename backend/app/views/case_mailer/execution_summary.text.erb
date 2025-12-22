@@ -1,0 +1,31 @@
+Case Execution Summary
+
+Dear <%= @contact&.name || @client&.name %>,
+
+We would like to inform you that the execution for Case <%= @case.case_number %> has been completed.
+
+Case Details:
+- Case Number: <%= @case.case_number %>
+- Client: <%= @client&.name %>
+- Site: <%= @site&.name %>
+- Type: <%= @case.case_type %>
+- Status: <%= @case.status %>
+
+<% if @case.execution_report.present? %>
+Execution Report:
+<%= @case.execution_report %>
+
+<% end %>
+<% if @case.client_feedback.present? %>
+Your Feedback:
+<%= @case.client_feedback %>
+
+<% end %>
+<% if @case.client_rating.present? %>
+Rating: <%= @case.client_rating %>/5
+
+<% end %>
+Thank you for your cooperation.
+
+Best regards,
+FurniCare Team

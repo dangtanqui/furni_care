@@ -16,6 +16,8 @@ interface CaseDetailsContextType {
   handleAdvance: () => Promise<void>;
   handleApproveCost: () => Promise<void>;
   handleRejectCost: () => Promise<void>;
+  handleApproveFinalCost: () => Promise<void>;
+  handleRejectFinalCost: () => Promise<void>;
   handleRedo: () => Promise<void>;
   handleCancelCase: () => Promise<void>;
   canEditStage: (stage: number) => boolean;

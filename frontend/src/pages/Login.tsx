@@ -11,17 +11,21 @@ export default function Login() {
   const [password, setPassword] = useState('password');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const res = await loginApi(email, password);
       login(res.data.token, res.data.user);
       navigate('/');
     } catch {
       setError('Invalid email or password');
+      setLoading(false);
     }
   };
 
@@ -39,6 +43,7 @@ export default function Login() {
           password={password}
           showPassword={showPassword}
           error={error}
+          loading={loading}
           onEmailChange={setEmail}
           onPasswordChange={setPassword}
           onTogglePassword={() => setShowPassword(!showPassword)}

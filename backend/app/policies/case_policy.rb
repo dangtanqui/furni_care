@@ -30,8 +30,14 @@ class CasePolicy
   end
 
   def can_redo?
-    # Only allow redo if case is completed or rejected
-    @case.status.in?([Case::STATUSES[3], Case::STATUSES[6]]) # ['completed', 'rejected']
+    # Only CS can redo cases
+    return false unless @user.cs?
+    
+    # Only allow redo if case is at Stage 5
+    # Cannot redo if case is closed or cancelled
+    @case.current_stage == 5 && 
+      @case.status != Case::STATUSES[4] && # not 'closed'
+      @case.status != Case::STATUSES[6] # not 'cancelled'
   end
 
   def can_view?
@@ -41,5 +47,15 @@ class CasePolicy
   def can_destroy?
     # Only CS can delete cases
     @user.cs?
+  end
+
+  def can_approve_final_cost?
+    # Only leaders can approve final cost
+    @user.leader?
+  end
+
+  def can_reject_final_cost?
+    # Only leaders can reject final cost
+    @user.leader?
   end
 end

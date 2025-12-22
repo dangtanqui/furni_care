@@ -5,6 +5,7 @@ class Case < ApplicationRecord
   belongs_to :created_by, class_name: 'User'
   belongs_to :assigned_to, class_name: 'User', optional: true
   belongs_to :cost_approved_by, class_name: 'User', optional: true
+  belongs_to :final_cost_approved_by, class_name: 'User', optional: true
   
   has_many :case_attachments, dependent: :destroy
   has_many_attached :attachments
@@ -20,6 +21,7 @@ class Case < ApplicationRecord
 
   STATUSES = %w[open pending in_progress completed closed rejected cancelled].freeze
   COST_STATUSES = %w[pending approved rejected].freeze
+  FINAL_COST_STATUSES = %w[pending approved rejected].freeze
   CASE_TYPES = %w[repair maintenance installation other].freeze
   PRIORITIES = %w[low medium high urgent].freeze
 
@@ -27,14 +29,44 @@ class Case < ApplicationRecord
   validates :case_number, presence: true, uniqueness: true
   validates :current_stage, inclusion: { in: 1..5 }
   validates :status, inclusion: { in: STATUSES }
+  validates :final_cost_status, inclusion: { in: FINAL_COST_STATUSES }, allow_nil: true
   validates :client_id, presence: { message: "is required" }
   validates :site_id, presence: { message: "is required" }
   validates :contact_id, presence: { message: "is required" }
+  
+  validate :final_cost_required_if_cost_approved
+  validate :estimated_cost_required_if_cost_required
   
   before_validation :generate_case_number, on: :create
   
   def stage_name
     STAGES[current_stage]
+  end
+  
+  def final_cost_required_if_cost_approved
+    # If cost was approved in Stage 3, final_cost is required in Stage 5
+    # But only check if case is already in Stage 5 (not when advancing into Stage 5)
+    # Skip validation if we're advancing into Stage 5 (current_stage was just changed from 4 to 5)
+    if current_stage == 5 && cost_required && cost_status == COST_STATUSES[1] # 'approved'
+      # Only validate if case was already in Stage 5 before this update
+      # If current_stage_changed? and it was 4, we're advancing into Stage 5, so skip validation
+      was_in_stage_5 = !current_stage_changed? || (current_stage_changed? && current_stage_was == 5)
+      
+      # Final cost is required (must be entered, but 0 is allowed as a valid value)
+      if was_in_stage_5 && final_cost.nil?
+        errors.add(:final_cost, "is required when cost was approved in Stage 3")
+      end
+    end
+  end
+
+  def estimated_cost_required_if_cost_required
+    # If cost_required is true, estimated_cost must be present (but 0 is allowed as a valid value)
+    # Only validate when in Stage 3 or later (when cost can be entered)
+    if cost_required && current_stage >= 3
+      if estimated_cost.nil?
+        errors.add(:estimated_cost, "is required when cost is required")
+      end
+    end
   end
   
   private

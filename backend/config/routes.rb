@@ -9,6 +9,8 @@ Rails.application.routes.draw do
         post :advance_stage
         post :approve_cost
         post :reject_cost
+        post :approve_final_cost
+        post :reject_final_cost
         post :redo_case
         post :cancel_case
         post :attachments, to: 'case_attachments#create'

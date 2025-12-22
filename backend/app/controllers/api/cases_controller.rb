@@ -2,8 +2,7 @@ class Api::CasesController < ApplicationController
   include Authorizable
   include ServiceResponse
   
-  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :cancel_case]
-  before_action :authorize_case_action, only: [:approve_cost, :reject_cost, :cancel_case, :destroy]
+  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :approve_final_cost, :reject_final_cost, :cancel_case]
   
   def index
     result = CaseQueryService.call(params: params, current_user: current_user)
@@ -62,6 +61,18 @@ class Api::CasesController < ApplicationController
     result = CaseService.new(case_record: @case, current_user: current_user).cancel_case
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end
+
+  def approve_final_cost
+    authorize_case_action(:approve_final_cost)
+    result = CaseService.new(case_record: @case, current_user: current_user).approve_final_cost
+    render_service_result(result, serializer: CaseSerializer, detail: true)
+  end
+
+  def reject_final_cost
+    authorize_case_action(:reject_final_cost)
+    result = CaseService.new(case_record: @case, current_user: current_user).reject_final_cost
+    render_service_result(result, serializer: CaseSerializer, detail: true)
+  end
   
   def destroy
     authorize_case_action(:destroy)
@@ -87,6 +98,7 @@ class Api::CasesController < ApplicationController
       :cost_required, :estimated_cost, :cost_description,
       :execution_report, :execution_checklist, :client_signature, :client_feedback, :client_rating,
       :cs_notes, :final_feedback, :final_rating,
+      :final_cost, :final_cost_status,
       :status
     )
   end

@@ -135,7 +135,7 @@ export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentPro
 
       {!canEdit && isCurrent && (isCS || isLeader) && (
         <div className="stage2-waiting-message">
-          <p>⏳ Waiting for Technician to complete investigation</p>
+          <p>⏳ Waiting for Technician to complete</p>
         </div>
       )}
     </div>

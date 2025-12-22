@@ -13,7 +13,7 @@ interface Stage1ContentProps {
 }
 
 export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
-  const { caseData, technicians, isCS, handleUpdate, handleAdvance, handleAttachmentDelete } = useCaseDetailsContext();
+  const { caseData, technicians, isCS, handleUpdate, handleAdvance } = useCaseDetailsContext();
   
   if (!caseData) return null;
   
@@ -60,7 +60,7 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
 
       <div>
         <label className="stage1-label">Photos / Attachments</label>
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
+        <AttachmentGrid attachments={attachments} canEdit={canEdit} />
         {attachments.length === 0 && (
           <p className="stage1-no-attachments">No attachments</p>
         )}
@@ -109,7 +109,7 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
 
       {!canEdit && isCurrent && !isCS && (
         <div className="stage1-waiting-message">
-          <p>⏳ Waiting for CS to complete input & categorization</p>
+          <p>⏳ Waiting for CS to complete</p>
         </div>
       )}
     </div>

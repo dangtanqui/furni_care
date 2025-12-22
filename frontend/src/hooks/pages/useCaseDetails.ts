@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { getCase, updateCase, advanceStage, approveCost, rejectCost, redoCase, cancelCase, uploadAttachments, deleteCaseAttachment } from '../../api/cases';
+import { getCase, updateCase, advanceStage, approveCost, rejectCost, approveFinalCost, rejectFinalCost, redoCase, cancelCase, uploadAttachments, deleteCaseAttachment } from '../../api/cases';
 import type { CaseDetail as CaseDetailType } from '../../api/cases';
 import { useTechnicians } from '../useTechnicians';
 import { useAuth } from '../../contexts/AuthContext';
@@ -66,7 +66,8 @@ export function useCaseDetails() {
     setError(null);
     try {
       await updateCase(Number(id), data);
-      await loadCase();
+      // Preserve expanded stage when reloading after update (especially for Stage 5)
+      await loadCase(true);
     } catch (err) {
       setError('Failed to update case. Please try again.');
     } finally {
@@ -203,6 +204,54 @@ export function useCaseDetails() {
     }
   };
 
+  const handleApproveFinalCost = async () => {
+    if (isOperationInProgress) return;
+    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+      setError('Cannot approve final cost: case is already closed or cancelled');
+      return;
+    }
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await approveFinalCost(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to approve final cost. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
+  };
+
+  const handleRejectFinalCost = async () => {
+    if (isOperationInProgress) return;
+    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+      setError('Cannot reject final cost: case is already closed or cancelled');
+      return;
+    }
+    if (!id) {
+      setError('Case ID is missing');
+      return;
+    }
+    setIsOperationInProgress(true);
+    setLoading(true);
+    setError(null);
+    try {
+      await rejectFinalCost(Number(id));
+      await loadCase();
+    } catch (err) {
+      setError('Failed to reject final cost. Please try again.');
+    } finally {
+      setLoading(false);
+      setIsOperationInProgress(false);
+    }
+  };
+
   const handleRedo = async () => {
     if (isOperationInProgress) return;
     // Prevent redo if case is closed or cancelled
@@ -220,9 +269,11 @@ export function useCaseDetails() {
     setError(null);
     try {
       await redoCase(Number(id));
-      await loadCase();
-    } catch (err) {
-      setError('Failed to redo case. Please try again.');
+      await loadCase(false); // Don't preserve expanded stage, let it auto-expand to Stage 3
+    } catch (err: any) {
+      // Extract error message from API response if available
+      const errorMessage = err?.response?.data?.error || err?.message || 'Failed to redo case. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setIsOperationInProgress(false);
@@ -274,6 +325,8 @@ export function useCaseDetails() {
     handleAdvance,
     handleApproveCost,
     handleRejectCost,
+    handleApproveFinalCost,
+    handleRejectFinalCost,
     handleRedo,
     handleCancelCase,
     canEditStage,

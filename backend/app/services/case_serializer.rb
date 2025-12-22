@@ -78,6 +78,9 @@ class CaseSerializer
       cs_notes: @case.cs_notes,
       final_feedback: @case.final_feedback,
       final_rating: @case.final_rating,
+      final_cost: @case.final_cost,
+      final_cost_status: @case.final_cost_status,
+      final_cost_approved_by: @case.final_cost_approved_by ? { id: @case.final_cost_approved_by_id, name: @case.final_cost_approved_by.name } : nil,
 
       stage_attachments: attachments_hash,
       

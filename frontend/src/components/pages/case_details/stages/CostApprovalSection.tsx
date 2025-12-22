@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
@@ -27,48 +28,89 @@ export default function CostApprovalSection({
   handleCostFileChange,
 }: CostApprovalSectionProps) {
   const { caseData, isLeader, handleApproveCost, handleRejectCost, handleAttachmentDelete } = useCaseDetailsContext();
+  const [estimatedCostError, setEstimatedCostError] = useState<string>('');
+  const [estimatedCostTouched, setEstimatedCostTouched] = useState<boolean>(false);
 
   if (!caseData) return null;
   
   // TypeScript: caseData is guaranteed to be non-null here due to check above
   const nonNullCaseData = caseData;
 
+  // Validate estimated_cost when cost_required is true
+  // Only show error if field is empty or invalid (not a number)
+  // Allow 0 as a valid value
+  useEffect(() => {
+    if (form.cost_required && editable) {
+      const costValue = form.estimated_cost.trim();
+      const numValue = parseFloat(costValue);
+      
+      // If field is empty and not touched, don't show error yet
+      if (!costValue && !estimatedCostTouched) {
+        setEstimatedCostError('');
+        return;
+      }
+      
+      // Show error only if touched and empty, or if value is not a valid number
+      // Allow 0 as valid value
+      if (estimatedCostTouched || costValue) {
+        if (!costValue || (costValue !== '0' && isNaN(numValue))) {
+          setEstimatedCostError('is required');
+        } else {
+          setEstimatedCostError('');
+        }
+      }
+    } else {
+      setEstimatedCostError('');
+    }
+  }, [form.cost_required, form.estimated_cost, editable, estimatedCostTouched]);
+
   return (
     <>
-      <label className="stage3-checkbox-label">
+      <label className="stage3-checklist-item stage3-cost-checkbox-wrapper">
         <input
           type="checkbox"
           checked={form.cost_required}
           onChange={e => setForm({ ...form, cost_required: e.target.checked })}
           disabled={!editable}
+          className="stage3-checklist-checkbox"
         />
         <span className="font-medium">Cost Required</span>
       </label>
 
       {form.cost_required && (
-        <div className="stage3-cost-space-y">
+        <div className="stage3-cost-space-y stage3-cost-content">
           <div className="stage3-cost-grid">
             <div className="stage3-cost-flex-col">
-              <label htmlFor="estimated_cost" className="stage3-label">Estimated Cost</label>
+              <label htmlFor="estimated_cost" className={`stage3-label ${estimatedCostError ? 'stage3-label-error' : ''}`}>
+                Estimated Cost {form.cost_required && editable && <span className="text-red-500">*</span>}
+              </label>
               {editable ? (
-                <div className="stage3-cost-input-with-prefix">
-                  <span className="stage3-cost-prefix">$</span>
-                  <input
-                    id="estimated_cost"
-                    name="estimated_cost"
-                    type="number"
-                    value={form.estimated_cost}
-                    onChange={e => setForm({ ...form, estimated_cost: e.target.value })}
-                    className="stage3-cost-input"
-                    placeholder="0.00"
-                  />
-                </div>
+                <>
+                  <div className="stage3-cost-input-with-prefix">
+                    <span className="stage3-cost-prefix">$</span>
+                    <input
+                      id="estimated_cost"
+                      name="estimated_cost"
+                      type="number"
+                      value={form.estimated_cost}
+                      onChange={e => setForm({ ...form, estimated_cost: e.target.value })}
+                      onBlur={() => setEstimatedCostTouched(true)}
+                      className={`stage3-cost-input ${estimatedCostError ? 'stage3-input-error' : ''}`}
+                      placeholder="0"
+                      step="1"
+                      min="0"
+                    />
+                  </div>
+                  {estimatedCostError && (
+                    <p className="stage3-error-message">Estimated Cost is required</p>
+                  )}
+                </>
               ) : (
-                <p className="stage3-cost-display">${nonNullCaseData.estimated_cost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className="stage3-cost-display">${nonNullCaseData.estimated_cost?.toLocaleString()}</p>
               )}
             </div>
             <div className="stage3-cost-flex-col">
-              <label className="stage3-label">Cost Status</label>
+              <label className="stage3-label">Status</label>
               <p className={
                 nonNullCaseData.cost_status === 'approved' ? 'stage3-cost-status-approved' :
                 nonNullCaseData.cost_status === 'rejected' ? 'stage3-cost-status-rejected' :
@@ -79,15 +121,15 @@ export default function CostApprovalSection({
             </div>
           </div>
           <div>
-            <label htmlFor="cost_description" className="stage3-label">Cost Description</label>
+            <label htmlFor="cost_description" className="stage3-label">Description</label>
             {editable ? (
-              <input
+              <textarea
                 id="cost_description"
                 name="cost_description"
-                type="text"
                 value={form.cost_description}
                 onChange={e => setForm({ ...form, cost_description: e.target.value })}
-                className="stage3-input"
+                className="stage3-textarea"
+                placeholder="Describe the cost details..."
               />
             ) : (
               <p>{nonNullCaseData.cost_description || '-'}</p>
@@ -100,12 +142,12 @@ export default function CostApprovalSection({
                 name="cost-attachments"
                 accept="image/*,.pdf"
                 onFileChange={handleCostFileChange}
-                label="Cost Attachments"
-                uploadText="Click to upload cost documents"
+                label="Attachments"
+                uploadText="Click to upload documents"
                 disabled={!editable}
               />
             ) : (
-              <label className="stage3-label">Cost Attachments</label>
+              <label className="stage3-label">Attachments</label>
             )}
             <AttachmentGrid attachments={costAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
           </div>

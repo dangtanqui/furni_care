@@ -216,7 +216,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                 <p className="button-message button-message-warning">
                   <AlertCircle className="inline w-4 h-4 mr-1" /> 
                   {isRejected 
-                    ? 'Cost plan was rejected. Please update and resubmit for approval'
+                    ? 'Was rejected. Please update and resubmit.'
                     : 'Save first, then wait for Leader approval'
                   }
                 </p>
@@ -275,7 +275,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                 <p className="button-message button-message-warning">
                   <AlertCircle className="inline w-4 h-4 mr-1" /> 
                   {isRejected 
-                    ? 'Cost plan was rejected. Please update and resubmit for approval'
+                    ? 'Was rejected. Please update and resubmit.'
                     : 'Save first, then wait for Leader approval'
                   }
                 </p>
@@ -351,7 +351,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
       })() && (
         <div className="stage3-waiting-message">
           {isRejected && nonNullCaseData.cost_required ? (
-            <p>⏳ Waiting for Technician to update cost plan or CS to close case</p>
+            <p>⏳ Waiting for Technician to update or CS to close</p>
           ) : (() => {
             // Check if cost is pending approval
             const costPendingApproval = nonNullCaseData.cost_required && 
@@ -360,9 +360,9 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
               nonNullCaseData.cost_status !== 'rejected';
             return costPendingApproval;
           })() ? (
-            <p>⏳ Waiting for Leader to complete solution & plan</p>
+            <p>⏳ Waiting for Leader to complete</p>
           ) : (
-            <p>⏳ Waiting for Technician to complete solution & plan</p>
+            <p>⏳ Waiting for Technician to complete</p>
           )}
         </div>
       )}

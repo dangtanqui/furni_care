@@ -75,19 +75,23 @@ export default function SignatureCanvas({ value, onChange, canEdit }: SignatureC
           e.preventDefault();
           isDrawingRef.current = true;
           const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
           const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
           const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
           ctx.beginPath();
-          ctx.moveTo(clientX - rect.left, clientY - rect.top);
+          ctx.moveTo((clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY);
         };
 
         const draw = (e: MouseEvent | TouchEvent) => {
           if (!isDrawingRef.current) return;
           e.preventDefault();
           const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
           const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
           const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-          ctx.lineTo(clientX - rect.left, clientY - rect.top);
+          ctx.lineTo((clientX - rect.left) * scaleX, (clientY - rect.top) * scaleY);
           ctx.stroke();
         };
 
@@ -195,18 +199,18 @@ export default function SignatureCanvas({ value, onChange, canEdit }: SignatureC
           width={600}
           height={200}
           className="stage4-signature-canvas"
-          style={{ touchAction: 'none' }}
+          style={{ touchAction: 'none', cursor: canEdit ? 'crosshair' : 'default' }}
         />
       </div>
       {canEdit && (
         <div className="stage4-signature-actions">
-          <Button onClick={handleClear} variant="secondary" alwaysAutoWidth>
+          <Button onClick={handleClear} variant="tertiary" alwaysAutoWidth>
             Clear
           </Button>
-          <Button onClick={handleUndo} variant="secondary" disabled={!canUndo} alwaysAutoWidth>
+          <Button onClick={handleUndo} variant="tertiary" disabled={!canUndo} alwaysAutoWidth>
             Undo
           </Button>
-          <Button onClick={handleRedo} variant="secondary" disabled={!canRedo} alwaysAutoWidth>
+          <Button onClick={handleRedo} variant="tertiary" disabled={!canRedo} alwaysAutoWidth>
             Redo
           </Button>
         </div>
