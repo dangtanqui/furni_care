@@ -98,7 +98,6 @@ Sau khi setup, test database (`furni_care_test`) sẽ có:
 - **Users**: 
   - `cs@demo.com` / `password` (CS role)
   - `tech@demo.com` / `password` (Technician role)
-  - `tech1@demo.com` / `password` (Technician role)
   - `leader@demo.com` / `password` (Leader role)
 - **Clients**: ABC Furniture, XYZ Interior
 - **Sites**: HCM Office, HN Branch, Da Nang Store

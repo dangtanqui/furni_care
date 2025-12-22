@@ -1,7 +1,8 @@
 # Users
 cs = User.create!(email: 'cs@demo.com', password: 'password', name: 'CS Demo', role: 'cs')
 tech = User.create!(email: 'tech@demo.com', password: 'password', name: 'Tech Demo', role: 'technician')
-tech1 = User.create!(email: 'tech1@demo.com', password: 'password', name: 'Tech 1 Demo', role: 'technician')
+# Only create tech1 in development, not in test
+tech1 = User.create!(email: 'tech1@demo.com', password: 'password', name: 'Tech 1 Demo', role: 'technician') unless Rails.env.test?
 leader = User.create!(email: 'leader@demo.com', password: 'password', name: 'Leader Demo', role: 'leader')
 
 # Clients

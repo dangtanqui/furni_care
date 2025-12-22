@@ -8,6 +8,8 @@ test.describe('Case Workflow E2E Test', () => {
   let siteId: number;
   let technicianEmail: string;
   let technicianName: string;
+  let technicianId: number;
+  let technicians: Array<{ id: number; name: string; email: string }>;
   let caseId: number;
 
   test.beforeAll(async ({ request }) => {
@@ -60,15 +62,21 @@ test.describe('Case Workflow E2E Test', () => {
     const techniciansResponse = await request.get(`${API_BASE_URL}/api/users/technicians`, {
       headers: { Authorization: `Bearer ${authToken}` }
     });
-    const technicians = await techniciansResponse.json();
+    technicians = await techniciansResponse.json();
+    console.log('Technicians from API:', JSON.stringify(technicians, null, 2));
     if (technicians.length > 0) {
-      // Get first technician's email and name
-      technicianEmail = technicians[0].email || 'tech@demo.com';
-      technicianName = technicians[0].name || 'Tech Demo';
+      // Use first technician
+      const selectedTech = technicians[0];
+      technicianEmail = selectedTech.email || 'tech@demo.com';
+      technicianName = selectedTech.name || 'Tech Demo';
+      technicianId = selectedTech.id;
+      console.log(`Selected technician: ${technicianName} (${technicianEmail}, ID: ${technicianId})`);
     } else {
       // Fallback to default test technician account
       technicianEmail = 'tech@demo.com';
       technicianName = 'Tech Demo';
+      technicianId = 0; // Will be set when selecting from dropdown
+      technicians = [];
     }
   });
 
@@ -236,23 +244,142 @@ test.describe('Case Workflow E2E Test', () => {
     // Wait for dropdown options to appear and select technician by name
     // Dropdown displays technician name as label, so find option with matching text
     await page.waitForTimeout(300); // Wait for dropdown to open
-    const techOption = page.locator(`.select-option:has-text("${technicianName}")`);
-    const optionCount = await techOption.count();
-    if (optionCount > 0) {
-      await expect(techOption.first()).toBeVisible({ timeout: 5000 });
-      await techOption.first().click();
-    } else {
-      // Fallback: select first option if name not found
-      const firstOption = page.locator('.select-option').first();
-      await expect(firstOption).toBeVisible({ timeout: 5000 });
-      await firstOption.click();
-      // Update technicianEmail to match the selected technician
-      const selectedName = await firstOption.textContent();
-      console.warn(`Technician "${technicianName}" not found, selected "${selectedName}" instead`);
+    
+    // Get all available options first
+    const allOptions = page.locator('.select-option');
+    const optionCount = await allOptions.count();
+    console.log(`Found ${optionCount} technician options in dropdown`);
+    
+    // Get all option texts to debug
+    const optionTexts: string[] = [];
+    for (let i = 0; i < optionCount; i++) {
+      const text = await allOptions.nth(i).textContent();
+      if (text) optionTexts.push(text.trim());
+    }
+    console.log(`Available options:`, optionTexts);
+    console.log(`Looking for: "${technicianName}"`);
+    
+    // Find option that matches technicianName (normalize whitespace and case)
+    const normalizedSearchName = technicianName.trim().toLowerCase();
+    let selectedOption = null;
+    let selectedIndex = -1;
+    
+    for (let i = 0; i < optionCount; i++) {
+      const option = allOptions.nth(i);
+      const optionText = await option.textContent();
+      const normalizedOptionText = optionText?.trim().toLowerCase() || '';
+      
+      if (normalizedOptionText === normalizedSearchName) {
+        selectedOption = option;
+        selectedIndex = i;
+        console.log(`✅ Found exact match at index ${i}: "${optionText}"`);
+        break;
+      }
     }
     
-    // Click Complete button
-    await page.locator('button:has-text("Complete")').click();
+    // If exact match not found, try partial match
+    if (!selectedOption) {
+      for (let i = 0; i < optionCount; i++) {
+        const option = allOptions.nth(i);
+        const optionText = await option.textContent();
+        const normalizedOptionText = optionText?.trim().toLowerCase() || '';
+        
+        if (normalizedOptionText.includes(normalizedSearchName) || normalizedSearchName.includes(normalizedOptionText)) {
+          selectedOption = option;
+          selectedIndex = i;
+          console.log(`⚠️ Found partial match at index ${i}: "${optionText}"`);
+          break;
+        }
+      }
+    }
+    
+    // Fallback: select first option if no match found
+    if (!selectedOption) {
+      selectedOption = allOptions.first();
+      selectedIndex = 0;
+      console.warn(`⚠️ No match found for "${technicianName}", selecting first option instead`);
+    }
+    
+    await expect(selectedOption).toBeVisible({ timeout: 5000 });
+    
+    // Get the selected technician's name BEFORE clicking
+    const selectedName = await selectedOption.textContent();
+    const selectedNameTrimmed = selectedName?.trim() || '';
+    
+    console.log(`Selected option - Name: "${selectedNameTrimmed}"`);
+    console.log(`Available technicians:`, technicians.map((t: any) => ({ id: t.id, name: t.name, email: t.email })));
+    
+    // Match technician by name (case-insensitive, normalize whitespace)
+    const normalizedSelectedName = selectedNameTrimmed.toLowerCase().replace(/\s+/g, '');
+    const matchingTech = technicians.find((t: any) => {
+      const normalizedTechName = t.name?.toLowerCase().replace(/\s+/g, '') || '';
+      return normalizedTechName === normalizedSelectedName;
+    });
+    
+    if (matchingTech && matchingTech.email) {
+      technicianId = matchingTech.id;
+      technicianEmail = matchingTech.email;
+      technicianName = matchingTech.name;
+      console.log(`✅ Matched technician by name: ${technicianName} (${technicianEmail}, ID: ${technicianId})`);
+    } else {
+      console.warn(`⚠️ Could not find matching technician for "${selectedNameTrimmed}"`);
+      console.warn(`   Available names:`, technicians.map((t: any) => t.name));
+      // Fallback: use first technician
+      if (technicians.length > 0) {
+        technicianId = technicians[0].id;
+        technicianEmail = technicians[0].email || 'tech@demo.com';
+        technicianName = technicians[0].name || 'Tech Demo';
+        console.warn(`⚠️ Using fallback technician: ${technicianName} (${technicianEmail})`);
+      }
+    }
+    
+    console.log(`🔐 Will login with: ${technicianEmail} (${technicianName}, ID: ${technicianId})`);
+    
+    // Click the selected option
+    await selectedOption.click();
+    
+    // Wait a bit for the selection to be processed
+    await page.waitForTimeout(200);
+    
+    // Verify the selection was applied by checking the button text
+    const buttonText = await assignTechnicianButton.textContent();
+    console.log(`Button text after selection: "${buttonText}"`);
+    
+    // Click Complete button and wait for API response
+    const [completeResponse] = await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes(`/api/cases/${caseId}`) && 
+                     (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+        { timeout: 10000 }
+      ),
+      page.locator('button:has-text("Complete")').click()
+    ]);
+    
+    // Get the assigned technician from the API response
+    if (completeResponse.ok()) {
+      const updatedCaseData = await completeResponse.json();
+      const assignedTechId = updatedCaseData.assigned_to?.id || updatedCaseData.data?.assigned_to?.id;
+      const assignedTechName = updatedCaseData.assigned_to?.name || updatedCaseData.data?.assigned_to?.name;
+      
+      if (assignedTechId) {
+        // Find technician from our list
+        const assignedTech = technicians.find((t: any) => t.id === assignedTechId);
+        if (assignedTech && assignedTech.email) {
+          technicianId = assignedTech.id;
+          technicianEmail = assignedTech.email;
+          technicianName = assignedTech.name;
+          console.log(`✅ Verified assigned technician from API: ${technicianName} (${technicianEmail}, ID: ${technicianId})`);
+        } else {
+          console.warn(`⚠️ Assigned technician ID ${assignedTechId} not found in technicians list`);
+          console.warn(`   Assigned name from API: "${assignedTechName}"`);
+        }
+      } else {
+        console.warn(`⚠️ Could not get assigned technician ID from API response`);
+      }
+    } else {
+      console.warn(`⚠️ Complete Stage 1 API call failed, using previously selected technician`);
+    }
+    
     await page.waitForTimeout(2000); // Wait for stage advance
     
     // 6. Verify moved to Stage 2
@@ -260,6 +387,8 @@ test.describe('Case Workflow E2E Test', () => {
     await expect(stage2Title).toBeVisible({ timeout: 10000 });
     
     // Logout CS user and login as technician (Stage 2 requires technician permissions)
+    // IMPORTANT: Use the technician that was actually assigned (from API response)
+    console.log(`🔐 Final login credentials: ${technicianEmail} (${technicianName}, ID: ${technicianId})`);
     // Click logout button
     const logoutButton = page.locator('button.layout-logout-button');
     await expect(logoutButton).toBeVisible({ timeout: 5000 });
@@ -278,6 +407,14 @@ test.describe('Case Workflow E2E Test', () => {
     await page.goto(`/cases/${caseId}`);
     await expect(page).toHaveURL(/.*cases\/\d+/, { timeout: 10000 });
     
+    // Wait for case data API call to complete (ensures permissions are checked)
+    await page.waitForResponse(
+      (response) => response.url().includes(`/api/cases/${caseId}`) && response.request().method() === 'GET',
+      { timeout: 10000 }
+    ).catch(() => {
+      // API call might have already completed, continue
+    });
+    
     // Wait for case data to load and user context to be updated
     await page.waitForLoadState('networkidle');
     
@@ -290,15 +427,37 @@ test.describe('Case Workflow E2E Test', () => {
     if (hasStage2Hidden) {
       const stage2Header = page.locator('.stage-section-header').nth(1);
       await stage2Header.click();
+      // Wait for the hidden class to be removed AND content to be visible
       await expect(stage2Content).not.toHaveClass('stage-section-content-hidden', { timeout: 5000 });
+      await expect(stage2Content).toBeVisible({ timeout: 5000 });
+    } else {
+      await expect(stage2Content).toBeVisible({ timeout: 5000 });
     }
-    
-    await expect(stage2Content).toBeVisible({ timeout: 5000 });
     
     // Wait for textarea to be visible (only visible when technician has edit permission)
     // This ensures case data has been reloaded and permissions are correct
+    // Use a more specific wait: wait for either textarea (editable) or readonly content (not editable)
     const investigationReportTextarea = page.locator('textarea[name="investigation_report"]');
-    await expect(investigationReportTextarea).toBeVisible({ timeout: 10000 });
+    const readonlyReport = page.locator('.stage2-readonly-content');
+    
+    // Wait for either editable textarea OR readonly content to appear
+    await Promise.race([
+      expect(investigationReportTextarea).toBeVisible({ timeout: 15000 }),
+      expect(readonlyReport).toBeVisible({ timeout: 15000 })
+    ]).catch((error) => {
+      throw new Error(`Neither editable textarea nor readonly content appeared. Stage 2 content may not have loaded properly. Error: ${error}`);
+    });
+    
+    // If readonly content is visible, the technician doesn't have edit permission
+    // This could happen if the logged-in technician is not the assigned technician
+    if (await readonlyReport.isVisible()) {
+      const readonlyText = await readonlyReport.textContent();
+      throw new Error(`Textarea is readonly. Technician "${technicianName}" (${technicianEmail}) may not be the assigned technician. Readonly content: "${readonlyText}"`);
+    }
+    
+    // Now wait for textarea to be visible and enabled
+    await expect(investigationReportTextarea).toBeVisible({ timeout: 5000 });
+    await expect(investigationReportTextarea).toBeEnabled({ timeout: 5000 });
     
     await investigationReportTextarea.fill('E2E Test - Investigation completed');
     await page.fill('textarea[name="investigation_checklist"]', '✓ Checked item 1\n✓ Checked item 2');
