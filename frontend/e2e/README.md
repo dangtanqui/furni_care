@@ -28,11 +28,6 @@ npm run test:e2e:ui
 npm run test:e2e:headed
 ```
 
-### Chạy ở chế độ debug
-```bash
-npm run test:e2e:debug
-```
-
 ### Xem test report
 ```bash
 npm run test:e2e:report
@@ -126,14 +121,25 @@ Test database sẽ được seed với:
 
 ## Environment Variables
 
-Bạn có thể set các biến môi trường:
+Bạn có thể set các biến môi trường trong file `.env` ở thư mục `frontend/`:
 
+- `VITE_API_URL` - Base URL cho backend API (ví dụ: `http://localhost:3001`)
 - `PLAYWRIGHT_BASE_URL` - Base URL cho frontend (default: `http://localhost:5173`)
-- `PLAYWRIGHT_API_URL` - Base URL cho backend API (default: `http://localhost:3000`)
+
+**Lưu ý:**
+- Playwright sẽ tự động đọc file `.env` trong thư mục `frontend/`
+- Nếu backend chạy ở port khác (ví dụ 3001), set `VITE_API_URL=http://localhost:3001` trong `.env`
+- Test sẽ tự động sử dụng `VITE_API_URL` từ `.env` nếu có, nếu không sẽ dùng default `http://localhost:3000`
+- Nếu backend đã chạy sẵn ở port khác, dùng `SKIP_WEBSERVERS=true` để không start backend tự động
+
+**Ví dụ `.env` file:**
+```env
+VITE_API_URL=http://localhost:3001
+```
 
 ## Lưu ý
 
 - Test files (`e2e/*.spec.ts`) được commit vào git để team có thể chạy
 - Các file generated (`playwright-report/`, `test-results/`) được ignore trong `.gitignore`
 - Khi deploy production, chỉ deploy `dist/` folder → không bao gồm test files
-
+- Playwright tự động detect môi trường và chạy headless nếu không có display server

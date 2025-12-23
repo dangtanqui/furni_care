@@ -4,7 +4,7 @@ import Button from '../../Button';
 import '../../../styles/components/pages/create_case/CaseForm.css';
 import type { CaseFormProps } from '../../../types/components/pages/CreateCase';
 
-export default function CaseForm({ form, clients, sites, contacts, previews, onFormChange, onFileChange, onDeletePreview, onSubmit, errors, onClearFieldError }: CaseFormProps) {
+export default function CaseForm({ form, clients, sites, contacts, previews, onFormChange, onFileChange, onDeletePreview, onSubmit, errors, onClearFieldError, loading = false }: CaseFormProps) {
   const getFieldError = (keys: string[]) => {
     const key = keys.find(k => !!errors?.[k]);
     return key ? errors?.[key] : null;
@@ -35,6 +35,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           onChange={(value) => onFormChange({ ...form, client_id: value })}
           options={clients.map(c => ({ value: String(c.id), label: c.name }))}
           placeholder="Select Client"
+          disabled={loading}
           error={hasError(['client', 'client_id'])}
           onOpen={() => onClearFieldError?.(['client', 'client_id'])}
         />
@@ -54,7 +55,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           onChange={(value) => onFormChange({ ...form, site_id: value })}
           options={sites.map(s => ({ value: String(s.id), label: `${s.name} - ${s.city}` }))}
           placeholder="Select Site"
-          disabled={!form.client_id}
+          disabled={!form.client_id || loading}
           error={hasError(['site', 'site_id'])}
           onOpen={() => onClearFieldError?.(['site', 'site_id'])}
         />
@@ -74,7 +75,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           onChange={(value) => onFormChange({ ...form, contact_id: value })}
           options={contacts.map(c => ({ value: String(c.id), label: `${c.name} - ${c.phone}` }))}
           placeholder="Select Contact Person"
-          disabled={!form.site_id}
+          disabled={!form.site_id || loading}
           error={hasError(['contact', 'contact_id'])}
           onOpen={() => onClearFieldError?.(['contact', 'contact_id'])}
         />
@@ -94,6 +95,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           onChange={e => onFormChange({ ...form, description: e.target.value })}
           className={`case-form-textarea ${hasError(['description']) ? 'case-form-field-error-state' : ''}`}
           placeholder="Describe the issue..."
+          disabled={loading}
         />
         {getFieldError(['description']) && (
           <p className="case-form-field-error">
@@ -102,7 +104,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
         )}
       </div>
 
-      <FileUpload previews={previews} onFileChange={onFileChange} onDeletePreview={onDeletePreview} showPreview={true} />
+      <FileUpload previews={previews} onFileChange={onFileChange} onDeletePreview={onDeletePreview} showPreview={true} disabled={loading} />
 
       <div className="case-form-grid">
         <div>
@@ -118,6 +120,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
               { value: 'repair', label: 'Repair' },
             ]}
             placeholder="Select Type"
+            disabled={loading}
             error={hasError(['case_type'])}
             onOpen={() => onClearFieldError?.(['case_type'])}
           />
@@ -140,6 +143,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
               { value: 'high', label: 'High' },
             ]}
             placeholder="Select Priority"
+            disabled={loading}
             error={hasError(['priority'])}
             onOpen={() => onClearFieldError?.(['priority'])}
           />
@@ -151,7 +155,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
         </div>
       </div>
 
-      <Button type="submit" variant="primary" disabled={!isFormValid}>Submit</Button>
+      <Button type="submit" variant="primary" disabled={!isFormValid || loading}>Submit</Button>
     </form>
   );
 }

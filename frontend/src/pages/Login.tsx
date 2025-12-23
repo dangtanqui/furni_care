@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,13 +7,25 @@ import LoginForm from '../components/pages/login/LoginForm';
 import '../styles/pages/Login.css';
 
 export default function Login() {
-  const [email, setEmail] = useState('cs@demo.com');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, token } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (token) {
+      navigate('/');
+    }
+  }, [token, navigate]);
+
+  // Don't render login form if already authenticated
+  if (token) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

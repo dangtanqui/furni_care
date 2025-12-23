@@ -16,6 +16,7 @@ export function useCreateCase() {
   // Track which file index corresponds to each preview index
   const [previewToFileIndex, setPreviewToFileIndex] = useState<number[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
   // Track processed files to prevent duplicates
   const processedFilesRef = useRef<Set<string>>(new Set());
   
@@ -154,6 +155,9 @@ export function useCreateCase() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (loading) return;
+    
     // Client-side validation cho các field bắt buộc
     const validationErrors: Record<string, string> = {};
     
@@ -184,6 +188,7 @@ export function useCreateCase() {
     }
     
     setErrors({});
+    setLoading(true);
     try {
       const res = await createCase({
       client_id: Number(form.client_id),
@@ -213,6 +218,8 @@ export function useCreateCase() {
         // Nếu không có lỗi cụ thể từ backend, không hiển thị gì
         setErrors({});
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,6 +237,7 @@ export function useCreateCase() {
     handleSubmit,
     errors,
     clearFieldError,
+    loading,
   };
 }
 

@@ -17,6 +17,7 @@ export default function CreateCase() {
     handleSubmit,
     errors,
     clearFieldError,
+    loading,
   } = useCreateCase();
 
   return (
@@ -46,6 +47,7 @@ export default function CreateCase() {
           onSubmit={handleSubmit}
           errors={errors}
           onClearFieldError={clearFieldError}
+          loading={loading}
         />
       </div>
     </div>

@@ -20,6 +20,7 @@ export interface CaseFormProps {
   onSubmit: (e: React.FormEvent) => void;
   errors?: Record<string, string>;
   onClearFieldError?: (keys: string[]) => void;
+  loading?: boolean;
 }
 
 
