@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, openStage, gotoCaseDetail, rejectCost, rejectFinalCost } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, gotoCaseDetail, rejectCost, rejectFinalCost } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS, STAGE_CHECKLIST_COUNTS } from '../../constants/test-data';
 import { setupTestData, cleanupCase } from '../../shared/setup';
 
@@ -72,13 +72,11 @@ test.describe('Cost Rejection Flow', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
     // Fill Stage 3 and enable cost required, then save
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -102,7 +100,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     await rejectCost(page, testCaseId);
     
@@ -113,7 +110,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     // Verify technician can edit cost fields
     const estimatedCostInput = page.locator('input[name="estimated_cost"]');
@@ -139,7 +135,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const approveButton = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
     await expect(approveButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -167,12 +162,10 @@ test.describe('Cost Rejection Flow', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -207,7 +200,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 4);
     
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
@@ -219,7 +211,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     const finalCostInput = page.locator('input[name="final_cost"]');
     await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -244,7 +235,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     await rejectFinalCost(page, testCaseId);
     
@@ -255,7 +245,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     // Verify CS can edit final cost
     await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -264,13 +253,16 @@ test.describe('Cost Rejection Flow', () => {
     // Update final cost
     await finalCostInput.fill('900');
     
+    const updateButton = page.locator('button:has-text("Update"):not([disabled])');
+    await expect(updateButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    
     await Promise.all([
       page.waitForResponse(
         (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
                      (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
         { timeout: TIMEOUTS.API_RESPONSE }
       ),
-      saveButton.click()
+      updateButton.click()
     ]);
     
     await page.waitForTimeout(1000);
@@ -279,7 +271,6 @@ test.describe('Cost Rejection Flow', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     const finalCostApproveButton = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
     await expect(finalCostApproveButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });

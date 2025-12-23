@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, openStage, gotoCaseDetail, redoCase } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, gotoCaseDetail, redoCase } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS, STAGE_CHECKLIST_COUNTS } from '../../constants/test-data';
 import { setupTestData, cleanupCase } from '../../shared/setup';
 
@@ -72,19 +72,16 @@ test.describe('Redo Workflow', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
     await page.locator('input[type="date"][name="planned_execution_date"]').fill('2024-12-31');
     await completeStage(page, testCaseId);
     
-    await openStage(page, 4);
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
     await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
@@ -95,7 +92,6 @@ test.describe('Redo Workflow', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     await page.fill('textarea[name="cs_notes"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CS_NOTES}`);
     await page.fill('textarea[name="final_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.FINAL_FEEDBACK}`);
@@ -106,7 +102,6 @@ test.describe('Redo Workflow', () => {
     await expect(page.getByRole('status', { name: /Case status: Closed/i })).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
     // CS can redo case
-    await openStage(page, 5);
     await redoCase(page, testCaseId);
     
     // Verify case rolled back to Stage 3
@@ -119,7 +114,6 @@ test.describe('Redo Workflow', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const rootCauseInput = page.locator('input[name="root_cause"]');
     await expect(rootCauseInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -148,12 +142,10 @@ test.describe('Redo Workflow', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -188,7 +180,6 @@ test.describe('Redo Workflow', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 4);
     
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
@@ -200,7 +191,6 @@ test.describe('Redo Workflow', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     await page.fill('textarea[name="cs_notes"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CS_NOTES}`);
     await page.fill('textarea[name="final_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.FINAL_FEEDBACK}`);
@@ -208,11 +198,9 @@ test.describe('Redo Workflow', () => {
     await completeStage(page, testCaseId);
     
     // CS redo case
-    await openStage(page, 5);
     await redoCase(page, testCaseId);
     
     // Verify cost status is reset (cost_required checkbox should be unchecked or cost fields cleared)
-    await openStage(page, 3);
     const costRequiredCheckbox = page.locator('label:has-text("Cost Required") input[type="checkbox"]');
     const isChecked = await costRequiredCheckbox.isChecked();
     

@@ -1,4 +1,4 @@
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 import { TEST_USERS } from '../constants/test-data';
 
 export interface TestSetupData {

@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption } from '../../helpers/case-workflow-helpers';
-import { TEST_USERS, TEST_DATA, TIMEOUTS } from '../../constants/test-data';
+import { loginAs } from '../../helpers/case-workflow-helpers';
+import { TEST_USERS, TIMEOUTS } from '../../constants/test-data';
 import { setupTestData } from '../../shared/setup';
 
 test.describe('Case List Filtering', () => {
   const API_BASE_URL = process.env.VITE_API_URL;
-  let setupData: Awaited<ReturnType<typeof setupTestData>>;
 
   test.beforeAll(async ({ request }) => {
     if (!API_BASE_URL) {
       throw new Error('VITE_API_URL must be set in .env file');
     }
-    setupData = await setupTestData(request, API_BASE_URL);
+    await setupTestData(request, API_BASE_URL);
   });
 
   test('Filter by Status', async ({ page }) => {
@@ -127,10 +126,6 @@ test.describe('Case List Filtering', () => {
     const rowCount = await firstCaseRow.count();
     
     if (rowCount > 0) {
-      // Get case number from first row
-      const caseNumberCell = firstCaseRow.locator('td').first();
-      const caseNumber = await caseNumberCell.textContent();
-      
       // Click on row
       await firstCaseRow.click();
       

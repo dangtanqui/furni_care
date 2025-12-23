@@ -13,7 +13,9 @@ export default function CaseHeader({ caseData }: CaseHeaderProps) {
 
   const stageProgress = useMemo(() => {
     return STAGES.map((s, i) => {
-      const isStageCurrent = s.num === caseData.current_stage && caseData.status !== 'closed' && caseData.status !== 'cancelled';
+      // Stage is current if it matches current_stage and case is not closed
+      // Note: cancelled cases still show their current_stage as "current" (but cannot be edited)
+      const isStageCurrent = s.num === caseData.current_stage && caseData.status !== 'closed';
       const isStageCompleted = !isStageCurrent && (s.num < caseData.current_stage || (caseData.status === 'closed' && s.num === 5));
       return {
         stage: s,

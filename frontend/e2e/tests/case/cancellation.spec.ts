@@ -71,13 +71,11 @@ test.describe('Case Cancellation', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
     // Fill Stage 3 and enable cost required, then save
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -101,7 +99,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const rejectButton = page.locator('button:has-text("Reject")');
     await expect(rejectButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -148,13 +145,11 @@ test.describe('Case Cancellation', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
     // Fill Stage 3 and enable cost required, then save
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -178,7 +173,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const rejectButton = page.locator('button:has-text("Reject")');
     await expect(rejectButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -206,7 +200,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const rootCauseInput = page.locator('input[name="root_cause"]');
     await expect(rootCauseInput).not.toBeVisible();
@@ -223,7 +216,65 @@ test.describe('Case Cancellation', () => {
     
     await gotoCaseDetail(page, testCaseId);
     
-    // Cancel case
+    // Assign technician and complete Stage 1
+    await page.locator('button[name="assigned_to"]').click();
+    await page.locator('.select-option').filter({ hasText: setupData.technicianName }).click();
+    await completeStage(page, testCaseId);
+    
+    // Complete Stage 2 as technician
+    await logout(page);
+    await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
+    await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
+    await completeStage(page, testCaseId);
+    
+    // Fill Stage 3 and enable cost required, then save
+    await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
+    await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
+    await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
+    await page.locator('input[type="date"][name="planned_execution_date"]').fill('2024-12-31');
+    await page.locator('label:has-text("Cost Required") input[type="checkbox"]').check();
+    await page.locator('input[name="estimated_cost"]').fill('1000');
+    await page.locator('textarea[name="cost_description"]').fill('Test cost description');
+    
+    await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
+                     (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      page.locator('button:has-text("Save")').click()
+    ]);
+    
+    await page.waitForTimeout(1000);
+    
+    // Leader rejects cost
+    await logout(page);
+    await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    const rejectButton = page.locator('button:has-text("Reject")');
+    await expect(rejectButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    
+    await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes(`/api/cases/${testCaseId}/reject_cost`) &&
+                     response.request().method() === 'POST',
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      rejectButton.click()
+    ]);
+    
+    await expect(page.locator('text=Processing...')).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT }).catch(() => {});
+    await page.waitForLoadState('networkidle');
+    
+    // CS cancels case
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
     await cancelCase(page, testCaseId);
     
     // Verify redo button is not visible
@@ -251,13 +302,11 @@ test.describe('Case Cancellation', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
     // Fill Stage 3 and enable cost required, then save
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -281,7 +330,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const rejectButton = page.locator('button:has-text("Reject")');
     await expect(rejectButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -302,7 +350,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     const cancelButton = page.locator('button:has-text("Cancel")');
     await expect(cancelButton).not.toBeVisible();
@@ -311,7 +358,6 @@ test.describe('Case Cancellation', () => {
     await logout(page);
     await loginAs(page, setupData.leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 3);
     
     await expect(cancelButton).not.toBeVisible();
     

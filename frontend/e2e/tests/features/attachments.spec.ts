@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, openStage, gotoCaseDetail, uploadAttachment, deleteAttachment } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS, STAGE_CHECKLIST_COUNTS } from '../../constants/test-data';
 import { setupTestData, cleanupCase } from '../../shared/setup';
 import { fileURLToPath } from 'url';
@@ -79,7 +79,6 @@ test.describe('Attachments Tests', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 2);
     
     // Upload attachment
     const fileInput = page.locator('input[type="file"][id*="stage2-attachments"], input[type="file"][name*="stage2-attachments"]');
@@ -105,7 +104,6 @@ test.describe('Attachments Tests', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 2);
     
     // File upload input should not be visible for CS
     await expect(fileInput).not.toBeVisible();
@@ -131,13 +129,11 @@ test.describe('Attachments Tests', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
     // Upload attachment in Stage 3
-    await openStage(page, 3);
     const fileInput = page.locator('input[type="file"][id*="stage3-attachments"], input[type="file"][name*="stage3-attachments"]');
     await expect(fileInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
@@ -178,12 +174,10 @@ test.describe('Attachments Tests', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -191,7 +185,6 @@ test.describe('Attachments Tests', () => {
     await completeStage(page, testCaseId);
     
     // Upload photo in Stage 4
-    await openStage(page, 4);
     const fileInput = page.locator('input[type="file"][id*="stage4-attachments"], input[type="file"][name*="stage4-attachments"]');
     await expect(fileInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     

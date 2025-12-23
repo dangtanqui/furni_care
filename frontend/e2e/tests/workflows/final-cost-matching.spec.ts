@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, openStage, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS, STAGE_CHECKLIST_COUNTS } from '../../constants/test-data';
 import { setupTestData, cleanupCase } from '../../shared/setup';
 
@@ -71,12 +71,10 @@ test.describe('Final Cost Matching', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -111,7 +109,6 @@ test.describe('Final Cost Matching', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 4);
     
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
@@ -123,7 +120,6 @@ test.describe('Final Cost Matching', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     const finalCostInput = page.locator('input[name="final_cost"]');
     await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -145,7 +141,6 @@ test.describe('Final Cost Matching', () => {
     await page.waitForLoadState('networkidle');
     
     // Verify no approve/reject buttons (no approval needed)
-    await openStage(page, 5);
     const approveButtonFinal = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
     await expect(approveButtonFinal).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
@@ -174,12 +169,10 @@ test.describe('Final Cost Matching', () => {
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    await openStage(page, 2);
     await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
     await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
     await completeStage(page, testCaseId);
     
-    await openStage(page, 3);
     await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
     await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
     await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
@@ -214,7 +207,6 @@ test.describe('Final Cost Matching', () => {
     await logout(page);
     await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 4);
     
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
@@ -226,7 +218,6 @@ test.describe('Final Cost Matching', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    await openStage(page, 5);
     
     const finalCostInput = page.locator('input[name="final_cost"]');
     await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -248,7 +239,6 @@ test.describe('Final Cost Matching', () => {
     await page.waitForLoadState('networkidle');
     
     // Verify approve/reject buttons are visible (approval required)
-    await openStage(page, 5);
     const approveButtonFinal = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
     await expect(approveButtonFinal).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     

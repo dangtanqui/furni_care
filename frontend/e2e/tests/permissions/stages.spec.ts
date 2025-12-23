@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, openStage, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, completeStage, fillStageChecklist, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS, STAGE_CHECKLIST_COUNTS } from '../../constants/test-data';
 
 test.describe('Case Permissions Verification', () => {
@@ -218,9 +218,6 @@ test.describe('Case Permissions Verification', () => {
     await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    // Open Stage 2 if it's not already open
-    await openStage(page, 2);
-    
     const investigationTextarea = page.locator('textarea[name="investigation_report"]');
     await expect(investigationTextarea).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
@@ -340,9 +337,6 @@ test.describe('Case Permissions Verification', () => {
     // Wait for stage to close (accordion close delay)
     await page.waitForTimeout(500);
     
-    // Stage 3 will close after Save, so we need to open it again
-    await openStage(page, 3);
-    
     // Wait a bit more for content to render
     await page.waitForTimeout(300);
     
@@ -433,9 +427,6 @@ test.describe('Case Permissions Verification', () => {
     await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    // Open Stage 4 if not already open
-    await openStage(page, 4);
-    
     const completeButton = page.locator('button:has-text("Complete")');
     await expect(completeButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
@@ -453,7 +444,6 @@ test.describe('Case Permissions Verification', () => {
     await gotoCaseDetail(page, testCaseId);
     
     // Leader should not see edit buttons for Stage 4 after approval
-    await openStage(page, 4);
     await expect(completeButton).not.toBeVisible();
     
     // Cleanup - wrap in try-catch to prevent test failures
@@ -646,9 +636,6 @@ test.describe('Case Permissions Verification', () => {
     await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    // Open Stage 4 if not already open
-    await openStage(page, 4);
-    
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
     await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
@@ -659,9 +646,6 @@ test.describe('Case Permissions Verification', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    
-    // Open Stage 5 if not already open
-    await openStage(page, 5);
     
     const finalCostInput = page.locator('input[name="final_cost"]');
     await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
@@ -684,8 +668,7 @@ test.describe('Case Permissions Verification', () => {
     await expect(page.locator('text=Processing...')).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT }).catch(() => {});
     await page.waitForLoadState('networkidle');
     
-    // After saving final cost, CS should still be able to edit
-    await openStage(page, 5); // Re-open stage after save (it closes automatically)
+    // After saving final cost, CS should still be able to edit (stage stays open after save)
     const csNotesTextarea = page.locator('textarea[name="cs_notes"]');
     await expect(csNotesTextarea).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
@@ -693,9 +676,6 @@ test.describe('Case Permissions Verification', () => {
     await logout(page);
     await loginAs(page, leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    
-    // Open Stage 5 if not already open
-    await openStage(page, 5);
     
     // Leader should see approve/reject buttons for final cost
     const finalCostApproveButton = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
@@ -775,9 +755,6 @@ test.describe('Case Permissions Verification', () => {
     await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
     
-    // Open Stage 4 if not already open
-    await openStage(page, 4);
-    
     await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
     await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
     await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
@@ -787,22 +764,28 @@ test.describe('Case Permissions Verification', () => {
     // CS enters final cost
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
-    await page.goto(`/cases/${testCaseId}`);
+    await gotoCaseDetail(page, testCaseId);
     
     const finalCostInput = page.locator('input[name="final_cost"]');
-    if (await finalCostInput.count() > 0) {
-      await finalCostInput.fill('950');
-      await page.locator('button:has-text("Save")').click();
-      await page.waitForTimeout(1000);
-    }
+    await expect(finalCostInput).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    await finalCostInput.fill('950');
+    
+    await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
+                     (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      page.locator('button:has-text("Save")').click()
+    ]);
+    
+    await expect(page.locator('text=Processing...')).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT }).catch(() => {});
+    await page.waitForLoadState('networkidle');
     
     // Leader approves final cost
     await logout(page);
     await loginAs(page, leaderEmail, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    
-    // Open Stage 5 if not already open
-    await openStage(page, 5);
     
     const finalCostApproveButton = page.locator('button:has-text("Approve")').or(page.locator('button:has-text("approve")'));
     if (await finalCostApproveButton.count() > 0) {
@@ -824,9 +807,6 @@ test.describe('Case Permissions Verification', () => {
     await logout(page);
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
     await gotoCaseDetail(page, testCaseId);
-    
-    // Open Stage 5 if not already open
-    await openStage(page, 5);
     
     const completeButton = page.locator('button:has-text("Complete")');
     await expect(completeButton).toBeVisible({ timeout: TIMEOUTS.DEFAULT });

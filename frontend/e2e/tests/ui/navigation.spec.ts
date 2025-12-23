@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
+import { loginAs, selectDropdownOption, gotoCaseDetail } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS } from '../../constants/test-data';
 import { setupTestData, cleanupCase } from '../../shared/setup';
 

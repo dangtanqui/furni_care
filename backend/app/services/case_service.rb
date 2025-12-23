@@ -212,7 +212,7 @@ class CaseService < BaseService
 
   def cancel_case
     # Authorization is handled by controller via Policy
-    @case.update(status: Case::STATUSES[7]) # 'cancelled'
+    @case.update(status: Case::STATUSES[6]) # 'cancelled'
     success(@case.reload)
   end
 
