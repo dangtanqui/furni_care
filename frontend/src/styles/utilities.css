@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 @layer components {
-  /* Primary Button - Màu nền chủ đạo */
+  /* Primary Button - Main background color */
   .btn-primary {
     @apply bg-[var(--accent)] text-white px-4 py-2 rounded-full transition-all duration-200 cursor-pointer border-2;
     border-color: var(--accent);
-    @apply hover:bg-[var(--accent-light)] hover:border-[var(--accent-light)] active:bg-[var(--accent-dark)] active:border-[var(--accent-dark)] active:scale-[0.98];
+    @apply hover:bg-[var(--accent-light)] hover:border-[var(--accent-light)] active:bg-[var(--accent-dark)] active:border-[var(--accent-dark)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--accent)] disabled:hover:border-[var(--accent)];
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2;
   }
 
-  /* Secondary Button - Viền và text màu chủ đạo */
+  /* Secondary Button - Border and text with main color */
   .btn-secondary {
     @apply bg-transparent border-2 border-[var(--accent)] text-[var(--accent)] px-4 py-2 rounded-full transition-all duration-200 cursor-pointer;
-    @apply hover:bg-[var(--accent-light)] hover:border-[var(--accent-light)] hover:text-white active:bg-[var(--accent-dark)] active:border-[var(--accent-dark)] active:scale-[0.98];
+    @apply hover:bg-[var(--accent-light)] hover:border-[var(--accent-light)] hover:text-white active:bg-[var(--accent-dark)] active:border-[var(--accent-dark)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-[var(--accent)] disabled:hover:text-[var(--accent)];
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2;
     color: var(--accent);
   }
 
-  /* Tertiary Button - Chỉ text màu chủ đạo (link style) */
+  /* Tertiary Button - Only text with main color (link style) */
   .btn-tertiary {
     @apply bg-transparent text-[var(--accent)] px-4 py-2 rounded-full transition-all duration-200 cursor-pointer;
     border: none !important;
@@ -63,15 +63,15 @@
     fill: currentColor;
   }
 
-  /* Legacy support - giữ lại để không break code cũ */
+  /* Legacy support - kept to avoid breaking old code */
   .btn-accent {
     @apply bg-[var(--accent)] text-white px-4 py-2 rounded-full transition-all duration-200 cursor-pointer;
-    @apply hover:bg-[var(--accent-light)] active:bg-[var(--accent-dark)] active:scale-[0.98];
+    @apply hover:bg-[var(--accent-light)] active:bg-[var(--accent-dark)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--accent)];
     @apply focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2;
   }
 
-  /* Button Container - Để button và message tách hàng */
+  /* Button Container - To separate button and message on different rows */
   .button-container {
     @apply flex flex-col gap-2;
   }
@@ -80,7 +80,7 @@
     @apply flex flex-col md:flex-row gap-3 items-start md:items-center;
   }
 
-  /* Đảm bảo button luôn ở một hàng riêng */
+  /* Ensure button is always on a separate row */
   .button-wrapper {
     @apply block w-full;
   }
@@ -154,8 +154,8 @@ select.input-field {
   padding-right: 3rem;
 }
 
-/* Đảm bảo tất cả buttons có responsive width mặc định - đặt cuối file để có priority cao nhất */
-/* Sử dụng !important để đảm bảo override mọi CSS khác, kể cả Tailwind utilities */
+/* Ensure all buttons have responsive width by default - placed at end of file for highest priority */
+/* Use !important to ensure override of all other CSS, including Tailwind utilities */
 .btn-primary,
 .btn-secondary,
 .btn-tertiary,
@@ -172,5 +172,39 @@ select.input-field {
     width: auto !important;
     max-width: none !important;
   }
+}
+
+/* Screen reader only - visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Fade-in animation for content load */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
 }
 

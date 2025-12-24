@@ -10,9 +10,13 @@ class ApplicationController < ActionController::API
     header = header.split(' ').last if header
     
     begin
-      decoded = JWT.decode(header, jwt_secret, true, algorithm: 'HS256')
+      # Decode with expiration validation
+      decoded = JWT.decode(header, jwt_secret, true, { 
+        algorithm: 'HS256',
+        verify_expiration: true 
+      })
       @current_user = User.find(decoded[0]['user_id'])
-    rescue ActiveRecord::RecordNotFound, JWT::DecodeError
+    rescue ActiveRecord::RecordNotFound, JWT::DecodeError, JWT::ExpiredSignature
       render json: { error: 'Unauthorized' }, status: :unauthorized
     end
   end

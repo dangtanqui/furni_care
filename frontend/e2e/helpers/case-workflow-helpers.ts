@@ -106,12 +106,32 @@ export async function openStage(page: Page, stageNumber: number): Promise<void> 
 }
 
 export async function waitForCaseDetailLoad(page: Page): Promise<void> {
-  // Wait for Loading text to disappear
-  const loadingLocator = page.locator('text=Loading...');
+  // Wait for Loading text to disappear - use more specific selector
+  // The loading div has class "case-details-loading" and contains "Loading..."
+  const loadingLocator = page.locator('.case-details-loading:has-text("Loading...")');
+  
+  // Wait for loading element to disappear (it should be visible initially)
+  // Use waitFor with hidden state instead of expect for more reliable waiting
   try {
-    await expect(loadingLocator).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    // First check if loading element exists
+    const isVisible = await loadingLocator.isVisible().catch(() => false);
+    if (isVisible) {
+      // Wait for it to become hidden
+      await loadingLocator.waitFor({ state: 'hidden', timeout: TIMEOUTS.DEFAULT });
+    }
   } catch {
-    // Loading might not be present or already gone, continue
+    // If element doesn't exist or already hidden, that's fine
+  }
+  
+  // Also wait for any generic "Loading..." text to disappear (fallback)
+  const genericLoadingLocator = page.locator('text=Loading...').filter({ hasNotText: 'Processing...' });
+  try {
+    const isGenericVisible = await genericLoadingLocator.isVisible().catch(() => false);
+    if (isGenericVisible) {
+      await genericLoadingLocator.waitFor({ state: 'hidden', timeout: TIMEOUTS.DEFAULT });
+    }
+  } catch {
+    // If element doesn't exist or already hidden, that's fine
   }
   
   // Wait for case detail content to be visible (case header or stage sections)
@@ -121,11 +141,35 @@ export async function waitForCaseDetailLoad(page: Page): Promise<void> {
   
   // Wait for network to be idle
   await page.waitForLoadState('networkidle');
+  
+  // Additional small wait to ensure content is fully rendered
+  await page.waitForTimeout(300);
 }
 
 export async function gotoCaseDetail(page: Page, caseId: number): Promise<void> {
+  // Set up response listener before navigating
+  const responsePromise = page.waitForResponse(
+    (response) => {
+      const url = response.url();
+      return (url.includes(`/api/cases/${caseId}`) || url.match(new RegExp(`/api/cases/${caseId}(/|\\?|$)`))) && 
+             response.request().method() === 'GET';
+    },
+    { timeout: TIMEOUTS.API_RESPONSE }
+  );
+  
+  // Navigate to case detail page
   await page.goto(`/cases/${caseId}`);
   await expect(page).toHaveURL(/.*cases\/\d+/, { timeout: TIMEOUTS.NAVIGATION });
+  
+  // Wait for API response to complete (this ensures data is loaded)
+  try {
+    await responsePromise;
+  } catch (error) {
+    // If response already completed or timeout, continue anyway
+    // The UI loading check will handle the rest
+  }
+  
+  // Then wait for UI to update (loading state to disappear, content to appear)
   await waitForCaseDetailLoad(page);
 }
 

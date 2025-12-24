@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
+import EmptyState from '../../../EmptyState';
 import CostApprovalSection from './CostApprovalSection';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
@@ -115,6 +116,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
             value={form.root_cause}
             onChange={e => setForm({ ...form, root_cause: e.target.value })}
             className="stage3-input"
+            autoComplete="off"
           />
         ) : (
           <p className="stage3-readonly-content">{nonNullCaseData.root_cause || '-'}</p>
@@ -130,6 +132,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
             value={form.solution_description}
             onChange={e => setForm({ ...form, solution_description: e.target.value })}
             className="stage3-textarea"
+            autoComplete="off"
           />
         ) : (
           <p className="stage3-readonly-content">{nonNullCaseData.solution_description || '-'}</p>
@@ -148,9 +151,14 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
         ) : (
           <label className="stage3-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={stageAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
-        {!canEdit && stageAttachments.length === 0 && (
-          <p className="stage3-no-attachments">No attachments</p>
+        {stageAttachments.length === 0 && !canEdit ? (
+          <EmptyState
+            icon={<Paperclip />}
+            title="No attachments"
+            description="No files have been uploaded for this stage."
+          />
+        ) : (
+          <AttachmentGrid attachments={stageAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         )}
       </div>
 

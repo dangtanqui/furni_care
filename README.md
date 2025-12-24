@@ -127,9 +127,6 @@ rails db:migrate
 # Seed database
 rails db:seed
 
-# Run tests
-rails test
-
 # Start server
 rails s
 ```
@@ -149,6 +146,84 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+## 🧪 Testing
+
+### Backend Testing (RSpec)
+
+1. Setup test database:
+```bash
+cd backend
+rails db:test:prepare
+```
+
+2. Run tests:
+```bash
+# Run all tests
+bundle exec rspec
+
+# Run specific test file
+bundle exec rspec spec/models/user_spec.rb
+
+# Run with documentation format
+bundle exec rspec --format documentation
+```
+
+**Test Structure:**
+- `spec/models/` - Model tests
+- `spec/services/` - Service tests
+- `spec/controllers/` - Controller tests
+- `spec/policies/` - Policy tests
+- `spec/factories/` - Factory definitions for test data
+
+### Frontend Testing
+
+#### Unit Tests (Vitest)
+
+Frontend uses Vitest for unit testing with React Testing Library.
+
+```bash
+cd frontend
+
+# Run all unit tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+**Test Structure:**
+- `src/utils/__tests__/` - Utility function tests
+- `src/components/__tests__/` - Component tests
+- `src/hooks/__tests__/` - Hook tests
+
+#### E2E Tests (Playwright)
+
+Frontend uses Playwright for E2E tests. See `frontend/e2e/README.md` for details.
+
+```bash
+cd frontend
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+```
+
+## 📚 API Documentation
+
+Swagger/OpenAPI documentation is available at:
+- Swagger UI: `http://localhost:3000/api-docs`
+- Swagger JSON: `http://localhost:3000/api-docs/v1/swagger.json`
+
+To update documentation, edit `backend/swagger/v1/swagger.yaml`.
 
 ## 📝 Notes
 

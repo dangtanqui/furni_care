@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Button from '../../Button';
 import '../../../styles/components/pages/login/LoginForm.css';
 import type { LoginFormProps } from '../../../types/components/pages/Login';
@@ -7,16 +7,23 @@ export default function LoginForm({
   email, 
   password, 
   showPassword, 
+  rememberMe,
   error, 
   loading,
   onEmailChange, 
   onPasswordChange, 
-  onTogglePassword, 
+  onTogglePassword,
+  onRememberMeChange,
   onSubmit 
 }: LoginFormProps) {
   return (
     <>
-      {error && <div className="login-error">{error}</div>}
+      {error && (
+        <div className="login-error" role="alert">
+          <AlertCircle className="login-error-icon" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      )}
       
       <form onSubmit={onSubmit} className="login-form">
         <div>
@@ -28,6 +35,7 @@ export default function LoginForm({
               value={email}
               onChange={e => onEmailChange(e.target.value)}
               className="login-input-field"
+              autoComplete="email"
               required
               disabled={loading}
             />
@@ -42,6 +50,7 @@ export default function LoginForm({
               value={password}
               onChange={e => onPasswordChange(e.target.value)}
               className="login-password-field"
+              autoComplete="current-password"
               required
               disabled={loading}
             />
@@ -55,6 +64,20 @@ export default function LoginForm({
               {showPassword ? <EyeOff className="login-password-toggle-icon" /> : <Eye className="login-password-toggle-icon" />}
             </button>
           </div>
+        </div>
+        <div className="login-remember-me">
+          <label htmlFor="remember_me" className="login-remember-me-label">
+            <input
+              id="remember_me"
+              name="remember_me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={e => onRememberMeChange(e.target.checked)}
+              disabled={loading}
+              className="login-remember-me-checkbox"
+            />
+            <span>Remember Me</span>
+          </label>
         </div>
         <Button type="submit" variant="primary" disabled={loading}>
           Login

@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+.skeleton {
+  @apply bg-gray-200 rounded;
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 0%,
+    #f3f4f6 50%,
+    #e5e7eb 100%
+  );
+  background-size: 200% 100%;
+}
+
+.skeleton-rectangular {
+  @apply rounded;
+}
+
+.skeleton-circular {
+  @apply rounded-full;
+}
+
+.skeleton-text {
+  @apply rounded;
+  height: 1rem;
+}
+
+.skeleton-text-container {
+  @apply flex flex-col gap-2;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+

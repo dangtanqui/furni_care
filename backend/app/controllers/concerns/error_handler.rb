@@ -24,6 +24,14 @@ module ErrorHandler
   end
 
   def handle_standard_error(exception)
+    # Track error with error tracking service
+    ErrorTracker.capture_exception(exception, {
+      user_id: current_user&.id,
+      request_path: request.path,
+      request_method: request.method,
+      params: params.to_unsafe_h.except(:password, :password_confirmation)
+    })
+    
     Rails.logger.error "Unhandled error: #{exception.class} - #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
     

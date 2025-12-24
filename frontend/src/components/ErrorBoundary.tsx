@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
 import Button from './Button';
+import { captureException } from '../utils/errorTracker';
 import '../styles/components/ErrorBoundary.css';
 
 interface Props {
@@ -24,8 +25,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to error reporting service if needed
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Track error with error tracking service
+    captureException(error, {
+      componentStack: errorInfo.componentStack,
+      errorBoundary: true
+    });
   }
 
   handleReset = () => {

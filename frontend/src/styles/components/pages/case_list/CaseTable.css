@@ -12,6 +12,9 @@
 
 .case-table-header {
   @apply bg-gray-50 border-b border-gray-200;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .case-table-header-row {
@@ -28,6 +31,16 @@
 
 .case-table-row {
   @apply hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.case-table-row:hover {
+  @apply bg-gray-50;
+  transform: scale(1);
+}
+
+.case-table-row-skeleton {
+  @apply border-b border-gray-100;
 }
 
 .case-table-row:last-child {
@@ -42,8 +55,24 @@
   @apply px-2 py-1 rounded-full text-xs font-medium;
 }
 
+.case-table-status-with-icon {
+  @apply inline-flex items-center gap-1.5 whitespace-nowrap;
+}
+
+.case-table-status-icon {
+  @apply w-3.5 h-3.5 flex-shrink-0;
+}
+
 .case-table-priority-text {
   @apply text-sm font-medium;
+}
+
+.case-table-priority-with-icon {
+  @apply inline-flex items-center gap-1.5 whitespace-nowrap;
+}
+
+.case-table-priority-icon {
+  @apply w-4 h-4 flex-shrink-0;
 }
 
 .case-table-stage-badge {
@@ -86,10 +115,12 @@
 
 .case-table-header-cell-full:nth-child(5) {
   width: 13%;
+  min-width: 120px; /* Ensure status column has enough space */
 }
 
 .case-table-header-cell-full:nth-child(6) {
   width: 13%;
+  min-width: 110px; /* Ensure priority column has enough space */
 }
 
 .case-table-header-cell-full:nth-child(7) {
@@ -110,8 +141,29 @@
 }
 
 .case-table-cell-full {
-  @apply px-4 py-3 whitespace-nowrap overflow-hidden text-ellipsis text-sm text-gray-700;
+  @apply px-4 py-3 text-sm text-gray-700;
   vertical-align: middle;
+}
+
+/* Status and Priority columns - ensure content is fully visible */
+.case-table-cell-full:nth-child(5),
+.case-table-cell-full:nth-child(6) {
+  min-width: 120px;
+  overflow: visible; /* Allow content to overflow if needed */
+}
+
+.case-table-cell-full:nth-child(5) {
+  min-width: 120px;
+}
+
+.case-table-cell-full:nth-child(6) {
+  min-width: 110px;
+}
+
+.case-table-cell-full:nth-child(5) .case-table-status-badge,
+.case-table-cell-full:nth-child(6) .case-table-priority-text {
+  @apply inline-flex;
+  max-width: none; /* Remove max-width restriction */
 }
 
 .case-table-row td:last-child {
@@ -156,5 +208,16 @@
 
 .case-table-min-width {
   min-width: 800px;
+}
+
+/* Mobile: Keep table layout with horizontal scroll */
+@media (max-width: 767px) {
+  .case-table-container {
+    @apply overflow-x-auto;
+  }
+
+  .case-table-container .overflow-x-auto {
+    @apply overflow-x-auto;
+  }
 }
 

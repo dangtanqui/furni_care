@@ -9,7 +9,7 @@ class CaseService < BaseService
   def create
     @case.created_by = @current_user
     @case.current_stage = 1
-    @case.status = Case::STATUSES.first # 'open'
+    @case.status = Case::STATUSES_HASH[:OPEN]
     
     if @case.save
       success(@case)
@@ -19,65 +19,18 @@ class CaseService < BaseService
   end
 
   def update(case_params)
-    cost_fields_updated = case_params.key?(:estimated_cost) || 
-                          case_params.key?(:cost_description) || 
-                          case_params.key?(:cost_required)
+    # Detect what fields are being updated
+    cost_fields_updated = detect_cost_fields_update(case_params)
+    final_cost_updated, old_final_cost_status = detect_final_cost_update(case_params)
+    stage1_fields_updated = detect_stage1_fields_update(case_params)
+    assigned_to_changed = detect_assigned_to_change(case_params)
     
-    # Check if final_cost is in params
-    # Store old final_cost_status before update to check if it was rejected
-    old_final_cost_status = @case.final_cost_status if case_params.key?(:final_cost)
-    
-    final_cost_updated = if case_params.key?(:final_cost)
-      old_final_cost = @case.final_cost
-      new_final_cost = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f
-      # Check if value changed OR if it was rejected (need to reset status even if value unchanged)
-      old_final_cost.to_f != new_final_cost.to_f || old_final_cost_status == Case::FINAL_COST_STATUSES[2] # 'rejected'
-    else
-      false
-    end
-    
-    # Check if Stage 1 fields are being updated (assigned_to_id, description, etc.)
-    # If current_stage >= 3 and Stage 1 fields are updated, rollback to stage 2
-    stage1_fields = [:assigned_to_id, :description]
-    stage1_fields_updated = stage1_fields.any? { |field| case_params.key?(field) }
-    should_rollback_stage1 = stage1_fields_updated && @case.current_stage >= 3
-    
-    # Check if assigned_to_id is being updated (reassign)
-    assigned_to_changed = case_params.key?(:assigned_to_id) && 
-                          @case.assigned_to_id != case_params[:assigned_to_id].to_i
-    
-    # Prepare update params
-    update_params = case_params.dup
-    # If rollback needed and current_stage is not explicitly set in params, add it
-    if should_rollback_stage1 && !update_params.key?(:current_stage)
-      update_params[:current_stage] = 2
-    end
-    
-    # If reassigning technician, set status to 'in_progress' (unless explicitly set in params)
-    if assigned_to_changed && !update_params.key?(:status)
-      update_params[:status] = Case::STATUSES[2] # 'in_progress'
-    end
-    
-    # If reassigning technician, handle cost_status and final_cost_status reset based on case state
-    if assigned_to_changed
-      if @case.current_stage == 3
-        # At Stage 3: reset cost_status to null if pending or rejected
-        if @case.cost_status == Case::COST_STATUSES[0] || @case.cost_status == Case::COST_STATUSES[2] # 'pending' or 'rejected'
-          update_params[:cost_status] = nil
-          update_params[:cost_approved_by_id] = nil
-        end
-      elsif @case.current_stage >= 4 && @case.cost_status == Case::COST_STATUSES[1] # 'approved'
-        # At Stage 4+: if cost was approved, reset to 'pending' so new technician can review
-        update_params[:cost_status] = Case::COST_STATUSES[0] # 'pending'
-        update_params[:cost_approved_by_id] = nil
-      end
-      
-      # If at Stage 5 and final_cost_status is approved, reset to 'pending' when reassigning
-      if @case.current_stage == 5 && @case.final_cost_status == Case::FINAL_COST_STATUSES[1] # 'approved'
-        update_params[:final_cost_status] = Case::FINAL_COST_STATUSES[0] # 'pending'
-        update_params[:final_cost_approved_by_id] = nil
-      end
-    end
+    # Prepare update parameters with business logic
+    update_params = prepare_update_params(
+      case_params: case_params,
+      stage1_fields_updated: stage1_fields_updated,
+      assigned_to_changed: assigned_to_changed
+    )
     
     ActiveRecord::Base.transaction do
       if @case.update(update_params)
@@ -97,7 +50,7 @@ class CaseService < BaseService
     return failure(['Already at final stage']) if @case.current_stage >= 5
     
     # Check cost approval for stage 3
-    if @case.current_stage == 3 && @case.cost_required && @case.cost_status != Case::COST_STATUSES[1] # 'approved'
+    if @case.current_stage == 3 && @case.cost_required && @case.cost_status != Case::COST_STATUSES_HASH[:APPROVED]
       return failure(['Cost approval required before advancing'])
     end
     
@@ -114,17 +67,17 @@ class CaseService < BaseService
       # If cost was required and approved in Stage 3, CS needs to input final cost
       # So status should be 'in_progress' to allow CS to work on final cost
       # Only set status to 'completed' if no cost was required
-      if @case.cost_required && @case.cost_status == Case::COST_STATUSES[1] # 'approved'
-        update_attrs[:status] = Case::STATUSES[2] # 'in_progress' - CS needs to input final cost
+      if @case.cost_required && @case.cost_status == Case::COST_STATUSES_HASH[:APPROVED]
+        update_attrs[:status] = Case::STATUSES_HASH[:IN_PROGRESS] # CS needs to input final cost
       else
-        update_attrs[:status] = Case::STATUSES[3] # 'completed' - no cost required, can complete
+        update_attrs[:status] = Case::STATUSES_HASH[:COMPLETED] # no cost required, can complete
       end
     # If advancing from Stage 1 to Stage 2, set status to in_progress
     elsif @case.current_stage == 1
-      update_attrs[:status] = Case::STATUSES[2] # 'in_progress'
+      update_attrs[:status] = Case::STATUSES_HASH[:IN_PROGRESS]
     # If advancing from Stage 2 to Stage 3, set status to in_progress
     elsif @case.current_stage == 2
-      update_attrs[:status] = Case::STATUSES[2] # 'in_progress'
+      update_attrs[:status] = Case::STATUSES_HASH[:IN_PROGRESS]
     end
     
     # Wrap in transaction to ensure atomicity
@@ -153,11 +106,11 @@ class CaseService < BaseService
     end
     
     ActiveRecord::Base.transaction do
-      @case.update(cost_status: Case::COST_STATUSES[1], cost_approved_by: @current_user) # 'approved'
+      @case.update(cost_status: Case::COST_STATUSES_HASH[:APPROVED], cost_approved_by: @current_user)
       
       # If Stage 3 cost is approved and current_stage is 3, automatically advance to Stage 4
-      if @case.current_stage == 3 && @case.cost_required && @case.cost_status == Case::COST_STATUSES[1] # 'approved'
-        status_to_set = @case.status == Case::STATUSES[1] ? Case::STATUSES[2] : @case.status # 'pending' ? 'in_progress'
+      if @case.current_stage == 3 && @case.cost_required && @case.cost_status == Case::COST_STATUSES_HASH[:APPROVED]
+        status_to_set = @case.status == Case::STATUSES_HASH[:PENDING] ? Case::STATUSES_HASH[:IN_PROGRESS] : @case.status
         @case.update(current_stage: 4, status: status_to_set)
       end
       
@@ -171,8 +124,8 @@ class CaseService < BaseService
     # Set status to 'rejected' to indicate the case was rejected
     ActiveRecord::Base.transaction do
       @case.update(
-        cost_status: Case::COST_STATUSES[2], # 'rejected'
-        status: Case::STATUSES[5], # 'rejected' - indicates case was rejected
+        cost_status: Case::COST_STATUSES_HASH[:REJECTED],
+        status: Case::STATUSES_HASH[:REJECTED], # indicates case was rejected
         current_stage: 3 # Ensure case stays at Stage 3
       )
       success(@case.reload)
@@ -185,14 +138,14 @@ class CaseService < BaseService
       update_params = {
         current_stage: 3,
         attempt_number: @case.attempt_number + 1,
-        status: Case::STATUSES[2], # 'in_progress'
+        status: Case::STATUSES_HASH[:IN_PROGRESS],
         cost_status: nil,
         cost_approved_by_id: nil
       }
       
       # If final_cost_status was approved, reset to 'pending' when redoing back to Stage 3
-      if @case.final_cost_status == Case::FINAL_COST_STATUSES[1] # 'approved'
-        update_params[:final_cost_status] = Case::FINAL_COST_STATUSES[0] # 'pending'
+      if @case.final_cost_status == Case::FINAL_COST_STATUSES_HASH[:APPROVED]
+        update_params[:final_cost_status] = Case::FINAL_COST_STATUSES_HASH[:PENDING]
         update_params[:final_cost_approved_by_id] = nil
       end
       
@@ -212,8 +165,43 @@ class CaseService < BaseService
 
   def cancel_case
     # Authorization is handled by controller via Policy
-    @case.update(status: Case::STATUSES[6]) # 'cancelled'
-    success(@case.reload)
+    # When cancelling, we need to handle validation issues
+    # If cost_required is true but estimated_cost is nil, validation will fail
+    # So we use update_all to bypass validations completely for this special operation
+    # update_all updates directly to database and commits immediately
+    
+    case_id = @case.id
+    cancelled_status = Case::STATUSES_HASH[:CANCELLED]
+    
+    # Build update hash
+    update_hash = { 
+      status: cancelled_status,
+      updated_at: Time.current
+    }
+    
+    # If cost_required is true but estimated_cost is missing, set cost_required to false
+    # This must be done before updating status to avoid validation errors
+    if @case.cost_required && @case.estimated_cost.nil?
+      update_hash[:cost_required] = false
+    end
+    
+    # Use update_all to bypass all validations and update directly in database
+    # This is safe because we're only updating status and cost_required (if needed)
+    rows_updated = Case.where(id: case_id).update_all(update_hash)
+    
+    if rows_updated > 0
+      # Get completely fresh instance from database
+      @case = Case.find(case_id)
+      
+      # Verify status was updated
+      if @case.status == cancelled_status
+        success(@case)
+      else
+        failure(["Failed to cancel case: status is still #{@case.status}"])
+      end
+    else
+      failure(["Failed to cancel case: no rows were updated"])
+    end
   end
 
   def approve_final_cost
@@ -229,9 +217,9 @@ class CaseService < BaseService
     
     ActiveRecord::Base.transaction do
       @case.update(
-        final_cost_status: Case::FINAL_COST_STATUSES[1], # 'approved'
+        final_cost_status: Case::FINAL_COST_STATUSES_HASH[:APPROVED],
         final_cost_approved_by: @current_user,
-        status: Case::STATUSES[3] # 'completed' - but CS still needs to close the case
+        status: Case::STATUSES_HASH[:COMPLETED] # but CS still needs to close the case
       )
       success(@case.reload)
     end
@@ -246,8 +234,8 @@ class CaseService < BaseService
     
     ActiveRecord::Base.transaction do
       @case.update(
-        final_cost_status: Case::FINAL_COST_STATUSES[2], # 'rejected'
-        status: Case::STATUSES[5] # 'rejected' - similar to Stage 3 cost rejection
+        final_cost_status: Case::FINAL_COST_STATUSES_HASH[:REJECTED],
+        status: Case::STATUSES_HASH[:REJECTED] # similar to Stage 3 cost rejection
       )
       success(@case.reload)
     end
@@ -255,30 +243,120 @@ class CaseService < BaseService
 
   private
 
+  # Detect if cost-related fields are being updated
+  def detect_cost_fields_update(case_params)
+    case_params.key?(:estimated_cost) || 
+    case_params.key?(:cost_description) || 
+    case_params.key?(:cost_required)
+  end
+
+  # Detect if final_cost is being updated and return update status
+  def detect_final_cost_update(case_params)
+    return [false, nil] unless case_params.key?(:final_cost)
+    
+    old_final_cost_status = @case.final_cost_status
+    old_final_cost = @case.final_cost
+    new_final_cost = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f
+    
+    # Check if value changed OR if it was rejected (need to reset status even if value unchanged)
+    updated = old_final_cost.to_f != new_final_cost.to_f || old_final_cost_status == Case::FINAL_COST_STATUSES_HASH[:REJECTED]
+    [updated, old_final_cost_status]
+  end
+
+  # Detect if Stage 1 fields are being updated
+  def detect_stage1_fields_update(case_params)
+    stage1_fields = [:assigned_to_id, :description]
+    stage1_fields.any? { |field| case_params.key?(field) }
+  end
+
+  # Detect if assigned_to_id is being changed
+  def detect_assigned_to_change(case_params)
+    case_params.key?(:assigned_to_id) && 
+    @case.assigned_to_id != case_params[:assigned_to_id].to_i
+  end
+
+  # Prepare update parameters with business logic applied
+  def prepare_update_params(case_params:, stage1_fields_updated:, assigned_to_changed:)
+    update_params = case_params.dup
+    
+    # Handle Stage 1 rollback if needed
+    apply_stage1_rollback(update_params, stage1_fields_updated)
+    
+    # Handle technician reassignment
+    apply_technician_reassignment(update_params, assigned_to_changed)
+    
+    update_params
+  end
+
+  # Apply Stage 1 rollback logic
+  def apply_stage1_rollback(update_params, stage1_fields_updated)
+    should_rollback_stage1 = stage1_fields_updated && @case.current_stage >= 3
+    if should_rollback_stage1 && !update_params.key?(:current_stage)
+      update_params[:current_stage] = 2
+    end
+  end
+
+  # Apply technician reassignment logic
+  def apply_technician_reassignment(update_params, assigned_to_changed)
+    return unless assigned_to_changed
+    
+    # Set status to 'in_progress' when reassigning
+    update_params[:status] = Case::STATUSES_HASH[:IN_PROGRESS] unless update_params.key?(:status)
+    
+    # Handle cost_status reset based on current stage
+    reset_cost_status_on_reassignment(update_params)
+    
+    # Handle final_cost_status reset if at Stage 5
+    reset_final_cost_status_on_reassignment(update_params)
+  end
+
+  # Reset cost_status when reassigning technician
+  def reset_cost_status_on_reassignment(update_params)
+    if @case.current_stage == 3
+      # At Stage 3: reset cost_status to null if pending or rejected
+      if @case.cost_status == Case::COST_STATUSES_HASH[:PENDING] || @case.cost_status == Case::COST_STATUSES_HASH[:REJECTED]
+        update_params[:cost_status] = nil
+        update_params[:cost_approved_by_id] = nil
+      end
+    elsif @case.current_stage >= 4 && @case.cost_status == Case::COST_STATUSES_HASH[:APPROVED]
+      # At Stage 4+: if cost was approved, reset to 'pending' so new technician can review
+      update_params[:cost_status] = Case::COST_STATUSES_HASH[:PENDING]
+      update_params[:cost_approved_by_id] = nil
+    end
+  end
+
+  # Reset final_cost_status when reassigning technician at Stage 5
+  def reset_final_cost_status_on_reassignment(update_params)
+    if @case.current_stage == 5 && @case.final_cost_status == Case::FINAL_COST_STATUSES_HASH[:APPROVED]
+      update_params[:final_cost_status] = Case::FINAL_COST_STATUSES_HASH[:PENDING]
+      update_params[:final_cost_approved_by_id] = nil
+    end
+  end
+
   def handle_cost_update(cost_fields_updated)
     # If cost fields are updated and cost was previously rejected, reset cost_status
-    if @case.cost_status == Case::COST_STATUSES[2] # 'rejected'
-      @case.update(cost_status: nil, status: Case::STATUSES[1]) # 'pending'
+    if @case.cost_status == Case::COST_STATUSES_HASH[:REJECTED]
+      @case.update(cost_status: nil, status: Case::STATUSES_HASH[:PENDING])
     end
     
     # If cost fields are updated and cost was previously approved, reset cost_status
     # This allows Technician to update cost and re-submit for approval
     # Note: This check happens after the rejected check, so we need to reload
     @case.reload
-    if @case.cost_status == Case::COST_STATUSES[1] # 'approved'
-      @case.update(cost_status: nil, status: Case::STATUSES[1], cost_approved_by_id: nil) # 'pending'
+    if @case.cost_status == Case::COST_STATUSES_HASH[:APPROVED]
+      @case.update(cost_status: nil, status: Case::STATUSES_HASH[:PENDING], cost_approved_by_id: nil)
     end
   end
 
   def handle_stage_rollback
     # If Stage 3 cost is required but not approved, and case has advanced past Stage 3,
     # roll back to Stage 3 to wait for approval
-    if @case.cost_required && @case.cost_status != Case::COST_STATUSES[1] && @case.current_stage > 3 # 'approved'
+    if @case.cost_required && @case.cost_status != Case::COST_STATUSES_HASH[:APPROVED] && @case.current_stage > 3
       update_attrs = { current_stage: 3 }
       
       # Reset final_cost_status if it was rejected when rolling back to Stage 3
-      if @case.final_cost_status == Case::FINAL_COST_STATUSES[2] # 'rejected'
-        update_attrs[:final_cost_status] = Case::FINAL_COST_STATUSES[0] # 'pending'
+      if @case.final_cost_status == Case::FINAL_COST_STATUSES_HASH[:REJECTED]
+        update_attrs[:final_cost_status] = Case::FINAL_COST_STATUSES_HASH[:PENDING]
         update_attrs[:final_cost_approved_by_id] = nil
       end
       
@@ -292,7 +370,7 @@ class CaseService < BaseService
     @case.reload
     
     # Use provided old_final_cost_status or fallback to current status if not provided
-    was_rejected = (old_final_cost_status || @case.final_cost_status) == Case::FINAL_COST_STATUSES[2] # 'rejected'
+    was_rejected = (old_final_cost_status || @case.final_cost_status) == Case::FINAL_COST_STATUSES_HASH[:REJECTED]
     
     # Get old and new final_cost values
     old_final_cost = @case.final_cost_was
@@ -317,9 +395,9 @@ class CaseService < BaseService
       if differs_from_estimated
         # Final cost is different from estimated cost - need Leader approval
         update_attrs = {
-          final_cost_status: Case::FINAL_COST_STATUSES[0], # 'pending'
+          final_cost_status: Case::FINAL_COST_STATUSES_HASH[:PENDING],
           final_cost_approved_by_id: nil,
-          status: Case::STATUSES[1] # 'pending' - wait for Leader approval
+          status: Case::STATUSES_HASH[:PENDING] # wait for Leader approval
         }
         @case.update(update_attrs)
       else
@@ -327,7 +405,7 @@ class CaseService < BaseService
         update_attrs = {
           final_cost_status: nil,
           final_cost_approved_by_id: nil,
-          status: Case::STATUSES[1] # 'pending' - reset case status
+          status: Case::STATUSES_HASH[:PENDING] # reset case status
         }
         @case.update(update_attrs)
       end
@@ -336,9 +414,9 @@ class CaseService < BaseService
         # Final cost is different from estimated cost (including 0 vs non-zero) - need Leader approval
         # Set status to 'pending' to wait for Leader approval (similar to Stage 3)
         update_attrs = {
-          final_cost_status: Case::FINAL_COST_STATUSES[0], # 'pending'
+          final_cost_status: Case::FINAL_COST_STATUSES_HASH[:PENDING],
           final_cost_approved_by_id: nil,
-          status: Case::STATUSES[1] # 'pending' - wait for Leader approval
+          status: Case::STATUSES_HASH[:PENDING] # wait for Leader approval
         }
         @case.update(update_attrs)
       elsif !new_final_cost.nil? && !differs_from_estimated
@@ -347,14 +425,14 @@ class CaseService < BaseService
         update_attrs = {
           final_cost_status: nil,
           final_cost_approved_by_id: nil,
-          status: Case::STATUSES[3] # 'completed' - no approval needed, can complete
+          status: Case::STATUSES_HASH[:COMPLETED] # no approval needed, can complete
         }
         @case.update(update_attrs)
       end
-    elsif @case.final_cost_status == Case::FINAL_COST_STATUSES[1] # 'approved'
+    elsif @case.final_cost_status == Case::FINAL_COST_STATUSES_HASH[:APPROVED]
       # If was approved and CS changes the value, reset to pending
       @case.update(
-        final_cost_status: Case::FINAL_COST_STATUSES[0], # 'pending'
+        final_cost_status: Case::FINAL_COST_STATUSES_HASH[:PENDING],
         final_cost_approved_by_id: nil
       )
     end

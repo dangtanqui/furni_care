@@ -1,4 +1,6 @@
+import { CheckCircle2, Clock, AlertCircle, XCircle, Ban, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 import type { CaseStatus, CasePriority, CostStatus } from '../api/cases';
+import type { LucideIcon } from 'lucide-react';
 
 /**
  * Case-related utility functions
@@ -60,4 +62,34 @@ export function getPriorityColorClass(priority: CasePriority): string {
   };
   
   return priorityColorMap[priority] || priorityColorMap.low;
+}
+
+/**
+ * Gets the icon component for a case status
+ */
+export function getStatusIcon(status: CaseStatus): LucideIcon {
+  const statusIconMap: Record<CaseStatus, LucideIcon> = {
+    open: Clock,
+    in_progress: Clock,
+    pending: AlertCircle,
+    completed: CheckCircle2,
+    closed: CheckCircle2,
+    cancelled: Ban,
+    rejected: XCircle,
+  };
+  
+  return statusIconMap[status] || Clock;
+}
+
+/**
+ * Gets the icon component for a priority
+ */
+export function getPriorityIcon(priority: CasePriority): LucideIcon {
+  const priorityIconMap: Record<CasePriority, LucideIcon> = {
+    low: TrendingDown,
+    medium: AlertTriangle,
+    high: TrendingUp,
+  };
+  
+  return priorityIconMap[priority] || TrendingDown;
 }

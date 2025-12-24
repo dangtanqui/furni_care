@@ -4,11 +4,17 @@ class AuthService < BaseService
     @current_user = current_user
   end
 
-  def login(email:, password:, jwt_secret:)
+  def login(email:, password:, jwt_secret:, expires_in: 30.days)
     user = User.find_by(email: email)
     
     if user&.authenticate(password)
-      token = encode_token({ user_id: user.id }, jwt_secret)
+      # Add expiration time to JWT payload
+      expires_at = expires_in.from_now.to_i
+      token = encode_token({ 
+        user_id: user.id,
+        exp: expires_at,
+        iat: Time.now.to_i
+      }, jwt_secret)
       success({ token: token, user: serialize_user(user) })
     else
       failure(['Invalid email or password'], status: :unauthorized)

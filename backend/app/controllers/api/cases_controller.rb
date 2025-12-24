@@ -1,9 +1,35 @@
+# API Controller for case management endpoints
+# 
+# Endpoints:
+#   GET    /api/cases - List cases with filtering, sorting, and pagination
+#   GET    /api/cases/:id - Get case details
+#   POST   /api/cases - Create new case (CS only)
+#   PUT    /api/cases/:id - Update case (authorized users only)
+#   DELETE /api/cases/:id - Delete case (CS only)
+#   POST   /api/cases/:id/advance_stage - Advance case to next stage
+#   POST   /api/cases/:id/approve_cost - Approve cost estimate (Leader only)
+#   POST   /api/cases/:id/reject_cost - Reject cost estimate (Leader only)
+#   POST   /api/cases/:id/approve_final_cost - Approve final cost (Leader only)
+#   POST   /api/cases/:id/reject_final_cost - Reject final cost (Leader only)
+#   POST   /api/cases/:id/redo_case - Redo case from Stage 5 (CS only)
+#   POST   /api/cases/:id/cancel_case - Cancel case (CS only)
 class Api::CasesController < ApplicationController
   include Authorizable
   include ServiceResponse
   
   before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :approve_final_cost, :reject_final_cost, :cancel_case]
   
+  # GET /api/cases
+  # List cases with filtering, sorting, and pagination
+  # @param status [String] Filter by status (open, pending, in_progress, completed, closed, rejected, cancelled)
+  # @param case_type [String] Filter by case type
+  # @param assigned_to [String|Integer] Filter by assigned technician ID or 'unassigned'
+  # @param stage [Integer] Filter by current stage (1-5)
+  # @param sort_by [String] Sort field (case_number, client, site, current_stage, status, priority, assigned_to, created_at)
+  # @param sort_direction [String] Sort direction (asc, desc)
+  # @param page [Integer] Page number (default: 1)
+  # @param per_page [Integer] Items per page (default: 20, max: 100)
+  # @return [JSON] { data: [cases], pagination: { page, per_page, total, total_pages } }
   def index
     result = CaseQueryService.call(params: params, current_user: current_user)
     
@@ -28,11 +54,13 @@ class Api::CasesController < ApplicationController
   end
   
   def update
+    authorize_case_action(:update)
     result = CaseService.new(case_record: @case, current_user: current_user).update(case_params)
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end
   
   def advance_stage
+    authorize_case_action(:advance_stage)
     result = CaseService.new(case_record: @case, current_user: current_user).advance_stage
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end
@@ -85,8 +113,7 @@ class Api::CasesController < ApplicationController
   def set_case
     @case = Case.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    # ErrorHandler concern will handle this
-    raise
+    render json: { error: 'Record not found' }, status: :not_found
   end
   
   def case_params

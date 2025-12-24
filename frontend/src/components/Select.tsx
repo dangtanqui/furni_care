@@ -173,9 +173,11 @@ export default function Select({
         type="button"
         id={id}
         name={name}
-        aria-label={placeholder}
+        aria-label={id ? undefined : placeholder}
+        aria-labelledby={id ? `${id}-label` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        role="combobox"
         onClick={handleToggle}
         onMouseDown={(e) => {
           // Prevent form submission when clicking dropdown

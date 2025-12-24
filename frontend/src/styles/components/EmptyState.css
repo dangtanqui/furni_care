@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+.empty-state-container {
+  @apply flex flex-col items-center justify-center py-12 px-4 text-center;
+  min-height: 200px;
+}
+
+.empty-state-icon {
+  @apply mb-4 text-gray-400;
+  width: 64px;
+  height: 64px;
+}
+
+.empty-state-icon svg {
+  @apply w-full h-full;
+}
+
+.empty-state-title {
+  @apply text-lg font-semibold text-gray-900 mb-2;
+}
+
+.empty-state-description {
+  @apply text-sm text-gray-600 mb-6 max-w-md;
+}
+
+.empty-state-action {
+  @apply mt-2;
+}
+

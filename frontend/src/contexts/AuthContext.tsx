@@ -12,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string, user: User) => void;
+  login: (token: string, user: User, rememberMe?: boolean) => void;
   logout: () => void;
   isCS: boolean;
   isTechnician: boolean;
@@ -21,12 +21,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const TOKEN_KEY = 'token';
+const TOKEN_EXPIRATION_KEY = 'token_expiration';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  
+  // Load token and check expiration on mount
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const expiration = localStorage.getItem(TOKEN_EXPIRATION_KEY);
+    
+    if (!storedToken || !expiration) {
+      return null;
+    }
+    
+    // Check if token has expired
+    const expirationTime = parseInt(expiration, 10);
+    if (Date.now() > expirationTime) {
+      // Token expired, remove it
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_EXPIRATION_KEY);
+      return null;
+    }
+    
+    return storedToken;
+  });
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_EXPIRATION_KEY);
+    // Note: We don't clear remembered email/password here
+    // They will be cleared only if user unchecks "Remember Me"
     setToken(null);
     setUser(null);
   };
@@ -46,8 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token]);
 
-  const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('token', newToken);
+  const login = (newToken: string, newUser: User, rememberMe: boolean = false) => {
+    // Calculate expiration time
+    // If rememberMe is true, token expires in 30 days, otherwise 1 day
+    const expirationDays = rememberMe ? 30 : 1;
+    const expirationTime = Date.now() + (expirationDays * 24 * 60 * 60 * 1000);
+    
+    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
     setToken(newToken);
     setUser(newUser);
   };

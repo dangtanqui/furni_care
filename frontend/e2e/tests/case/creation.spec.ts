@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { loginAs, logout, selectDropdownOption } from '../../helpers/case-workflow-helpers';
+import { loginAs, logout, selectDropdownOption, gotoCaseDetail, waitForCaseDetailLoad } from '../../helpers/case-workflow-helpers';
 import { TEST_USERS, TEST_DATA, TIMEOUTS } from '../../constants/test-data';
 import { TestCaseBuilder } from '../../helpers/test-case-builder';
 import { setupTestData, cleanupCase } from '../../shared/setup';
@@ -126,7 +126,7 @@ test.describe('Case Creation Scenarios', () => {
       priority: 'Medium'
     });
     
-    await page.goto(`/cases/${caseId}`);
+    await gotoCaseDetail(page, caseId);
     await expect(page.locator('text=Repair')).toBeVisible();
     await expect(page.getByRole('status', { name: /Case priority: Medium/i })).toBeVisible();
     
@@ -145,7 +145,7 @@ test.describe('Case Creation Scenarios', () => {
       priority: 'Low'
     });
     
-    await page.goto(`/cases/${caseId}`);
+    await gotoCaseDetail(page, caseId);
     await expect(page.locator('text=Maintenance')).toBeVisible();
     await expect(page.getByRole('status', { name: /Case priority: Low/i })).toBeVisible();
     
@@ -164,7 +164,7 @@ test.describe('Case Creation Scenarios', () => {
       priority: 'High'
     });
     
-    await page.goto(`/cases/${caseId}`);
+    await gotoCaseDetail(page, caseId);
     await expect(page.locator('text=Warranty')).toBeVisible();
     await expect(page.getByRole('status', { name: /Case priority: High/i })).toBeVisible();
     
@@ -553,7 +553,7 @@ test.describe('Case Creation Scenarios', () => {
     const caseId = caseData.id;
     
     // Verify description is saved
-    await page.goto(`/cases/${caseId}`);
+    await gotoCaseDetail(page, caseId);
     await expect(page.locator(`text=${descriptionText}`)).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
     // Cleanup
@@ -653,7 +653,9 @@ test.describe('Case Creation Scenarios', () => {
     await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
     await expect(page.getByRole('heading', { name: 'Case List' })).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     
-    // Wait for case list to load
+    // Wait for case list loading to complete
+    const loadingLocator = page.locator('.case-table-loading:has-text("Loading...")');
+    await expect(loadingLocator).not.toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     await page.waitForLoadState('networkidle');
     
     // Verify case appears in list (check for case number format C-XXXX)

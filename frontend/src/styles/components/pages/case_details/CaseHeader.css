@@ -16,14 +16,14 @@
     grid-template-rows: repeat(3, auto);
   }
   
-  /* Cột 1: Case ID, Client, Current Stage */
+  /* Column 1: Case ID, Client, Current Stage */
   .case-header-order-1,
   .case-header-order-2,
   .case-header-order-3 {
     grid-column: 1;
   }
   
-  /* Cột 2: Status, Priority */
+  /* Column 2: Status, Priority */
   .case-header-order-4,
   .case-header-order-5 {
     grid-column: 2;

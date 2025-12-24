@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
+import EmptyState from '../../../EmptyState';
 import SignatureCanvas from './SignatureCanvas';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
@@ -77,6 +79,7 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
             onChange={e => setForm({ ...form, execution_report: e.target.value })}
             className="stage4-textarea"
             placeholder="Document execution details..."
+            autoComplete="off"
           />
         ) : (
           <p className="stage4-readonly-content">{nonNullCaseData.execution_report || '-'}</p>
@@ -95,9 +98,14 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
         ) : (
           <label className="stage4-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
-        {!canEdit && attachments.length === 0 && (
-          <p className="stage4-no-attachments">No attachments</p>
+        {attachments.length === 0 && !canEdit ? (
+          <EmptyState
+            icon={<Paperclip />}
+            title="No attachments"
+            description="No files have been uploaded for this stage."
+          />
+        ) : (
+          <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         )}
       </div>
 
@@ -131,14 +139,16 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
         <h4 className="stage4-feedback-title">Client Feedback</h4>
         <div className="space-y-3">
           <div>
-            <label className="stage4-rating-label">Rating</label>
-            <div className="stage4-rating-container">
+            <label className="stage4-rating-label" id="stage4-rating-label">Rating</label>
+            <div className="stage4-rating-container" role="group" aria-labelledby="stage4-rating-label">
               {[1, 2, 3, 4, 5].map(n => (
                 <button
                   key={n}
                   onClick={() => canEdit && setForm({ ...form, client_rating: n })}
                   disabled={!canEdit}
                   className={`stage4-rating-button ${form.client_rating >= n ? 'stage4-rating-button-active' : 'stage4-rating-button-inactive'}`}
+                  aria-label={`Rate ${n} out of 5`}
+                  aria-pressed={form.client_rating >= n}
                 >
                   {n}
                 </button>
@@ -154,6 +164,7 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
                 value={form.client_feedback}
                 onChange={e => setForm({ ...form, client_feedback: e.target.value })}
                 className="stage4-feedback-textarea"
+                autoComplete="off"
               />
             ) : (
               <p>{nonNullCaseData.client_feedback || '-'}</p>

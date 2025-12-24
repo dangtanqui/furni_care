@@ -1,3 +1,4 @@
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import Select from '../../Select';
 import FileUpload from '../../FileUpload';
 import Button from '../../Button';
@@ -14,6 +15,10 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
     return keys.some(k => !!errors?.[k]);
   };
 
+  const hasSuccess = (keys: string[], formValue: string) => {
+    return !hasError(keys) && formValue && formValue !== '';
+  };
+
   // Check if all required fields are filled
   // Required fields: client_id, site_id, contact_id, case_type, priority
   const isFormValid = Boolean(
@@ -27,60 +32,93 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
   return (
     <form onSubmit={onSubmit} className="case-form">
       <div>
-        <label htmlFor="client_id" className={`case-form-label ${hasError(['client', 'client_id']) ? 'case-form-label-error' : ''}`}>Client *</label>
-        <Select
-          id="client_id"
-          name="client_id"
-          value={form.client_id}
-          onChange={(value) => onFormChange({ ...form, client_id: value })}
-          options={clients.map(c => ({ value: String(c.id), label: c.name }))}
-          placeholder="Select Client"
-          disabled={loading}
-          error={hasError(['client', 'client_id'])}
-          onOpen={() => onClearFieldError?.(['client', 'client_id'])}
-        />
+        <label htmlFor="client_id" className={`case-form-label ${hasError(['client', 'client_id']) ? 'case-form-label-error' : ''}`}>
+          Client *
+          {hasError(['client', 'client_id']) && (
+            <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
+          )}
+          {hasSuccess(['client', 'client_id'], form.client_id) && (
+            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
+          )}
+        </label>
+        <div className="case-form-field-wrapper">
+          <Select
+            id="client_id"
+            name="client_id"
+            value={form.client_id}
+            onChange={(value) => onFormChange({ ...form, client_id: value })}
+            options={clients.map(c => ({ value: String(c.id), label: c.name }))}
+            placeholder="Select Client"
+            disabled={loading}
+            error={hasError(['client', 'client_id'])}
+            onOpen={() => onClearFieldError?.(['client', 'client_id'])}
+          />
+        </div>
         {getFieldError(['client', 'client_id']) && (
           <p className="case-form-field-error">
+            <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Client {getFieldError(['client', 'client_id'])}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="site_id" className={`case-form-label ${hasError(['site', 'site_id']) ? 'case-form-label-error' : ''}`}>Site *</label>
-        <Select
-          id="site_id"
-          name="site_id"
-          value={form.site_id}
-          onChange={(value) => onFormChange({ ...form, site_id: value })}
-          options={sites.map(s => ({ value: String(s.id), label: `${s.name} - ${s.city}` }))}
-          placeholder="Select Site"
-          disabled={!form.client_id || loading}
-          error={hasError(['site', 'site_id'])}
-          onOpen={() => onClearFieldError?.(['site', 'site_id'])}
-        />
+        <label htmlFor="site_id" className={`case-form-label ${hasError(['site', 'site_id']) ? 'case-form-label-error' : ''}`}>
+          Site *
+          {hasError(['site', 'site_id']) && (
+            <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
+          )}
+          {hasSuccess(['site', 'site_id'], form.site_id) && (
+            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
+          )}
+        </label>
+        <div className="case-form-field-wrapper">
+          <Select
+            id="site_id"
+            name="site_id"
+            value={form.site_id}
+            onChange={(value) => onFormChange({ ...form, site_id: value })}
+            options={sites.map(s => ({ value: String(s.id), label: `${s.name} - ${s.city}` }))}
+            placeholder="Select Site"
+            disabled={!form.client_id || loading}
+            error={hasError(['site', 'site_id'])}
+            onOpen={() => onClearFieldError?.(['site', 'site_id'])}
+          />
+        </div>
         {getFieldError(['site', 'site_id']) && (
           <p className="case-form-field-error">
+            <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Site {getFieldError(['site', 'site_id'])}
           </p>
         )}
       </div>
 
       <div>
-        <label htmlFor="contact_id" className={`case-form-label ${hasError(['contact', 'contact_id']) ? 'case-form-label-error' : ''}`}>Contact Person *</label>
-        <Select
-          id="contact_id"
-          name="contact_id"
-          value={form.contact_id}
-          onChange={(value) => onFormChange({ ...form, contact_id: value })}
-          options={contacts.map(c => ({ value: String(c.id), label: `${c.name} - ${c.phone}` }))}
-          placeholder="Select Contact Person"
-          disabled={!form.site_id || loading}
-          error={hasError(['contact', 'contact_id'])}
-          onOpen={() => onClearFieldError?.(['contact', 'contact_id'])}
-        />
+        <label htmlFor="contact_id" className={`case-form-label ${hasError(['contact', 'contact_id']) ? 'case-form-label-error' : ''}`}>
+          Contact Person *
+          {hasError(['contact', 'contact_id']) && (
+            <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
+          )}
+          {hasSuccess(['contact', 'contact_id'], form.contact_id) && (
+            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
+          )}
+        </label>
+        <div className="case-form-field-wrapper">
+          <Select
+            id="contact_id"
+            name="contact_id"
+            value={form.contact_id}
+            onChange={(value) => onFormChange({ ...form, contact_id: value })}
+            options={contacts.map(c => ({ value: String(c.id), label: `${c.name} - ${c.phone}` }))}
+            placeholder="Select Contact Person"
+            disabled={!form.site_id || loading}
+            error={hasError(['contact', 'contact_id'])}
+            onOpen={() => onClearFieldError?.(['contact', 'contact_id'])}
+          />
+        </div>
         {getFieldError(['contact', 'contact_id']) && (
           <p className="case-form-field-error">
+            <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Contact Person {getFieldError(['contact', 'contact_id'])}
           </p>
         )}
@@ -95,6 +133,7 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           onChange={e => onFormChange({ ...form, description: e.target.value })}
           className={`case-form-textarea ${hasError(['description']) ? 'case-form-field-error-state' : ''}`}
           placeholder="Describe the issue..."
+          autoComplete="off"
           disabled={loading}
         />
         {getFieldError(['description']) && (
@@ -108,47 +147,69 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
 
       <div className="case-form-grid">
         <div>
-          <label htmlFor="case_type" className={`case-form-label ${hasError(['case_type']) ? 'case-form-label-error' : ''}`}>Type *</label>
-          <Select
-            id="case_type"
-            name="case_type"
-            value={form.case_type}
-            onChange={(value) => onFormChange({ ...form, case_type: value })}
-            options={[
-              { value: 'warranty', label: 'Warranty' },
-              { value: 'maintenance', label: 'Maintenance' },
-              { value: 'repair', label: 'Repair' },
-            ]}
-            placeholder="Select Type"
-            disabled={loading}
-            error={hasError(['case_type'])}
-            onOpen={() => onClearFieldError?.(['case_type'])}
-          />
+          <label htmlFor="case_type" className={`case-form-label ${hasError(['case_type']) ? 'case-form-label-error' : ''}`}>
+            Type *
+            {hasError(['case_type']) && (
+              <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
+            )}
+            {hasSuccess(['case_type'], form.case_type) && (
+              <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
+            )}
+          </label>
+          <div className="case-form-field-wrapper">
+            <Select
+              id="case_type"
+              name="case_type"
+              value={form.case_type}
+              onChange={(value) => onFormChange({ ...form, case_type: value })}
+              options={[
+                { value: 'warranty', label: 'Warranty' },
+                { value: 'maintenance', label: 'Maintenance' },
+                { value: 'repair', label: 'Repair' },
+              ]}
+              placeholder="Select Type"
+              disabled={loading}
+              error={hasError(['case_type'])}
+              onOpen={() => onClearFieldError?.(['case_type'])}
+            />
+          </div>
           {getFieldError(['case_type']) && (
             <p className="case-form-field-error">
+              <AlertCircle className="case-form-error-icon" aria-hidden="true" />
               Type {getFieldError(['case_type'])}
             </p>
           )}
         </div>
         <div>
-          <label htmlFor="priority" className={`case-form-label ${hasError(['priority']) ? 'case-form-label-error' : ''}`}>Priority *</label>
-          <Select
-            id="priority"
-            name="priority"
-            value={form.priority}
-            onChange={(value) => onFormChange({ ...form, priority: value })}
-            options={[
-              { value: 'low', label: 'Low' },
-              { value: 'medium', label: 'Medium' },
-              { value: 'high', label: 'High' },
-            ]}
-            placeholder="Select Priority"
-            disabled={loading}
-            error={hasError(['priority'])}
-            onOpen={() => onClearFieldError?.(['priority'])}
-          />
+          <label htmlFor="priority" className={`case-form-label ${hasError(['priority']) ? 'case-form-label-error' : ''}`}>
+            Priority *
+            {hasError(['priority']) && (
+              <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
+            )}
+            {hasSuccess(['priority'], form.priority) && (
+              <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
+            )}
+          </label>
+          <div className="case-form-field-wrapper">
+            <Select
+              id="priority"
+              name="priority"
+              value={form.priority}
+              onChange={(value) => onFormChange({ ...form, priority: value })}
+              options={[
+                { value: 'low', label: 'Low' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'high', label: 'High' },
+              ]}
+              placeholder="Select Priority"
+              disabled={loading}
+              error={hasError(['priority'])}
+              onOpen={() => onClearFieldError?.(['priority'])}
+            />
+          </div>
           {getFieldError(['priority']) && (
             <p className="case-form-field-error">
+              <AlertCircle className="case-form-error-icon" aria-hidden="true" />
               Priority {getFieldError(['priority'])}
             </p>
           )}

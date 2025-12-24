@@ -1,4 +1,18 @@
 Rails.application.routes.draw do
+  # Serve swagger.json directly (must be before mounted engines)
+  get '/api-docs/v1/swagger.json', to: proc { |env|
+    swagger_json_path = Rails.root.join('swagger', 'v1', 'swagger.json')
+    if swagger_json_path.exist?
+      [200, { 'Content-Type' => 'application/json' }, [File.read(swagger_json_path)]]
+    else
+      [404, { 'Content-Type' => 'text/plain' }, ['Not Found']]
+    end
+  }
+  
+  # Swagger documentation
+  mount Rswag::Ui::Engine => '/api-docs'
+  mount Rswag::Api::Engine => '/api-docs'
+  
   namespace :api do
     get 'health', to: 'health#index'
     

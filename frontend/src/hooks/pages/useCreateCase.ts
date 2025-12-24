@@ -5,9 +5,11 @@ import { createCase, uploadAttachments } from '../../api/cases';
 import type { CaseDetail } from '../../api/cases';
 import { getClients, getSites, getContacts } from '../../api/data';
 import type { Client, Site, Contact } from '../../api/data';
+import { useToast } from '../../contexts/ToastContext';
 
 export function useCreateCase() {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -158,7 +160,7 @@ export function useCreateCase() {
     // Prevent double submission
     if (loading) return;
     
-    // Client-side validation cho các field bắt buộc
+    // Client-side validation for required fields
     const validationErrors: Record<string, string> = {};
     
     if (!form.client_id || form.client_id === '') {
@@ -181,7 +183,7 @@ export function useCreateCase() {
       validationErrors.priority = 'is required';
     }
     
-    // Nếu có lỗi validation, hiển thị và dừng lại
+    // If there are validation errors, display them and stop
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -205,6 +207,7 @@ export function useCreateCase() {
       setPreviews([]);
       setPreviewToFileIndex([]);
       processedFilesRef.current.clear();
+      showSuccess('Case created successfully');
       navigate('/');
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data?.errors) {
@@ -214,9 +217,11 @@ export function useCreateCase() {
           return acc;
         }, {});
         setErrors(normalizedErrors);
+        showError('Failed to create case. Please check the form for errors.');
       } else {
-        // Nếu không có lỗi cụ thể từ backend, không hiển thị gì
+        // If there's no specific error from backend, don't display anything
         setErrors({});
+        showError('Failed to create case. Please try again.');
       }
     } finally {
       setLoading(false);

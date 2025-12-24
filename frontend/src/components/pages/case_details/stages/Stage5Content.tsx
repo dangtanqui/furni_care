@@ -149,6 +149,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
             value={form.cs_notes}
             onChange={e => setForm({ ...form, cs_notes: e.target.value })}
             className="stage5-textarea"
+            autoComplete="off"
           />
         ) : (
           <p className="stage5-readonly-content">{nonNullCaseData.cs_notes || '-'}</p>
@@ -169,14 +170,16 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
         <h4 className="stage5-feedback-title">Client Feedback</h4>
         <div className="space-y-3">
           <div>
-            <label className="stage5-rating-label">Rating</label>
+            <label className="stage5-rating-label" id="stage5-rating-label">Rating</label>
             {editable ? (
-              <div className="stage5-rating-container">
+              <div className="stage5-rating-container" role="group" aria-labelledby="stage5-rating-label">
                 {[1, 2, 3, 4, 5].map(n => (
                   <button
                     key={n}
                     onClick={() => setForm({ ...form, final_rating: n })}
                     className={`stage5-rating-button ${form.final_rating >= n ? 'stage5-rating-button-active' : 'stage5-rating-button-inactive'}`}
+                    aria-label={`Rate ${n} out of 5`}
+                    aria-pressed={form.final_rating >= n}
                   >
                     {n}
                   </button>
@@ -195,6 +198,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
                 value={form.final_feedback}
                 onChange={e => setForm({ ...form, final_feedback: e.target.value })}
                 className="stage5-feedback-textarea"
+                autoComplete="off"
               />
             ) : (
               <p>{nonNullCaseData.final_feedback || '-'}</p>

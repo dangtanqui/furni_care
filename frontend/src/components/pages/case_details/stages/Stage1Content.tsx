@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { User, Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import Select from '../../../Select';
 import AttachmentGrid from '../../../AttachmentGrid';
+import EmptyState from '../../../EmptyState';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
 import '../../../../styles/components/pages/case_details/stages/Stage1Content.css';
@@ -24,6 +25,7 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
   const attachments = nonNullCaseData.stage_attachments?.['1'] || [];
   const isCurrent = nonNullCaseData.current_stage === 1;
   const currentAssignedId = nonNullCaseData.assigned_to?.id?.toString() || '';
+  const isAdvancingRef = useRef(false);
   
   // Initialize assignedTo with current assigned technician
   useEffect(() => {
@@ -69,14 +71,21 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
 
       <div>
         <label className="stage1-label">Photos / Attachments</label>
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} />
-        {attachments.length === 0 && (
-          <p className="stage1-no-attachments">No attachments</p>
+        {attachments.length === 0 && !canEdit ? (
+          <EmptyState
+            icon={<Paperclip />}
+            title="No attachments"
+            description="No files have been uploaded for this stage."
+          />
+        ) : (
+          <AttachmentGrid attachments={attachments} canEdit={canEdit} />
         )}
       </div>
 
-      {/* Show Assigned Technician for technician and leader (not for CS since they have dropdown) */}
-      {(isTechnician || isLeader) && (
+      {/* Show Assigned Technician for all roles (CS, technician, leader) */}
+      {/* Always show assigned technician section, regardless of status (show "-" if not assigned) */}
+      {/* CS sees this when cannot edit (e.g., cancelled case), technician and leader always see this */}
+      {(isCS || isTechnician || isLeader) && !(isCS && canEdit) && (
         <div>
           <label className="stage1-label">Assigned Technician</label>
           <p className="stage1-content">
@@ -85,26 +94,36 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
         </div>
       )}
 
+      {/* CS sees dropdown to assign when can edit */}
       {isCS && canEdit && (
         <div className="stage1-assign-section">
           <div className="stage1-assign-container">
             <div className="stage1-assign-row">
               <User className="stage1-user-icon" />
-              <Select
-                id="assigned_to"
-                name="assigned_to"
-                value={assignedTo || currentAssignedId || ''}
-                onChange={(value) => setAssignedTo(value)}
-                options={hasTechnicians ? technicians.map((t) => ({ value: String(t.id), label: t.name })) : []}
-                placeholder={hasTechnicians ? "Assign Technician" : "Loading technicians..."}
-                className="stage1-select-flex"
-              />
+              <div className="stage1-select-flex">
+                <label htmlFor="assigned_to" id="assigned_to-label" className="sr-only">Assign Technician</label>
+                <Select
+                  id="assigned_to"
+                  name="assigned_to"
+                  value={assignedTo || currentAssignedId || ''}
+                  onChange={(value) => setAssignedTo(value)}
+                  options={hasTechnicians ? technicians.map((t) => ({ value: String(t.id), label: t.name })) : []}
+                  placeholder={hasTechnicians ? "Assign Technician" : "Loading technicians..."}
+                />
+              </div>
             </div>
             <Button
               onClick={async () => {
                 const selectedId = assignedTo || currentAssignedId;
                 if (!selectedId || selectedId === '') return;
+                
+                // Prevent duplicate calls
+                if (isAdvancingRef.current) return;
+                
                 try {
+                  // Store isCurrent before update to avoid race condition
+                  const wasCurrent = isCurrent;
+                  
                   // If current_stage >= 3, rollback to stage 2 when updating Stage 1
                   const updateData: any = { 
                     assigned_to_id: Number(selectedId),
@@ -115,12 +134,19 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                   }
                   
                   await handleUpdate(updateData);
-                  if (isCurrent) {
-                    await handleAdvance();
-                    // Open Stage 2 after advancing
-                    setTimeout(() => {
-                      onOpenStage(2);
-                    }, TIMING.STAGE_OPEN_DELAY);
+                  
+                  // Only advance if it was current stage before update (to prevent duplicate calls)
+                  if (wasCurrent && !isAdvancingRef.current) {
+                    isAdvancingRef.current = true;
+                    try {
+                      await handleAdvance();
+                      // Open Stage 2 after advancing
+                      setTimeout(() => {
+                        onOpenStage(2);
+                      }, TIMING.STAGE_OPEN_DELAY);
+                    } finally {
+                      isAdvancingRef.current = false;
+                    }
                   } else {
                     // When updating at stage 1 but case is not at stage 1, jump to current stage (or stage 2 if rolled back)
                     const targetStage = nonNullCaseData.current_stage >= 3 ? 2 : nonNullCaseData.current_stage;
@@ -129,13 +155,15 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                     }, TIMING.STAGE_OPEN_DELAY);
                   }
                 } catch (error) {
+                  isAdvancingRef.current = false;
                   // Error is handled by useCaseDetails hook
                 }
               }}
               variant="primary"
               disabled={
                 (!selectedId || selectedId === '') || 
-                isSelectingCurrentTechnician
+                isSelectingCurrentTechnician ||
+                isAdvancingRef.current
               }
             >
               {isCurrent ? 'Complete' : 'Update'}

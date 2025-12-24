@@ -29,7 +29,7 @@
   @apply flex flex-col gap-4;
 }
 
-/* Button width được xử lý bởi CSS chung trong utilities.css (w-full md:w-auto) */
+/* Button width is handled by common CSS in utilities.css (w-full md:w-auto) */
 .stage1-assign-container > button {
   @apply md:self-start;
 }

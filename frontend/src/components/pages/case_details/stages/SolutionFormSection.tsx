@@ -1,6 +1,8 @@
+import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
+import EmptyState from '../../../EmptyState';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
 import { getCase } from '../../../../api/cases';
@@ -68,6 +70,7 @@ export default function SolutionFormSection({
             onChange={e => setForm({ ...form, root_cause: e.target.value })}
             className="stage3-textarea"
             placeholder="Describe the root cause of the issue..."
+            autoComplete="off"
           />
         ) : (
           <p className="stage3-readonly-content">{nonNullCaseData.root_cause || 'No root cause documented'}</p>
@@ -84,6 +87,7 @@ export default function SolutionFormSection({
             onChange={e => setForm({ ...form, solution_description: e.target.value })}
             className="stage3-textarea"
             placeholder="Describe the proposed solution..."
+            autoComplete="off"
           />
         ) : (
           <p className="stage3-readonly-content">{nonNullCaseData.solution_description || 'No solution documented'}</p>
@@ -102,9 +106,14 @@ export default function SolutionFormSection({
         ) : (
           <label className="stage3-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={stageAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
-        {!editable && stageAttachments.length === 0 && (
-          <p className="stage3-no-attachments">No attachments</p>
+        {stageAttachments.length === 0 && !editable ? (
+          <EmptyState
+            icon={<Paperclip />}
+            title="No attachments"
+            description="No files have been uploaded for this stage."
+          />
+        ) : (
+          <AttachmentGrid attachments={stageAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         )}
       </div>
 

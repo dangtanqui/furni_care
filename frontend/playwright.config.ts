@@ -81,7 +81,9 @@ export default defineConfig({
         stdout: 'pipe',
         stderr: 'pipe',
       },
-      // Backend server for E2E tests (using test database)
+      // Backend server for E2E tests
+      // Default: uses test database (RAILS_ENV=test) for safety
+      // To use dev database: set E2E_USE_DEV_DB=true in .env
       // Use VITE_API_URL from .env to determine port
       {
         command: (() => {
@@ -92,9 +94,23 @@ export default defineConfig({
           const url = new URL(apiUrl);
           const port = url.port || (url.protocol === 'https:' ? '443' : '80');
           
-          return process.platform === 'win32' 
-            ? 'powershell -ExecutionPolicy Bypass -File ../backend/scripts/start-test-server.ps1'
-            : `cd ../backend && RAILS_ENV=test bundle exec rails server -p ${port}`;
+          // Check if user wants to use dev database
+          const useDevDb = process.env.E2E_USE_DEV_DB === 'true';
+          const railsEnv = useDevDb ? 'development' : 'test';
+          
+          if (useDevDb) {
+            console.warn('⚠️  WARNING: E2E tests are using DEVELOPMENT database!');
+            console.warn('   This may affect your development data. Use at your own risk.');
+          }
+          
+          if (process.platform === 'win32') {
+            // For Windows, pass environment variable to PowerShell script
+            const envVar = useDevDb ? '$env:E2E_USE_DEV_DB="true";' : '';
+            return `powershell -ExecutionPolicy Bypass -Command "${envVar} $env:VITE_API_URL='${process.env.VITE_API_URL}'; & '../backend/scripts/start-test-server.ps1'"`;
+          } else {
+            // For Linux/Mac, set RAILS_ENV directly
+            return `cd ../backend && RAILS_ENV=${railsEnv} bundle exec rails server -p ${port}`;
+          }
         })(),
         url: (() => {
           const apiUrl = process.env.VITE_API_URL;

@@ -192,7 +192,7 @@ export default function SignatureCanvas({ value, onChange, canEdit }: SignatureC
 
   return (
     <div className="stage4-signature-section">
-      <label className="stage4-label">Client Signature</label>
+      <label className="stage4-label" id="signature-canvas-label">Client Signature</label>
       <div className="stage4-signature-container">
         <canvas
           ref={signatureRef}
@@ -200,6 +200,9 @@ export default function SignatureCanvas({ value, onChange, canEdit }: SignatureC
           height={200}
           className="stage4-signature-canvas"
           style={{ touchAction: 'none', cursor: canEdit ? 'crosshair' : 'default' }}
+          aria-label="Client signature canvas"
+          aria-labelledby="signature-canvas-label"
+          role="img"
         />
       </div>
       {canEdit && (

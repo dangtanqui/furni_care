@@ -9,7 +9,7 @@ interface BaseButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   fullWidth?: boolean;
-  alwaysAutoWidth?: boolean; // Luôn auto-width kể cả mobile (cho back button)
+  alwaysAutoWidth?: boolean; // Always auto-width even on mobile (for back button)
   children: ReactNode;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
@@ -53,17 +53,17 @@ export default function Button({
   const sizeClass = sizeMap[size];
   
   // Width logic:
-  // - alwaysAutoWidth: luôn auto-width kể cả mobile (cho back button) - override CSS với !important
-  // - fullWidth: luôn full-width kể cả desktop - override CSS
-  // - Mặc định: responsive (w-full trên mobile, w-auto trên desktop từ CSS trong utilities.css)
-  //   CSS mặc định đã có: w-full md:w-auto cho tất cả button variants
+  // - alwaysAutoWidth: always auto-width even on mobile (for back button) - override CSS with !important
+  // - fullWidth: always full-width even on desktop - override CSS
+  // - Default: responsive (w-full on mobile, w-auto on desktop from CSS in utilities.css)
+  //   Default CSS already has: w-full md:w-auto for all button variants
   let widthClass = '';
   if (alwaysAutoWidth) {
     widthClass = '!w-auto';
   } else if (fullWidth) {
     widthClass = '!w-full';
   }
-  // Nếu không có widthClass, CSS mặc định w-full md:w-auto sẽ được áp dụng
+  // If no widthClass, default CSS w-full md:w-auto will be applied
   
   const iconSize = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-5 h-5';
   
@@ -83,10 +83,10 @@ export default function Button({
     </>
   );
   
-  // Đảm bảo widthClass được apply sau className để override nếu cần
+  // Ensure widthClass is applied after className to override if needed
   const buttonClasses = `${variantClass} ${sizeClass} flex items-center justify-center gap-2 text-center ${className} ${widthClass}`.trim();
   
-  // Nếu có 'to' prop, render như Link từ react-router-dom
+  // If 'to' prop exists, render as Link from react-router-dom
   if (to) {
     return (
       <Link
@@ -100,7 +100,7 @@ export default function Button({
     );
   }
   
-  // Nếu có 'href', render như anchor
+  // If 'href' prop exists, render as anchor
   if (href) {
     return (
       <a
@@ -113,7 +113,7 @@ export default function Button({
     );
   }
   
-  // Mặc định render như button
+  // Default: render as button
   return (
     <button
       className={buttonClasses}

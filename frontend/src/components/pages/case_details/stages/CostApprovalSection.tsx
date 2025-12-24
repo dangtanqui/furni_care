@@ -60,8 +60,10 @@ export default function CostApprovalSection({
 
   return (
     <>
-      <label className="stage3-checklist-item stage3-cost-checkbox-wrapper">
+      <label htmlFor="cost_required" className="stage3-checklist-item stage3-cost-checkbox-wrapper">
         <input
+          id="cost_required"
+          name="cost_required"
           type="checkbox"
           checked={form.cost_required}
           onChange={e => setForm({ ...form, cost_required: e.target.checked })}
@@ -92,6 +94,7 @@ export default function CostApprovalSection({
                       placeholder="0"
                       step="1"
                       min="0"
+                      autoComplete="off"
                     />
                   </div>
                   {estimatedCostError && (
@@ -123,6 +126,7 @@ export default function CostApprovalSection({
                 onChange={e => setForm({ ...form, cost_description: e.target.value })}
                 className="stage3-textarea"
                 placeholder="Describe the cost details..."
+                autoComplete="off"
               />
             ) : (
               <p>{nonNullCaseData.cost_description || '-'}</p>

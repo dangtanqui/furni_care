@@ -1,15 +1,37 @@
-import { Filter } from 'lucide-react';
+import { useState } from 'react';
+import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import Select from '../../Select';
 import '../../../styles/components/pages/case_list/CaseFilters.css';
 import type { CaseFiltersProps } from '../../../types/components/pages/CaseList';
 
 export default function CaseFilters({ filter, technicians, onFilterChange }: CaseFiltersProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasActiveFilters = filter.status || filter.case_type || filter.assigned_to;
+
   return (
     <div className="case-filters-card" style={{ overflow: 'visible' }}>
-      <div className="case-filters-container" style={{ overflowY: 'visible' }}>
+      <button
+        className="case-filters-toggle"
+        onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-label="Toggle filters"
+      >
         <div className="case-filters-label">
           <Filter className="case-filters-icon" />
           <span className="case-filters-text">Filter</span>
+          {hasActiveFilters && <span className="case-filters-badge" aria-label="Active filters">•</span>}
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="case-filters-chevron" aria-hidden="true" />
+        ) : (
+          <ChevronDown className="case-filters-chevron" aria-hidden="true" />
+        )}
+      </button>
+      <div className={`case-filters-container ${isExpanded ? 'case-filters-container-expanded' : 'case-filters-container-collapsed'}`} style={{ overflowY: 'visible' }}>
+        {/* Desktop: Show Filter label with icon */}
+        <div className="case-filters-label-desktop">
+          <Filter className="case-filters-icon" />
+          <span className="case-filters-text">FILTER</span>
         </div>
         <Select
           value={filter.status}

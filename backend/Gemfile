@@ -9,6 +9,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "jwt"
 gem "rack-cors"
 gem "image_processing", "~> 1.2"
+gem "rack-attack" # Rate limiting
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
@@ -16,6 +17,15 @@ gem "bootsnap", require: false
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem "dotenv-rails"
+  gem "rspec-rails", "~> 6.0" # Testing framework
+  gem "factory_bot_rails" # Test data factories
+  gem "rswag" # Swagger/OpenAPI documentation
+  gem "rswag-api" # Swagger API endpoint
+  gem "rswag-ui" # Swagger UI
+end
+
+group :test do
+  gem "shoulda-matchers", "~> 6.0" # Matchers for RSpec
 end
 
 group :development do

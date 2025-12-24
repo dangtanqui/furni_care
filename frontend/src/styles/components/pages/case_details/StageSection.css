@@ -11,6 +11,8 @@
 
 .stage-section-header {
   @apply p-4 flex items-center justify-between cursor-pointer;
+  min-height: 44px; /* Better touch target for mobile */
+  touch-action: manipulation; /* Prevent double-tap zoom on mobile */
 }
 
 .stage-section-header-left {
@@ -51,10 +53,35 @@
 
 .stage-section-content {
   @apply px-4 pb-4 border-t border-gray-100 pt-4;
+  animation: slideDown 0.3s ease-out;
+  overflow: hidden;
 }
 
 .stage-section-content-hidden {
   @apply hidden;
+}
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    max-height: 2000px;
+    opacity: 1;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+.stage-section-header {
+  @apply transition-colors duration-200;
+}
+
+.stage-section-header:hover {
+  @apply bg-gray-50;
 }
 
 .stage-section-check-icon {

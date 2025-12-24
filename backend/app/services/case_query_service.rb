@@ -37,27 +37,56 @@ class CaseQueryService < BaseService
   end
 
   def apply_sorting(cases)
-    sort_by = @params[:sort_by] || 'created_at'
-    sort_direction = @params[:sort_direction]&.downcase == 'asc' ? 'asc' : 'desc'
+    # Support multiple sorts: parse JSON string or use single sort params for backward compatibility
+    sorts = []
     
-    case sort_by
-    when 'case_number'
-      cases.order(case_number: sort_direction.to_sym)
-    when 'client'
-      cases.joins(:client).order('clients.name' => sort_direction.to_sym)
-    when 'site'
-      cases.joins(:site).order('sites.name' => sort_direction.to_sym)
-    when 'current_stage'
-      cases.order(current_stage: sort_direction.to_sym)
-    when 'status'
-      cases.order(status: sort_direction.to_sym)
-    when 'priority'
-      cases.order(priority: sort_direction.to_sym)
-    when 'assigned_to'
-      cases.order(assigned_to_id: sort_direction.to_sym)
-    else
-      cases.order(created_at: :desc)
+    if @params[:sorts].present?
+      # New format: JSON array of {column, direction}
+      begin
+        sorts = JSON.parse(@params[:sorts]) if @params[:sorts].is_a?(String)
+        sorts = @params[:sorts] if @params[:sorts].is_a?(Array)
+      rescue JSON::ParserError
+        # Fallback to default if JSON parsing fails
+        sorts = []
+      end
+    elsif @params[:sort_by].present?
+      # Legacy format: single sort
+      sort_by = @params[:sort_by]
+      sort_direction = @params[:sort_direction]&.downcase == 'asc' ? 'asc' : 'desc'
+      sorts = [{ 'column' => sort_by, 'direction' => sort_direction }]
     end
+    
+    # Default sort if no sorts provided
+    if sorts.empty?
+      sorts = [{ 'column' => 'created_at', 'direction' => 'desc' }]
+    end
+    
+    # Apply multiple sorts in order (first sort has highest priority)
+    sorts.each do |sort|
+      column = sort['column'] || sort[:column]
+      direction = (sort['direction'] || sort[:direction] || 'desc').to_s.downcase == 'asc' ? :asc : :desc
+      
+      case column
+      when 'case_number'
+        cases = cases.order(case_number: direction)
+      when 'client'
+        cases = cases.joins(:client).order('clients.name' => direction)
+      when 'site'
+        cases = cases.joins(:site).order('sites.name' => direction)
+      when 'current_stage'
+        cases = cases.order(current_stage: direction)
+      when 'status'
+        cases = cases.order(status: direction)
+      when 'priority'
+        cases = cases.order(priority: direction)
+      when 'assigned_to'
+        cases = cases.order(assigned_to_id: direction)
+      when 'created_at'
+        cases = cases.order(created_at: direction)
+      end
+    end
+    
+    cases
   end
 
   def apply_pagination(cases)
@@ -65,7 +94,9 @@ class CaseQueryService < BaseService
     per_page = @params[:per_page]&.to_i || 20
     per_page = [per_page, 100].min # Max 100 per page
     
-    total = cases.count
+    # Use count(:all) for better performance with large datasets
+    # This avoids loading all records into memory
+    total = cases.count(:all)
     paginated_cases = cases.offset((page - 1) * per_page).limit(per_page)
     
     {

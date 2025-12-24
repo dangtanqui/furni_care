@@ -94,6 +94,7 @@ export default function FinalCostSection({
                   placeholder="0"
                   step="1"
                   min="0"
+                  autoComplete="off"
                 />
               </div>
               {finalCostError && (

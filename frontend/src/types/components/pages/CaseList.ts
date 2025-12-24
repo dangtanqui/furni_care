@@ -9,7 +9,7 @@ export interface CaseFiltersProps {
 export interface CaseTableProps {
   cases: CaseListItem[];
   loading: boolean;
-  sort: { column: string; direction: 'asc' | 'desc' };
+  sort: Array<{ column: string; direction: 'asc' | 'desc' }>;
   onSort: (column: string) => void;
   pagination: { page: number; per_page: number; total: number; total_pages: number };
   onPageChange: (page: number) => void;

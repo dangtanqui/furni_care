@@ -20,7 +20,7 @@ export default function FileUpload({
   return (
     <div>
       <label htmlFor={id} className="file-upload-label">{label}</label>
-      <label htmlFor={id} className="file-upload-area">
+      <label htmlFor={id} className="file-upload-area" aria-label={label}>
         <input
           id={id}
           name={name}
@@ -30,6 +30,7 @@ export default function FileUpload({
           accept={accept}
           onChange={onFileChange}
           disabled={disabled}
+          aria-label={label}
         />
         <Upload className="file-upload-icon" />
         <p className="file-upload-text">{uploadText}</p>

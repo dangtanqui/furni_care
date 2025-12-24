@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
+import EmptyState from '../../../EmptyState';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
 import { getCase } from '../../../../api/cases';
@@ -83,6 +85,7 @@ export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentPro
             onChange={e => setReport(e.target.value)}
             className="stage2-textarea"
             placeholder="Document findings from site investigation..."
+            autoComplete="off"
           />
         ) : (
           <p className="stage2-readonly-content">{nonNullCaseData.investigation_report || 'No report yet'}</p>
@@ -101,9 +104,14 @@ export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentPro
         ) : (
           <label className="stage2-label">Photos / Attachments</label>
         )}
-        <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
-        {!canEdit && attachments.length === 0 && (
-          <p className="stage2-no-attachments">No attachments</p>
+        {attachments.length === 0 && !canEdit ? (
+          <EmptyState
+            icon={<Paperclip />}
+            title="No attachments"
+            description="No files have been uploaded for this stage."
+          />
+        ) : (
+          <AttachmentGrid attachments={attachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
         )}
       </div>
 

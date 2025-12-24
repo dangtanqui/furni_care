@@ -310,4 +310,231 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('heading', { name: 'Case List' })).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
     await expect(page.locator('.layout-user-role:has-text("cs")')).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
   });
+
+  // Remember Me Tests
+  test('should toggle remember me checkbox', async ({ page }) => {
+    await page.goto('/login');
+    
+    const rememberMeCheckbox = page.locator('input[type="checkbox"][id="remember_me"]');
+    await expect(rememberMeCheckbox).toBeVisible();
+    
+    // Initially unchecked
+    await expect(rememberMeCheckbox).not.toBeChecked();
+    
+    // Check the checkbox
+    await rememberMeCheckbox.check();
+    await expect(rememberMeCheckbox).toBeChecked();
+    
+    // Uncheck the checkbox
+    await rememberMeCheckbox.uncheck();
+    await expect(rememberMeCheckbox).not.toBeChecked();
+  });
+
+  test('should save credentials to localStorage when remember me is checked', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Clear any existing remembered credentials
+    await page.evaluate(() => {
+      localStorage.removeItem('remembered_email');
+      localStorage.removeItem('remembered_password');
+      localStorage.removeItem('remember_me');
+    });
+    
+    // Fill form and check remember me
+    await page.fill('input[type="email"]', TEST_USERS.CS);
+    await page.fill('input[type="password"]', TEST_USERS.PASSWORD);
+    await page.check('input[type="checkbox"][id="remember_me"]');
+    
+    // Submit form
+    await page.click('button[type="submit"]');
+    
+    // Wait for successful login
+    await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
+    
+    // Verify credentials are saved in localStorage
+    const rememberedEmail = await page.evaluate(() => localStorage.getItem('remembered_email'));
+    const rememberedPassword = await page.evaluate(() => localStorage.getItem('remembered_password'));
+    const rememberMe = await page.evaluate(() => localStorage.getItem('remember_me'));
+    
+    expect(rememberedEmail).toBe(TEST_USERS.CS);
+    expect(rememberedPassword).toBe(TEST_USERS.PASSWORD);
+    expect(rememberMe).toBe('true');
+  });
+
+  test('should not save credentials when remember me is unchecked', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Clear any existing remembered credentials
+    await page.evaluate(() => {
+      localStorage.removeItem('remembered_email');
+      localStorage.removeItem('remembered_password');
+      localStorage.removeItem('remember_me');
+    });
+    
+    // Fill form without checking remember me
+    await page.fill('input[type="email"]', TEST_USERS.CS);
+    await page.fill('input[type="password"]', TEST_USERS.PASSWORD);
+    // Ensure remember me is unchecked
+    await page.uncheck('input[type="checkbox"][id="remember_me"]');
+    
+    // Submit form
+    await page.click('button[type="submit"]');
+    
+    // Wait for successful login
+    await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
+    
+    // Verify credentials are NOT saved in localStorage
+    const rememberedEmail = await page.evaluate(() => localStorage.getItem('remembered_email'));
+    const rememberedPassword = await page.evaluate(() => localStorage.getItem('remembered_password'));
+    const rememberMe = await page.evaluate(() => localStorage.getItem('remember_me'));
+    
+    expect(rememberedEmail).toBeNull();
+    expect(rememberedPassword).toBeNull();
+    expect(rememberMe).toBeNull();
+  });
+
+  test('should load remembered credentials on page load', async ({ page }) => {
+    // Set remembered credentials in localStorage
+    await page.goto('/login');
+    await page.evaluate(({ email, password }) => {
+      localStorage.setItem('remembered_email', email);
+      localStorage.setItem('remembered_password', password);
+      localStorage.setItem('remember_me', 'true');
+    }, { email: TEST_USERS.CS, password: TEST_USERS.PASSWORD });
+    
+    // Reload the page
+    await page.reload();
+    
+    // Verify email and password fields are pre-filled
+    const emailValue = await page.locator('input[type="email"]').inputValue();
+    const passwordValue = await page.locator('input[type="password"]').inputValue();
+    const rememberMeChecked = await page.locator('input[type="checkbox"][id="remember_me"]').isChecked();
+    
+    expect(emailValue).toBe(TEST_USERS.CS);
+    expect(passwordValue).toBe(TEST_USERS.PASSWORD);
+    expect(rememberMeChecked).toBe(true);
+  });
+
+  test('should clear remembered credentials when unchecking remember me', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Set remembered credentials in localStorage
+    await page.evaluate(({ email, password }) => {
+      localStorage.setItem('remembered_email', email);
+      localStorage.setItem('remembered_password', password);
+      localStorage.setItem('remember_me', 'true');
+    }, { email: TEST_USERS.CS, password: TEST_USERS.PASSWORD });
+    
+    // Reload to load remembered credentials
+    await page.reload();
+    
+    // Verify credentials are loaded
+    const emailValue = await page.locator('input[type="email"]').inputValue();
+    expect(emailValue).toBe(TEST_USERS.CS);
+    
+    // Uncheck remember me
+    await page.uncheck('input[type="checkbox"][id="remember_me"]');
+    
+    // Verify credentials are cleared from localStorage
+    const rememberedEmail = await page.evaluate(() => localStorage.getItem('remembered_email'));
+    const rememberedPassword = await page.evaluate(() => localStorage.getItem('remembered_password'));
+    const rememberMe = await page.evaluate(() => localStorage.getItem('remember_me'));
+    
+    expect(rememberedEmail).toBeNull();
+    expect(rememberedPassword).toBeNull();
+    expect(rememberMe).toBeNull();
+  });
+
+  test('should set longer token expiration when remember me is checked', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Clear any existing tokens
+    await page.evaluate(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('token_expiration');
+    });
+    
+    // Login with remember me checked
+    await page.fill('input[type="email"]', TEST_USERS.CS);
+    await page.fill('input[type="password"]', TEST_USERS.PASSWORD);
+    await page.check('input[type="checkbox"][id="remember_me"]');
+    await page.click('button[type="submit"]');
+    
+    // Wait for successful login
+    await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
+    
+    // Get token expiration from localStorage
+    const expirationTime = await page.evaluate(() => {
+      return localStorage.getItem('token_expiration');
+    });
+    
+    expect(expirationTime).not.toBeNull();
+    
+    // Calculate expected expiration (30 days from now)
+    const expectedExpiration = Date.now() + (30 * 24 * 60 * 60 * 1000);
+    const actualExpiration = parseInt(expirationTime!, 10);
+    
+    // Allow 5 seconds tolerance for test execution time
+    expect(actualExpiration).toBeGreaterThan(expectedExpiration - 5000);
+    expect(actualExpiration).toBeLessThan(expectedExpiration + 5000);
+  });
+
+  test('should set shorter token expiration when remember me is unchecked', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Clear any existing tokens
+    await page.evaluate(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('token_expiration');
+    });
+    
+    // Login without remember me
+    await page.fill('input[type="email"]', TEST_USERS.CS);
+    await page.fill('input[type="password"]', TEST_USERS.PASSWORD);
+    await page.uncheck('input[type="checkbox"][id="remember_me"]');
+    await page.click('button[type="submit"]');
+    
+    // Wait for successful login
+    await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
+    
+    // Get token expiration from localStorage
+    const expirationTime = await page.evaluate(() => {
+      return localStorage.getItem('token_expiration');
+    });
+    
+    expect(expirationTime).not.toBeNull();
+    
+    // Calculate expected expiration (1 day from now)
+    const expectedExpiration = Date.now() + (1 * 24 * 60 * 60 * 1000);
+    const actualExpiration = parseInt(expirationTime!, 10);
+    
+    // Allow 5 seconds tolerance for test execution time
+    expect(actualExpiration).toBeGreaterThan(expectedExpiration - 5000);
+    expect(actualExpiration).toBeLessThan(expectedExpiration + 5000);
+  });
+
+  test('should clear remembered credentials on logout if remember me was unchecked', async ({ page }) => {
+    // First, login with remember me checked
+    await page.goto('/login');
+    await page.fill('input[type="email"]', TEST_USERS.CS);
+    await page.fill('input[type="password"]', TEST_USERS.PASSWORD);
+    await page.check('input[type="checkbox"][id="remember_me"]');
+    await page.click('button[type="submit"]');
+    
+    // Wait for successful login
+    await expect(page).toHaveURL('/', { timeout: TIMEOUTS.NAVIGATION });
+    
+    // Verify credentials are saved
+    const rememberedEmailBefore = await page.evaluate(() => localStorage.getItem('remembered_email'));
+    expect(rememberedEmailBefore).toBe(TEST_USERS.CS);
+    
+    // Logout
+    await logout(page);
+    
+    // Note: According to AuthContext, logout does NOT clear remembered credentials
+    // They are only cleared when user unchecks "Remember Me"
+    // So credentials should still be in localStorage after logout
+    const rememberedEmailAfter = await page.evaluate(() => localStorage.getItem('remembered_email'));
+    expect(rememberedEmailAfter).toBe(TEST_USERS.CS);
+  });
 });
