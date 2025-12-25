@@ -1,33 +1,236 @@
-<h2>Case Execution Summary</h2>
+<!-- Greeting -->
+<p style="font-size: 16px; color: #1e293b; margin: 0 0 24px 0; line-height: 1.6;">Dear <%= @contact&.name || @client&.name %>,</p>
 
-<p>Dear <%= @contact&.name || @client&.name %>,</p>
+<!-- Introduction -->
+<p style="font-size: 15px; color: #374151; line-height: 1.7; margin: 0 0 32px 0;">We would like to inform you that the execution for Case <strong style="color: #0d9488; font-weight: 600;"><%= @case.case_number %></strong> has been completed.</p>
 
-<p>We would like to inform you that the execution for Case <strong><%= @case.case_number %></strong> has been completed.</p>
+<!-- Case Information -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc; margin-bottom: 32px; border-radius: 0;">
+  <tr>
+    <td style="padding: 20px;">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td style="padding: 8px 0; font-size: 14px;">
+            <strong style="color: #374151; font-weight: 600; display: inline-block; min-width: 80px;">Client:</strong>
+            <span style="color: #1e293b;"><%= @client&.name %></span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 14px;">
+            <strong style="color: #374151; font-weight: 600; display: inline-block; min-width: 80px;">Site:</strong>
+            <span style="color: #1e293b;"><%= @site&.name %></span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 14px;">
+            <strong style="color: #374151; font-weight: 600; display: inline-block; min-width: 80px;">Type:</strong>
+            <span style="color: #1e293b;"><%= @case_type %></span>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<h3>Case Details:</h3>
-<ul>
-  <li><strong>Case Number:</strong> <%= @case.case_number %></li>
-  <li><strong>Client:</strong> <%= @client&.name %></li>
-  <li><strong>Site:</strong> <%= @site&.name %></li>
-  <li><strong>Type:</strong> <%= @case.case_type %></li>
-  <li><strong>Status:</strong> <%= @case.status %></li>
-</ul>
-
-<% if @case.execution_report.present? %>
-<h3>Execution Report:</h3>
-<p><%= simple_format(@case.execution_report) %></p>
+<% if @description.present? %>
+<!-- Stage 1 -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+  <tr>
+    <td>
+      <h3 style="font-size: 18px; font-weight: 600; color: #1e3a5f; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #0d9488;">Stage 1 - Input & Categorization</h3>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Description</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px; white-space: pre-wrap;"><%= simple_format(@description) %></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 <% end %>
 
-<% if @case.client_feedback.present? %>
-<h3>Your Feedback:</h3>
-<p><%= simple_format(@case.client_feedback) %></p>
+<% if @investigation_report.present? || @investigation_checklist.any? %>
+<!-- Stage 2 -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+  <tr>
+    <td>
+      <h3 style="font-size: 18px; font-weight: 600; color: #1e3a5f; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #0d9488;">Stage 2 - Site Investigation</h3>
+      
+      <% if @investigation_report.present? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Investigation Report</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px; white-space: pre-wrap;"><%= simple_format(@investigation_report) %></div>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+      <% checked_items = @investigation_checklist.select { |item| item[:checked] } %>
+      <% if checked_items.any? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Investigation Checklist</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <% checked_items.each do |item| %>
+              <tr>
+                <td style="padding: 8px 0; font-size: 14px; color: #1e293b;">
+                  <span style="color: #10b981; font-weight: bold; margin-right: 10px; font-size: 16px;">✓</span>
+                  <span><%= item[:name] %></span>
+                </td>
+              </tr>
+              <% end %>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+    </td>
+  </tr>
+</table>
 <% end %>
 
-<% if @case.client_rating.present? %>
-<p><strong>Rating:</strong> <%= @case.client_rating %>/5</p>
+<% if @root_cause.present? || @solution_description.present? || @planned_execution_date.present? || @cost_required %>
+<!-- Stage 3 -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+  <tr>
+    <td>
+      <h3 style="font-size: 18px; font-weight: 600; color: #1e3a5f; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #0d9488;">Stage 3 - Solution & Plan</h3>
+      
+      <% if @root_cause.present? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Root Cause</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px; white-space: pre-wrap;"><%= simple_format(@root_cause) %></div>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+      <% if @solution_description.present? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Solution Description</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px; white-space: pre-wrap;"><%= simple_format(@solution_description) %></div>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+      <% if @planned_execution_date.present? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Planned Execution Date</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px;"><%= @planned_execution_date.strftime('%B %d, %Y') %></div>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+      <% checked_solution_items = @solution_checklist.select { |item| item[:checked] } %>
+      <% if checked_solution_items.any? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Solution Checklist</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <% checked_solution_items.each do |item| %>
+              <tr>
+                <td style="padding: 8px 0; font-size: 14px; color: #1e293b;">
+                  <span style="color: #10b981; font-weight: bold; margin-right: 10px; font-size: 16px;">✓</span>
+                  <span><%= item[:name] %></span>
+                </td>
+              </tr>
+              <% end %>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+      <% if @cost_required %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f0fdfa; border-left: 3px solid #0d9488; padding: 16px; margin-top: 12px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 12px;">Cost Information</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="padding: 4px 0; font-size: 14px; color: #1e293b;"><strong>Cost Required:</strong> Yes</td>
+              </tr>
+              <% if @estimated_cost.present? %>
+              <tr>
+                <td style="padding: 4px 0; font-size: 14px; color: #1e293b;"><strong>Estimated Cost:</strong> <%= number_with_delimiter(@estimated_cost) %> VND</td>
+              </tr>
+              <% end %>
+              <% if @cost_description.present? %>
+              <tr>
+                <td style="padding: 4px 0; font-size: 14px; color: #1e293b;"><strong>Cost Description:</strong> <%= simple_format(@cost_description) %></td>
+              </tr>
+              <% end %>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+    </td>
+  </tr>
+</table>
 <% end %>
 
-<p>Thank you for your cooperation.</p>
+<!-- Stage 4 -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+  <tr>
+    <td>
+      <h3 style="font-size: 18px; font-weight: 600; color: #1e3a5f; margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #0d9488;">Stage 4 - Execution</h3>
+      
+      <% if @execution_report.present? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Execution Report</div>
+            <div style="color: #1e293b; line-height: 1.7; font-size: 14px; white-space: pre-wrap;"><%= simple_format(@execution_report) %></div>
+          </td>
+        </tr>
+      </table>
+      <% end %>
 
-<p>Best regards,<br>
-FurniCare Team</p>
+      <% checked_execution_items = @execution_checklist.select { |item| item[:checked] } %>
+      <% if checked_execution_items.any? %>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <td>
+            <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 8px;">Execution Checklist</div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <% checked_execution_items.each do |item| %>
+              <tr>
+                <td style="padding: 8px 0; font-size: 14px; color: #1e293b;">
+                  <span style="color: #10b981; font-weight: bold; margin-right: 10px; font-size: 16px;">✓</span>
+                  <span><%= item[:name] %></span>
+                </td>
+              </tr>
+              <% end %>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+    </td>
+  </tr>
+</table>
+
+<!-- Closing -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+  <tr>
+    <td>
+      <p style="color: #374151; font-size: 14px; margin: 0 0 16px 0; line-height: 1.6;">Thank you for your cooperation.</p>
+      <p style="color: #1e3a5f; font-weight: 600; font-size: 14px; margin: 0; line-height: 1.6;">Best regards,<br>FurniCare Team</p>
+    </td>
+  </tr>
+</table>

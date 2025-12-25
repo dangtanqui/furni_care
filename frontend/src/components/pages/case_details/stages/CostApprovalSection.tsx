@@ -5,6 +5,7 @@ import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { formatCostStatus } from '../../../../utils/caseHelpers';
+import { CASE_STATUS, COST_STATUS } from '../../../../constants/caseStatus';
 import type { CaseAttachmentItem } from '../../../../api/cases';
 
 interface CostApprovalSectionProps {
@@ -108,8 +109,8 @@ export default function CostApprovalSection({
             <div className="stage3-cost-flex-col">
               <label className="stage3-label">Status</label>
               <p className={
-                nonNullCaseData.cost_status === 'approved' ? 'stage3-cost-status-approved' :
-                nonNullCaseData.cost_status === 'rejected' ? 'stage3-cost-status-rejected' :
+                nonNullCaseData.cost_status === COST_STATUS.APPROVED ? 'stage3-cost-status-approved' :
+                nonNullCaseData.cost_status === COST_STATUS.REJECTED ? 'stage3-cost-status-rejected' :
                 'stage3-cost-status-pending'
               }>
                 {formatCostStatus(nonNullCaseData.cost_status)}
@@ -149,7 +150,7 @@ export default function CostApprovalSection({
             <AttachmentGrid attachments={costAttachments} canEdit={canEdit} onDelete={handleAttachmentDelete} />
           </div>
 
-          {isLeader && nonNullCaseData.status === 'pending' && nonNullCaseData.cost_status !== 'approved' && nonNullCaseData.cost_status !== 'rejected' && (
+          {isLeader && nonNullCaseData.status === CASE_STATUS.PENDING && nonNullCaseData.cost_status !== COST_STATUS.APPROVED && nonNullCaseData.cost_status !== COST_STATUS.REJECTED && (
             <div className="stage3-cost-actions">
               <div className="stage3-approve-reject-buttons">
                 <Button onClick={handleApproveCost} variant="primary" leftIcon={<Check />} alwaysAutoWidth>

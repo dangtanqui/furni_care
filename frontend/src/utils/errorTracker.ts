@@ -40,7 +40,13 @@ export function captureMessage(
   
   // For now, just log to console in development
   if (import.meta.env.DEV) {
-    console[level]('ErrorTracker:', message, context);
+    if (level === 'error') {
+      console.error('ErrorTracker:', message, context);
+    } else if (level === 'warning') {
+      console.warn('ErrorTracker:', message, context);
+    } else {
+      console.info('ErrorTracker:', message, context);
+    }
   }
 }
 
@@ -48,9 +54,9 @@ export function captureMessage(
  * Set user context for error tracking
  * @param user - Current user object
  */
-export function setUser(user: { id: number; email: string; name: string } | null): void {
+export function setUser(_user: { id: number; email: string; name: string } | null): void {
   // TODO: Set user context in error tracking service
   // Example with Sentry:
-  // Sentry.setUser(user ? { id: String(user.id), email: user.email, username: user.name } : null);
+  // Sentry.setUser(_user ? { id: String(_user.id), email: _user.email, username: _user.name } : null);
 }
 

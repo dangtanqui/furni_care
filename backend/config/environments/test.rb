@@ -36,13 +36,19 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
+  
+  # Disable ActiveStorage background jobs in test to prevent connection pool issues
+  config.active_storage.variant_processor = :mini_magick
+  config.active_storage.draw_routes = false
 
   config.action_mailer.perform_caching = false
+  config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
 
   # Tell Action Mailer not to deliver emails to the real world.
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
+  config.action_mailer.default from: 'test@example.com'
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr

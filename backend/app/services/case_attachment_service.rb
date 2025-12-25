@@ -1,5 +1,6 @@
 # Service for case attachment operations
 class CaseAttachmentService < BaseService
+  include ActionView::Helpers::UrlHelper
   include Rails.application.routes.url_helpers
 
   def initialize(case_record:, request:)
@@ -23,7 +24,9 @@ class CaseAttachmentService < BaseService
   end
 
   def destroy(attachment_id:)
-    attachment = @case.case_attachments.find(attachment_id)
+    attachment = @case.case_attachments.find_by(id: attachment_id)
+    return failure(['Attachment not found'], status: :not_found) unless attachment
+    
     attachment.destroy
     success(nil)
   end
@@ -34,13 +37,25 @@ class CaseAttachmentService < BaseService
     {
       id: attachment.id,
       filename: attachment.file.filename.to_s,
-      url: rails_blob_url(attachment.file, host: @request.base_url),
+      url: blob_url(attachment.file),
       stage: attachment.stage,
       attachment_type: attachment.attachment_type
     }
   end
 
-  def rails_blob_url(attachment, host:)
-    Rails.application.routes.url_helpers.rails_blob_url(attachment, host: host)
+  def blob_url(blob_attachment)
+    # Use rails_blob_url directly since we've included Rails.application.routes.url_helpers
+    # Ensure routes are loaded by calling it in a way that works in both app and test contexts
+    helper = Rails.application.routes.url_helpers
+    if helper.respond_to?(:rails_blob_url)
+      helper.rails_blob_url(blob_attachment, host: @request.base_url)
+    else
+      # Fallback: construct URL manually if helper not available
+      blob = blob_attachment.blob if blob_attachment.respond_to?(:blob)
+      blob ||= blob_attachment
+      signed_id = blob.signed_id
+      filename = blob.filename.to_s
+      "#{@request.base_url}/rails/active_storage/blobs/redirect/#{signed_id}/#{filename}"
+    end
   end
 end

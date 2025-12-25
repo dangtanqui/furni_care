@@ -174,6 +174,30 @@ test.describe('Case Creation Scenarios', () => {
     }
   });
 
+  test('Create case with Installation type', async ({ page, request }) => {
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    
+    const builder = new TestCaseBuilder(page);
+    const caseId = await builder.createCase({
+      caseType: 'Installation',
+      priority: 'Medium'
+    });
+    
+    await gotoCaseDetail(page, caseId);
+    await expect(page.locator('text=Installation')).toBeVisible();
+    
+    // Verify in case list
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator(`text=Installation`).first()).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    
+    // Cleanup
+    if (API_BASE_URL) {
+      await cleanupCase(request, API_BASE_URL, caseId, setupData.authToken);
+    }
+  });
+
+
   // File Upload Tests
   test('Can upload files during case creation', async ({ page, request }) => {
     await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);

@@ -14,6 +14,7 @@
 #     Returns: { user: { id, email, name, role, phone } }
 class Api::AuthController < ApplicationController
   include ServiceResponse
+  include AuthConstants
   
   skip_before_action :authorize_request, only: [:login, :register]
   
@@ -24,8 +25,8 @@ class Api::AuthController < ApplicationController
   # @param remember_me [Boolean] Optional - if true, token expires in 30 days, else 1 day
   # @return [JSON] { token: string, user: object }
   def login
-    remember_me = params[:remember_me] == true || params[:remember_me] == 'true'
-    expires_in = remember_me ? 30.days : 1.day
+    remember_me = params[:remember_me] == true || params[:remember_me] == TRUE_STRING
+    expires_in = remember_me ? REMEMBER_ME_EXPIRATION_DAYS.days : DEFAULT_EXPIRATION_DAYS.day
     
     result = AuthService.new.login(
       email: params[:email],

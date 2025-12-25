@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
+import { CASE_STATUS, COST_STATUS, FINAL_COST_STATUS } from '../../../../constants/caseStatus';
 
 interface FinalCostSectionProps {
   form: {
@@ -28,7 +29,7 @@ export default function FinalCostSection({
   // Only show error if field is empty or invalid (not a number)
   // Allow 0 as a valid value
   useEffect(() => {
-    const isRequired = nonNullCaseData.cost_required && nonNullCaseData.cost_status === 'approved';
+    const isRequired = nonNullCaseData.cost_required && nonNullCaseData.cost_status === COST_STATUS.APPROVED;
     if (isRequired && editable) {
       const costValue = form.final_cost.trim();
       const numValue = parseFloat(costValue);
@@ -54,15 +55,15 @@ export default function FinalCostSection({
   }, [nonNullCaseData.cost_required, nonNullCaseData.cost_status, form.final_cost, editable, finalCostTouched]);
 
   // Only show if cost was approved in Stage 3
-  if (!nonNullCaseData.cost_required || nonNullCaseData.cost_status !== 'approved') {
+  if (!nonNullCaseData.cost_required || nonNullCaseData.cost_status !== COST_STATUS.APPROVED) {
     return null;
   }
 
   const finalCostStatus = nonNullCaseData.final_cost_status;
   // Only show 'approved' if there's an actual approval (has final_cost_approved_by)
-  const isApproved = finalCostStatus === 'approved' && nonNullCaseData.final_cost_approved_by;
-  const isRejected = finalCostStatus === 'rejected';
-  const isPendingApproval = finalCostStatus === 'pending';
+  const isApproved = finalCostStatus === FINAL_COST_STATUS.APPROVED && nonNullCaseData.final_cost_approved_by;
+  const isRejected = finalCostStatus === FINAL_COST_STATUS.REJECTED;
+  const isPendingApproval = finalCostStatus === FINAL_COST_STATUS.PENDING;
   // If status is nil and final_cost is set and equals estimated_cost, no approval needed
   const noApprovalNeeded = !finalCostStatus && 
     nonNullCaseData.final_cost && 
@@ -77,7 +78,7 @@ export default function FinalCostSection({
       <div className="stage5-final-cost-grid">
         <div className="stage5-final-cost-flex-col">
           <label htmlFor="final_cost" className={`stage5-label ${finalCostError ? 'stage5-label-error' : ''}`}>
-            Final Cost {nonNullCaseData.cost_required && nonNullCaseData.cost_status === 'approved' && editable && <span className="text-red-500">*</span>}
+            Final Cost {nonNullCaseData.cost_required && nonNullCaseData.cost_status === COST_STATUS.APPROVED && editable && <span className="text-red-500">*</span>}
           </label>
           {editable ? (
             <>
@@ -131,7 +132,7 @@ export default function FinalCostSection({
         </div>
       </div>
 
-      {isPendingApproval && editable && isRejected && nonNullCaseData.status === 'rejected' && (
+      {isPendingApproval && editable && isRejected && nonNullCaseData.status === CASE_STATUS.REJECTED && (
         <p className="stage5-final-cost-message stage5-final-cost-message-warning">
           Was rejected. Please update and resubmit.
         </p>

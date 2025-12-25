@@ -4,25 +4,88 @@ Dear <%= @contact&.name || @client&.name %>,
 
 We would like to inform you that the execution for Case <%= @case.case_number %> has been completed.
 
-Case Details:
-- Case Number: <%= @case.case_number %>
-- Client: <%= @client&.name %>
-- Site: <%= @site&.name %>
-- Type: <%= @case.case_type %>
-- Status: <%= @case.status %>
+CASE INFORMATION
+================
+Client: <%= @client&.name %>
+Site: <%= @site&.name %>
+Type: <%= @case_type %>
 
-<% if @case.execution_report.present? %>
+<% if @description.present? %>
+STAGE 1 - INPUT & CATEGORIZATION
+=================================
+Description: <%= @description %>
+
+<% end %>
+
+<% if @investigation_report.present? || @investigation_checklist.any? %>
+STAGE 2 - SITE INVESTIGATION
+=============================
+<% if @investigation_report.present? %>
+Investigation Report:
+<%= @investigation_report %>
+
+<% end %>
+<% checked_items = @investigation_checklist.select { |item| item[:checked] } %>
+<% if checked_items.any? %>
+Investigation Checklist:
+<% checked_items.each do |item| %>
+  [✓] <%= item[:name] %>
+<% end %>
+
+<% end %>
+<% end %>
+
+<% if @root_cause.present? || @solution_description.present? || @planned_execution_date.present? || @cost_required %>
+STAGE 3 - SOLUTION & PLAN
+==========================
+<% if @root_cause.present? %>
+Root Cause:
+<%= @root_cause %>
+
+<% end %>
+<% if @solution_description.present? %>
+Solution Description:
+<%= @solution_description %>
+
+<% end %>
+<% if @planned_execution_date.present? %>
+Planned Execution Date: <%= @planned_execution_date.strftime('%B %d, %Y') %>
+
+<% end %>
+<% checked_solution_items = @solution_checklist.select { |item| item[:checked] } %>
+<% if checked_solution_items.any? %>
+Solution Checklist:
+<% checked_solution_items.each do |item| %>
+  [✓] <%= item[:name] %>
+<% end %>
+
+<% end %>
+<% if @cost_required %>
+Cost Information:
+  Cost Required: Yes
+<% if @estimated_cost.present? %>
+  Estimated Cost: <%= number_with_delimiter(@estimated_cost) %> VND
+<% end %>
+<% if @cost_description.present? %>
+  Cost Description: <%= @cost_description %>
+<% end %>
+
+<% end %>
+<% end %>
+
+STAGE 4 - EXECUTION
+===================
+<% if @execution_report.present? %>
 Execution Report:
-<%= @case.execution_report %>
+<%= @execution_report %>
 
 <% end %>
-<% if @case.client_feedback.present? %>
-Your Feedback:
-<%= @case.client_feedback %>
-
+<% checked_execution_items = @execution_checklist.select { |item| item[:checked] } %>
+<% if checked_execution_items.any? %>
+Execution Checklist:
+<% checked_execution_items.each do |item| %>
+  [✓] <%= item[:name] %>
 <% end %>
-<% if @case.client_rating.present? %>
-Rating: <%= @case.client_rating %>/5
 
 <% end %>
 Thank you for your cooperation.

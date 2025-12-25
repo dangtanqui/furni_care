@@ -211,5 +211,93 @@ test.describe('Redo Workflow', () => {
     // Cleanup
     await cleanupCase(request, API_BASE_URL!, testCaseId, setupData.authToken);
   });
+
+  test('Attempt number displays correctly when > 1', async ({ page, request }) => {
+    // Create case and progress to Stage 5
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    const testCaseId = await createCase(page);
+    
+    await gotoCaseDetail(page, testCaseId);
+    
+    // Assign technician and complete Stage 1
+    await page.locator('button[name="assigned_to"]').click();
+    await page.locator('.select-option').filter({ hasText: setupData.technicianName }).click();
+    await completeStage(page, testCaseId);
+    
+    // Complete Stage 2-4 as technician
+    await logout(page);
+    await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
+    await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
+    await completeStage(page, testCaseId);
+    
+    await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
+    await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
+    await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
+    await page.locator('input[type="date"][name="planned_execution_date"]').fill('2024-12-31');
+    await completeStage(page, testCaseId);
+    
+    await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`);
+    await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
+    await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
+    await page.locator('button.stage4-rating-button:has-text("5")').click();
+    await completeStage(page, testCaseId);
+    
+    // CS completes Stage 5
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    await page.fill('textarea[name="cs_notes"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CS_NOTES}`);
+    await page.fill('textarea[name="final_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.FINAL_FEEDBACK}`);
+    await page.locator('button.stage5-rating-button:has-text("5")').click();
+    await completeStage(page, testCaseId);
+    
+    // Verify attempt number is 1 initially (should not show badge)
+    const attemptBadge = page.locator('.case-header-attempt-badge, [class*="attempt"]');
+    const badgeVisible = await attemptBadge.isVisible().catch(() => false);
+    expect(badgeVisible).toBeFalsy(); // Should not show when attempt_number = 1
+    
+    // CS redo case (this should increment attempt_number to 2)
+    await redoCase(page, testCaseId);
+    
+    // Verify attempt number badge appears and shows "Attempt #2"
+    await expect(page.locator('.case-header-attempt-badge, [class*="attempt"]:has-text("Attempt #2")')).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    
+    // Complete again to Stage 5
+    await logout(page);
+    await loginAs(page, setupData.technicianEmail, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    // Complete Stage 3-4 again
+    await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE} - Retry`);
+    await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION} - Retry`);
+    await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
+    await completeStage(page, testCaseId);
+    
+    await page.fill('textarea[name="execution_report"]', `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION} - Retry`);
+    await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
+    await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
+    await page.locator('button.stage4-rating-button:has-text("5")').click();
+    await completeStage(page, testCaseId);
+    
+    // CS completes Stage 5 again
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await gotoCaseDetail(page, testCaseId);
+    
+    await page.fill('textarea[name="cs_notes"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CS_NOTES} - Retry`);
+    await page.fill('textarea[name="final_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.FINAL_FEEDBACK} - Retry`);
+    await page.locator('button.stage5-rating-button:has-text("5")').click();
+    await completeStage(page, testCaseId);
+    
+    // Verify attempt number badge still shows "Attempt #2" (should not increment on re-completion)
+    await expect(page.locator('.case-header-attempt-badge, [class*="attempt"]:has-text("Attempt #2")')).toBeVisible({ timeout: TIMEOUTS.DEFAULT });
+    
+    // Cleanup
+    await cleanupCase(request, API_BASE_URL!, testCaseId, setupData.authToken);
+  });
 });
 

@@ -26,6 +26,7 @@ end
 
 group :test do
   gem "shoulda-matchers", "~> 6.0" # Matchers for RSpec
+  gem "simplecov", require: false # Code coverage
 end
 
 group :development do

@@ -4,7 +4,7 @@ export type CaseStatus = 'open' | 'in_progress' | 'pending' | 'completed' | 'clo
 export type CasePriority = 'low' | 'medium' | 'high';
 export type CostStatus = 'pending' | 'approved' | 'rejected' | null;
 export type FinalCostStatus = 'pending' | 'approved' | 'rejected' | null;
-export type CaseType = 'repair' | 'maintenance' | 'installation' | 'other';
+export type CaseType = 'repair' | 'maintenance' | 'installation';
 
 export interface CaseListItem {
   id: number;

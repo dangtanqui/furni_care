@@ -92,6 +92,7 @@ class Api::CasesController < ApplicationController
 
   def approve_final_cost
     authorize_case_action(:approve_final_cost)
+    @case.reload # Ensure we have the latest data before calling service
     result = CaseService.new(case_record: @case, current_user: current_user).approve_final_cost
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end
@@ -111,7 +112,12 @@ class Api::CasesController < ApplicationController
   private
   
   def set_case
-    @case = Case.find(params[:id])
+    # Eager load all associations to avoid N+1 queries in serializer
+    @case = Case.includes(
+      :client, :site, :contact, :assigned_to, :created_by,
+      :cost_approved_by, :final_cost_approved_by,
+      case_attachments: { file_attachment: :blob }
+    ).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Record not found' }, status: :not_found
   end

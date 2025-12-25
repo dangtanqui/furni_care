@@ -1,8 +1,7 @@
 class User < ApplicationRecord
-  has_secure_password
+  include UserConstants
   
-  # Constants
-  ROLES = %w[cs technician leader].freeze
+  has_secure_password
   
   # Associations
   has_many :created_cases, class_name: 'Case', foreign_key: 'created_by_id'
@@ -11,18 +10,18 @@ class User < ApplicationRecord
   # Validations
   validates :email, presence: true, uniqueness: true
   validates :name, presence: true
-  validates :role, inclusion: { in: ROLES }
+  validates :role, inclusion: { in: UserConstants::ROLES_ARRAY }
   
   def cs?
-    role == 'cs'
+    role == UserConstants::ROLES[:CS]
   end
   
   def technician?
-    role == 'technician'
+    role == UserConstants::ROLES[:TECHNICIAN]
   end
   
   def leader?
-    role == 'leader'
+    role == UserConstants::ROLES[:LEADER]
   end
 end
 

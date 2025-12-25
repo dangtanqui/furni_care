@@ -1,3 +1,5 @@
+/// <reference types="@testing-library/jest-dom" />
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -32,7 +34,7 @@ describe('Select', () => {
   describe('Rendering', () => {
     it('should render select button', () => {
       render(<Select {...defaultProps} />);
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     it('should show placeholder when no value is selected', () => {
@@ -47,13 +49,13 @@ describe('Select', () => {
 
     it('should render with custom className', () => {
       render(<Select {...defaultProps} className="custom-select" />);
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       expect(button.parentElement).toHaveClass('custom-select');
     });
 
     it('should be disabled when disabled prop is true', () => {
       render(<Select {...defaultProps} disabled />);
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       expect(button).toBeDisabled();
     });
   });
@@ -63,7 +65,7 @@ describe('Select', () => {
       const user = userEvent.setup();
       render(<Select {...defaultProps} />);
       
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       await user.click(button);
 
       await waitFor(() => {
@@ -78,7 +80,7 @@ describe('Select', () => {
       const handleChange = vi.fn();
       render(<Select {...defaultProps} onChange={handleChange} />);
       
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       await user.click(button);
 
       await waitFor(() => {
@@ -95,7 +97,7 @@ describe('Select', () => {
       const user = userEvent.setup();
       render(<Select {...defaultProps} disabled />);
       
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       await user.click(button);
 
       await waitFor(() => {
@@ -107,7 +109,7 @@ describe('Select', () => {
   describe('Accessibility', () => {
     it('should have id and name attributes when provided', () => {
       render(<Select {...defaultProps} id="test-select" name="testSelect" />);
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       expect(button).toHaveAttribute('id', 'test-select');
       expect(button).toHaveAttribute('name', 'testSelect');
     });
@@ -117,7 +119,7 @@ describe('Select', () => {
       const handleOpen = vi.fn();
       render(<Select {...defaultProps} onOpen={handleOpen} />);
       
-      const button = screen.getByRole('button');
+      const button = screen.getByRole('combobox');
       await user.click(button);
 
       await waitFor(() => {

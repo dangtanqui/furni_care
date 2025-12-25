@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :user do
-    email { "user#{rand(10000)}@example.com" }
+    sequence(:email) { |n| "user#{Time.now.to_f.to_s.gsub('.', '')}#{n}@example.com" }
     password { "password123" }
     name { "Test User" }
     role { "cs" }

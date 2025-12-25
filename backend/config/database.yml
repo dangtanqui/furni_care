@@ -18,6 +18,7 @@ test:
   password: <%= ENV['DATABASE_PASSWORD'] || '' %>
   host: <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
   port: <%= ENV['DATABASE_PORT'] || 3306 %>
+  pool: <%= ENV.fetch("TEST_DB_POOL") { 20 } %>  # Increase pool size for tests to handle concurrent operations
 
 production:
   <<: *default

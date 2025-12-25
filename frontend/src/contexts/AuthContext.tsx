@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { getMe } from '../api/auth';
+import { ROLES } from '../constants/roles';
 
 interface User {
   id: number;
@@ -90,9 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       login,
       logout,
-      isCS: user?.role === 'cs',
-      isTechnician: user?.role === 'technician',
-      isLeader: user?.role === 'leader',
+      isCS: user?.role === ROLES.CS,
+      isTechnician: user?.role === ROLES.TECHNICIAN,
+      isLeader: user?.role === ROLES.LEADER,
     }}>
       {children}
     </AuthContext.Provider>

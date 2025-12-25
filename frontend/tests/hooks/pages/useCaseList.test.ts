@@ -45,21 +45,29 @@ describe('useCaseList', () => {
   });
 
   describe('Initial state', () => {
-    it('should initialize with default values', () => {
+    it('should initialize with default values', async () => {
       mockGetCases.mockResolvedValue({
         data: {
           data: [],
           pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
+
+      // Wait for initial load to complete
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
 
       expect(result.current.cases).toEqual([]);
       expect(result.current.filter).toEqual({ status: '', case_type: '', assigned_to: '' });
       expect(result.current.pagination.page).toBe(1);
       expect(result.current.sort).toEqual([{ column: 'created_at', direction: 'desc' }]);
-      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
     });
   });
@@ -71,7 +79,11 @@ describe('useCaseList', () => {
           data: [],
           pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
 
@@ -82,9 +94,10 @@ describe('useCaseList', () => {
       result.current.handleSort('status');
 
       await waitFor(() => {
+        // New sort is added to the end (lowest priority)
         expect(result.current.sort).toEqual([
-          { column: 'status', direction: 'asc' },
           { column: 'created_at', direction: 'desc' },
+          { column: 'status', direction: 'asc' },
         ]);
         expect(result.current.pagination.page).toBe(1);
       });
@@ -96,7 +109,11 @@ describe('useCaseList', () => {
           data: [],
           pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
 
@@ -104,16 +121,18 @@ describe('useCaseList', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      // First click: add with asc
+      // First click: add with asc (added to end)
       result.current.handleSort('status');
       await waitFor(() => {
-        expect(result.current.sort[0].direction).toBe('asc');
+        const statusSort = result.current.sort.find(s => s.column === 'status');
+        expect(statusSort?.direction).toBe('asc');
       });
 
       // Second click: change to desc
       result.current.handleSort('status');
       await waitFor(() => {
-        expect(result.current.sort[0].direction).toBe('desc');
+        const statusSort = result.current.sort.find(s => s.column === 'status');
+        expect(statusSort?.direction).toBe('desc');
       });
 
       // Third click: remove from sort
@@ -131,7 +150,11 @@ describe('useCaseList', () => {
           data: [],
           pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
 
@@ -153,7 +176,11 @@ describe('useCaseList', () => {
           data: [],
           pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
 
@@ -171,12 +198,17 @@ describe('useCaseList', () => {
 
   describe('handlePageChange', () => {
     it('should update pagination page', async () => {
-      mockGetCases.mockResolvedValue({
+      // Mock initial load
+      mockGetCases.mockResolvedValueOnce({
         data: {
           data: [],
           pagination: { page: 1, per_page: 20, total: 100, total_pages: 5 },
         },
-      });
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
 
       const { result } = renderHook(() => useCaseList());
 
@@ -184,10 +216,23 @@ describe('useCaseList', () => {
         expect(result.current.loading).toBe(false);
       });
 
+      // Mock the second call with page 2
+      mockGetCases.mockResolvedValueOnce({
+        data: {
+          data: [],
+          pagination: { page: 2, per_page: 20, total: 100, total_pages: 5 },
+        },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      } as any);
+
       result.current.handlePageChange(2);
 
       await waitFor(() => {
         expect(result.current.pagination.page).toBe(2);
+        expect(result.current.loading).toBe(false);
       });
     });
   });

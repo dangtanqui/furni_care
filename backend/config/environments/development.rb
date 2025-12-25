@@ -38,6 +38,17 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+  
+  # SMTP configuration for email delivery
+  config.action_mailer.smtp_settings = {
+    address: ENV['SMTP_ADDRESS'] || 'smtp.gmail.com',
+    port: ENV['SMTP_PORT'] || 587,
+    domain: ENV['SMTP_DOMAIN'] || 'gmail.com',
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
@@ -55,7 +66,10 @@ Rails.application.configure do
   config.active_record.verbose_query_logs = true
 
   # Highlight code that enqueued background job in logs.
-  # config.active_job.verbose_enqueue_logs = true # Not used - ActiveJob disabled
+  config.active_job.verbose_enqueue_logs = true
+  
+  # Use async adapter for development (in-memory queue)
+  config.active_job.queue_adapter = :async
 
   # Ensure logs are output to STDOUT in development
   config.logger = ActiveSupport::Logger.new(STDOUT)

@@ -1,6 +1,9 @@
+/// <reference types="@testing-library/jest-dom" />
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
 import Button from '../../src/components/Button';
 
 describe('Button', () => {
@@ -109,7 +112,11 @@ describe('Button', () => {
 
   describe('Link rendering', () => {
     it('should render as Link when to prop is provided', () => {
-      render(<Button to="/test">Link Button</Button>);
+      render(
+        <BrowserRouter>
+          <Button to="/test">Link Button</Button>
+        </BrowserRouter>
+      );
       const link = screen.getByRole('link');
       expect(link).toHaveAttribute('href', '/test');
     });

@@ -4,6 +4,8 @@ import Button from '../../../Button';
 import FinalCostSection from './FinalCostSection';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
+import { CASE_STATUS, COST_STATUS, FINAL_COST_STATUS } from '../../../../constants/caseStatus';
+import { STAGE } from '../../../../constants/stages';
 import '../../../../styles/components/pages/case_details/stages/Stage5Content.css';
 
 interface Stage5ContentProps {
@@ -21,10 +23,10 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
 
   // Fallback logic: Allow CS to edit when final cost is rejected or pending approval
   const canEditStage5Fallback = isCS && 
-    nonNullCaseData.current_stage >= 5 && 
+    nonNullCaseData.current_stage >= STAGE.STAGE_5 && 
     (
-      (nonNullCaseData.status === 'rejected' && nonNullCaseData.final_cost_status === 'rejected') ||
-      (nonNullCaseData.status === 'pending' && nonNullCaseData.final_cost_status === 'pending')
+      (nonNullCaseData.status === CASE_STATUS.REJECTED && nonNullCaseData.final_cost_status === FINAL_COST_STATUS.REJECTED) ||
+      (nonNullCaseData.status === CASE_STATUS.PENDING && nonNullCaseData.final_cost_status === FINAL_COST_STATUS.PENDING)
     );
   // Allow editing if canEdit OR canEditStage5Fallback (fallback for CS when final cost rejected or pending)
   const editable = canEdit || canEditStage5Fallback;
@@ -48,7 +50,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
 
   const handleClose = async () => {
     try {
-      const updateData: any = { ...form, status: 'closed' };
+      const updateData: any = { ...form, status: CASE_STATUS.CLOSED };
       
       // If final_cost is in form, include it in the update
       // If final_cost = estimated_cost, backend will auto-approve (no approval needed)
@@ -66,7 +68,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
   };
 
   // Check if final cost section should be shown (if cost was approved in Stage 3)
-  const showFinalCostSection = nonNullCaseData.cost_required && nonNullCaseData.cost_status === 'approved';
+  const showFinalCostSection = nonNullCaseData.cost_required && nonNullCaseData.cost_status === COST_STATUS.APPROVED;
   
   // Check if final_cost is required but not entered yet
   // Check both form state (what user is typing) and saved data (what's in database)
@@ -120,8 +122,8 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
     // If formFinalCost equals estimated, no approval needed (even if previously pending)
     !formFinalCostEqualsEstimated &&
     (
-      nonNullCaseData.final_cost_status === 'pending' || 
-      nonNullCaseData.final_cost_status === 'rejected' ||
+      nonNullCaseData.final_cost_status === FINAL_COST_STATUS.PENDING || 
+      nonNullCaseData.final_cost_status === FINAL_COST_STATUS.REJECTED ||
       (savedFinalCostDiffers && !nonNullCaseData.final_cost_status && !nonNullCaseData.final_cost_approved_by) ||
       (formFinalCostDiffers && !savedFinalCost && !nonNullCaseData.final_cost_status && !nonNullCaseData.final_cost_approved_by)
     )
@@ -135,7 +137,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
     showFinalCostSection && 
     !formFinalCostEqualsEstimated && // Don't show Save if form cost equals estimated
     formFinalCostDiffers && // Show Save if form cost differs from estimated (regardless of saved state)
-    nonNullCaseData.final_cost_status !== 'approved' // Don't show Save if already approved
+    nonNullCaseData.final_cost_status !== FINAL_COST_STATUS.APPROVED // Don't show Save if already approved
   );
 
   return (
@@ -221,10 +223,10 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
         return isLeader && 
           savedFinalCost !== null && 
           finalCostDiffers &&
-          finalCostStatus !== 'approved' &&
-          finalCostStatus !== 'rejected' &&
-          nonNullCaseData.status !== 'closed' && 
-          nonNullCaseData.status !== 'cancelled';
+          finalCostStatus !== FINAL_COST_STATUS.APPROVED &&
+          finalCostStatus !== FINAL_COST_STATUS.REJECTED &&
+          nonNullCaseData.status !== CASE_STATUS.CLOSED && 
+          nonNullCaseData.status !== CASE_STATUS.CANCELLED;
       })() && (
         <div className="stage5-final-cost-actions">
           <div className="stage5-final-cost-approve-reject-buttons">
@@ -258,7 +260,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
         </div>
       )}
 
-      {editable && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled' && (
+      {editable && nonNullCaseData.status !== CASE_STATUS.CLOSED && nonNullCaseData.status !== CASE_STATUS.CANCELLED && (
         <>
           <div className="stage5-actions">
             {showSaveButton && showFinalCostSection ? (
@@ -271,8 +273,8 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
                     const finalCost = Number(form.final_cost);
                     const estimatedCost = nonNullCaseData.estimated_cost;
                     if (estimatedCost !== null && Math.abs(finalCost - estimatedCost) >= 0.01) {
-                      updateData.status = 'pending';
-                      updateData.final_cost_status = 'pending';
+                      updateData.status = CASE_STATUS.PENDING;
+                      updateData.final_cost_status = FINAL_COST_STATUS.PENDING;
                     }
                   }
                   await handleUpdate(updateData);
@@ -302,7 +304,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
           {showSaveButton && showFinalCostSection && (
             <p className="button-message button-message-warning">
               <AlertCircle className="inline w-4 h-4 mr-1" /> 
-              {(nonNullCaseData.final_cost_status === 'rejected' && nonNullCaseData.status === 'rejected')
+              {(nonNullCaseData.final_cost_status === FINAL_COST_STATUS.REJECTED && nonNullCaseData.status === CASE_STATUS.REJECTED)
                 ? 'Was rejected. Please update and resubmit.'
                 : 'Save first, then wait for Leader approval'
               }
@@ -311,9 +313,9 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
         </>
       )}
 
-      {!canEdit && nonNullCaseData.current_stage === 5 && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled' && (() => {
+      {!canEdit && nonNullCaseData.current_stage === STAGE.STAGE_5 && nonNullCaseData.status !== CASE_STATUS.CLOSED && nonNullCaseData.status !== CASE_STATUS.CANCELLED && (() => {
         // Determine what to show based on role and status
-        const isFinalCostRejected = nonNullCaseData.final_cost_status === 'rejected';
+        const isFinalCostRejected = nonNullCaseData.final_cost_status === FINAL_COST_STATUS.REJECTED;
         
         if (isLeader) {
           // Leader sees:
@@ -349,7 +351,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
           // - If final cost is rejected: CS should be editing (canEdit should be true), don't show message
           // - Otherwise: should be editing (shouldn't see message)
           // Only show message if CS cannot edit (e.g., waiting for Leader approval on pending cost)
-          if (!canEdit && finalCostPendingApproval && nonNullCaseData.final_cost_status !== 'rejected') {
+          if (!canEdit && finalCostPendingApproval && nonNullCaseData.final_cost_status !== FINAL_COST_STATUS.REJECTED) {
             return true; // Show message: waiting for Leader approval (only if CS cannot edit)
           }
           return false; // CS should be editing or can edit, don't show message
@@ -358,7 +360,7 @@ export default function Stage5Content({ canEdit, onCloseAccordion }: Stage5Conte
       })() && (
         <div className="stage5-waiting-message">
           {(() => {
-            const isFinalCostRejected = nonNullCaseData.final_cost_status === 'rejected';
+            const isFinalCostRejected = nonNullCaseData.final_cost_status === FINAL_COST_STATUS.REJECTED;
             
             if (finalCostMissing) {
               return <p>⏳ Waiting for CS to enter</p>;

@@ -1,5 +1,6 @@
 # Service for serializing case data to JSON
 class CaseSerializer
+  include ActionView::Helpers::UrlHelper
   include Rails.application.routes.url_helpers
 
   def initialize(case_record, request: nil)
@@ -66,6 +67,7 @@ class CaseSerializer
       estimated_cost: @case.estimated_cost,
       cost_description: @case.cost_description,
       cost_status: @case.cost_status,
+      cost_approved_by: @case.cost_approved_by ? { id: @case.cost_approved_by_id, name: @case.cost_approved_by.name } : nil,
       
       # Stage 4
       execution_report: @case.execution_report,
@@ -97,11 +99,27 @@ class CaseSerializer
         {
           id: attachment.id,
           filename: attachment.file.filename.to_s,
-          url: rails_blob_url(attachment.file, host: @request.base_url),
+          url: blob_url(attachment.file),
           stage: attachment.stage,
           attachment_type: attachment.attachment_type
         }
       end
+    end
+  end
+
+  def blob_url(blob_attachment)
+    # Use rails_blob_url directly since we've included Rails.application.routes.url_helpers
+    # Ensure routes are loaded by calling it in a way that works in both app and test contexts
+    helper = Rails.application.routes.url_helpers
+    if helper.respond_to?(:rails_blob_url)
+      helper.rails_blob_url(blob_attachment, host: @request.base_url)
+    else
+      # Fallback: construct URL manually if helper not available
+      blob = blob_attachment.blob if blob_attachment.respond_to?(:blob)
+      blob ||= blob_attachment
+      signed_id = blob.signed_id
+      filename = blob.filename.to_s
+      "#{@request.base_url}/rails/active_storage/blobs/redirect/#{signed_id}/#{filename}"
     end
   end
 end

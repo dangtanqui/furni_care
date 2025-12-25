@@ -24,6 +24,19 @@ export default defineConfig(({ mode }) => {
       css: true,
       include: ['tests/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
       exclude: ['node_modules', 'dist', 'e2e', '**/__tests__/**'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+        exclude: [
+          'node_modules',
+          'dist',
+          'e2e',
+          'tests',
+          '**/*.config.*',
+          '**/test/**',
+          '**/setup.ts'
+        ]
+      }
     },
   }
 })

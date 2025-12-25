@@ -166,5 +166,150 @@ RSpec.describe Api::CasesController, type: :controller do
       expect(case_record.status).to eq('cancelled')
     end
   end
+
+  describe 'DELETE #destroy' do
+    let(:case_record) { create(:case, created_by: cs_user, client: client, site: site, contact: contact) }
+
+    before do
+      allow(controller).to receive(:authorize_case_action)
+    end
+
+    it 'deletes case' do
+      case_id = case_record.id
+      delete :destroy, params: { id: case_id }
+
+      expect(response).to have_http_status(:no_content)
+      expect(Case.find_by(id: case_id)).to be_nil
+    end
+
+    it 'returns 404 when case does not exist' do
+      delete :destroy, params: { id: 99999 }
+
+      expect(response).to have_http_status(:not_found)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error']).to eq('Record not found')
+    end
+  end
+
+  describe 'POST #reject_cost' do
+    let(:case_record) { create(:case, :stage_3_with_cost, created_by: cs_user, assigned_to: technician_user, client: client, site: site, contact: contact) }
+
+    before do
+      allow(controller).to receive(:current_user).and_return(leader_user)
+      allow(controller).to receive(:authorize_case_action)
+    end
+
+    it 'rejects cost' do
+      post :reject_cost, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:success)
+      case_record.reload
+      expect(case_record.cost_status).to eq('rejected')
+      expect(case_record.status).to eq('rejected')
+    end
+  end
+
+  describe 'POST #redo_case' do
+    let(:case_record) { create(:case, :stage_5, created_by: cs_user, assigned_to: technician_user, client: client, site: site, contact: contact) }
+
+    before do
+      allow(controller).to receive(:authorize_case_action)
+    end
+
+    it 'redoes case from stage 5 to stage 3' do
+      original_attempt = case_record.attempt_number
+      post :redo_case, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:success)
+      case_record.reload
+      expect(case_record.current_stage).to eq(3)
+      expect(case_record.attempt_number).to eq(original_attempt + 1)
+      expect(case_record.status).to eq('in_progress')
+    end
+
+    it 'resets cost status when redoing case' do
+      case_record.update(cost_status: 'approved', cost_approved_by: leader_user)
+      post :redo_case, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:success)
+      case_record.reload
+      expect(case_record.cost_status).to be_nil
+      expect(case_record.cost_approved_by_id).to be_nil
+    end
+  end
+
+  describe 'POST #approve_final_cost' do
+    let(:case_record) do
+      create(:case, :stage_5_with_cost, 
+        created_by: cs_user, 
+        assigned_to: technician_user, 
+        client: client, 
+        site: site, 
+        contact: contact,
+        final_cost: 950.00
+      )
+    end
+
+    before do
+      allow(controller).to receive(:current_user).and_return(leader_user)
+      allow(controller).to receive(:authorize_case_action)
+    end
+
+    it 'approves final cost' do
+      post :approve_final_cost, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:success)
+      case_record.reload
+      expect(case_record.final_cost_status).to eq('approved')
+      expect(case_record.final_cost_approved_by).to eq(leader_user)
+      expect(case_record.status).to eq('completed')
+    end
+
+    it 'returns error when final cost is not set' do
+      case_record.update_column(:final_cost, nil) # Use update_column to bypass validations and callbacks
+      case_record.reload
+      post :approve_final_cost, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error'] || json_response['errors']).to be_present
+    end
+  end
+
+  describe 'POST #reject_final_cost' do
+    let(:case_record) do
+      create(:case, :stage_5_with_cost, 
+        created_by: cs_user, 
+        assigned_to: technician_user, 
+        client: client, 
+        site: site, 
+        contact: contact,
+        final_cost: 950.00
+      )
+    end
+
+    before do
+      allow(controller).to receive(:current_user).and_return(leader_user)
+      allow(controller).to receive(:authorize_case_action)
+    end
+
+    it 'rejects final cost' do
+      post :reject_final_cost, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:success)
+      case_record.reload
+      expect(case_record.final_cost_status).to eq('rejected')
+      expect(case_record.status).to eq('rejected')
+    end
+
+    it 'returns error when not in stage 5' do
+      case_record.update(current_stage: 4)
+      post :reject_final_cost, params: { id: case_record.id }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error'] || json_response['errors']).to be_present
+    end
+  end
 end
 

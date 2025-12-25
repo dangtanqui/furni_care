@@ -8,6 +8,7 @@ import '../styles/pages/Login.css';
 
 const REMEMBERED_EMAIL_KEY = 'remembered_email';
 const REMEMBER_ME_KEY = 'remember_me';
+const TRUE_STRING = 'true';
 
 export default function Login() {
   // Load remembered email on mount (NOT password for security)
@@ -17,11 +18,11 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
-    return localStorage.getItem(REMEMBER_ME_KEY) === 'true';
+    return localStorage.getItem(REMEMBER_ME_KEY) === TRUE_STRING;
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, token, logout } = useAuth();
+  const { login, token } = useAuth();
   const navigate = useNavigate();
 
   // Redirect to home if already logged in
@@ -46,7 +47,7 @@ export default function Login() {
       // Save or clear email based on rememberMe (NOT password for security)
       if (rememberMe) {
         localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
-        localStorage.setItem(REMEMBER_ME_KEY, 'true');
+        localStorage.setItem(REMEMBER_ME_KEY, TRUE_STRING);
       } else {
         localStorage.removeItem(REMEMBERED_EMAIL_KEY);
         localStorage.removeItem(REMEMBER_ME_KEY);

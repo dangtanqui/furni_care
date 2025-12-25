@@ -9,7 +9,7 @@ RSpec.describe User, type: :model do
     # Email uniqueness is case-insensitive (MySQL default behavior)
     it { should validate_uniqueness_of(:email).case_insensitive }
     it { should validate_presence_of(:name) }
-    it { should validate_inclusion_of(:role).in_array(User::ROLES) }
+    it { should validate_inclusion_of(:role).in_array(UserConstants::ROLES_ARRAY) }
   end
 
   describe 'associations' do

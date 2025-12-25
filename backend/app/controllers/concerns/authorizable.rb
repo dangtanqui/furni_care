@@ -6,7 +6,7 @@ module Authorizable
     policy = CasePolicy.new(current_user, case_record)
     
     unless policy.public_send("can_#{action}?")
-      raise StandardError, "Not authorized to #{action}"
+      raise AuthorizationError, "Not authorized to #{action}"
     end
   end
 

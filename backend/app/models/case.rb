@@ -1,4 +1,7 @@
 class Case < ApplicationRecord
+  include CaseConstants
+  include StageConstants
+  
   belongs_to :client, optional: true
   belongs_to :site, optional: true
   belongs_to :contact, optional: true
@@ -9,84 +12,39 @@ class Case < ApplicationRecord
   
   has_many :case_attachments, dependent: :destroy
   has_many_attached :attachments
-  
-  # Constants
-  STAGES = {
-    1 => 'Input & Categorization',
-    2 => 'Site Investigation',
-    3 => 'Solution & Plan',
-    4 => 'Execution',
-    5 => 'Closing'
-  }.freeze
-
-  STATUSES = %w[open pending in_progress completed closed rejected cancelled].freeze
-  STATUSES_HASH = {
-    OPEN: 'open',
-    PENDING: 'pending',
-    IN_PROGRESS: 'in_progress',
-    COMPLETED: 'completed',
-    CLOSED: 'closed',
-    REJECTED: 'rejected',
-    CANCELLED: 'cancelled'
-  }.freeze
-  
-  COST_STATUSES = %w[pending approved rejected].freeze
-  COST_STATUSES_HASH = {
-    PENDING: 'pending',
-    APPROVED: 'approved',
-    REJECTED: 'rejected'
-  }.freeze
-  
-  FINAL_COST_STATUSES = %w[pending approved rejected].freeze
-  FINAL_COST_STATUSES_HASH = {
-    PENDING: 'pending',
-    APPROVED: 'approved',
-    REJECTED: 'rejected'
-  }.freeze
-  CASE_TYPES = %w[repair maintenance installation other].freeze
-  PRIORITIES = %w[low medium high urgent].freeze
 
   # Validations
   validates :case_number, presence: true, uniqueness: true
-  validates :current_stage, inclusion: { in: 1..5 }
-  validates :status, inclusion: { in: STATUSES }
-  validates :final_cost_status, inclusion: { in: FINAL_COST_STATUSES }, allow_nil: true
+  validates :current_stage, inclusion: { in: StageConstants::STAGE_RANGE }
+  validates :status, inclusion: { in: CaseConstants::STATUSES_ARRAY }
+  validates :final_cost_status, inclusion: { in: CaseConstants::FINAL_COST_STATUSES_ARRAY }, allow_nil: true
   validates :client_id, presence: { message: "is required" }
   validates :site_id, presence: { message: "is required" }
   validates :contact_id, presence: { message: "is required" }
-  
-  validate :final_cost_required_if_cost_approved
   validate :estimated_cost_required_if_cost_required
+  validate :final_cost_required_if_cost_approved
   
   before_validation :generate_case_number, on: :create
   
   def stage_name
-    STAGES[current_stage]
+    CaseConstants::STAGES[current_stage]
+  end
+
+  def estimated_cost_required_if_cost_required
+    # If cost_required is true, estimated_cost must be present (but 0 is allowed as a valid value)
+    # Only validate when in Stage 3 or later (when cost can be entered)
+    errors.add(:estimated_cost, "is required when cost is required") if cost_required && current_stage >= STAGE_3 && estimated_cost.nil?
   end
   
   def final_cost_required_if_cost_approved
     # If cost was approved in Stage 3, final_cost is required in Stage 5
     # But only check if case is already in Stage 5 (not when advancing into Stage 5)
     # Skip validation if we're advancing into Stage 5 (current_stage was just changed from 4 to 5)
-    if current_stage == 5 && cost_required && cost_status == COST_STATUSES_HASH[:APPROVED]
+    if current_stage == STAGE_5 && cost_required && cost_status == CaseConstants::COST_STATUSES[:APPROVED]
       # Only validate if case was already in Stage 5 before this update
-      # If current_stage_changed? and it was 4, we're advancing into Stage 5, so skip validation
-      was_in_stage_5 = !current_stage_changed? || (current_stage_changed? && current_stage_was == 5)
-      
-      # Final cost is required (must be entered, but 0 is allowed as a valid value)
-      if was_in_stage_5 && final_cost.nil?
-        errors.add(:final_cost, "is required when cost was approved in Stage 3")
-      end
-    end
-  end
-
-  def estimated_cost_required_if_cost_required
-    # If cost_required is true, estimated_cost must be present (but 0 is allowed as a valid value)
-    # Only validate when in Stage 3 or later (when cost can be entered)
-    if cost_required && current_stage >= 3
-      if estimated_cost.nil?
-        errors.add(:estimated_cost, "is required when cost is required")
-      end
+      # If current_stage_changed?, we're advancing into Stage 5, so skip validation
+      # If !current_stage_changed?, case was already in Stage 5, so validate
+      errors.add(:final_cost, "is required when cost was approved in Stage 3") if !current_stage_changed? && final_cost.nil?
     end
   end
   
@@ -95,76 +53,8 @@ class Case < ApplicationRecord
   def generate_case_number
     return if case_number.present?
     
-    # Use database-level locking to prevent race conditions
-    # Optimized for scale: use maximum(:id) instead of order().lock.first
-    # This is much faster with millions/billions of records as it uses index directly
-    # Check if we're already in a transaction (e.g., in tests with transactional fixtures)
-    # If so, don't set isolation level as it's not allowed in nested transactions
-    if ActiveRecord::Base.connection.open_transactions > 0
-      # Already in a transaction, use it without setting isolation
-      generate_case_number_within_transaction
-    else
-      # Not in a transaction, can set isolation level
-      ActiveRecord::Base.transaction(isolation: :read_committed) do
-        generate_case_number_within_transaction
-      end
-    end
-  end
-
-  def generate_case_number_within_transaction
-    connection = ActiveRecord::Base.connection
-    adapter_name = connection.adapter_name.downcase
-    
-    # Use advisory lock to prevent concurrent case number generation
-    # This prevents race conditions without locking entire table
-    lock_acquired = false
-    
-    if adapter_name.include?('mysql')
-      # MySQL/MariaDB: use GET_LOCK for advisory locking
-      # Lock name is a constant, safe for string interpolation
-      lock_key = 'case_number_generation'
-      result = connection.execute("SELECT GET_LOCK('#{lock_key}', 5)")
-      lock_acquired = result.first.first == 1
-      
-      unless lock_acquired
-        raise ActiveRecord::StatementInvalid, "Could not acquire lock for case number generation"
-      end
-    elsif adapter_name.include?('postgresql')
-      # PostgreSQL: use pg_advisory_lock
-      # Use a fixed numeric key for case number generation
-      lock_key = 123456789
-      result = connection.execute("SELECT pg_try_advisory_xact_lock(#{lock_key})")
-      lock_acquired = result.first.first
-      
-      unless lock_acquired
-        raise ActiveRecord::StatementInvalid, "Could not acquire lock for case number generation"
-      end
-    end
-    # For SQLite and other databases, rely on transaction isolation and retry logic
-    
-    begin
-      # Get maximum id efficiently (uses index, very fast even with billions of records)
-      # This is O(1) operation with proper index on id column
-      max_id = Case.maximum(:id) || 0
-      next_number = max_id + 1
-      self.case_number = "C-#{next_number.to_s.rjust(4, '0')}"
-      
-      # Retry if case_number already exists (handles edge case of concurrent inserts)
-      # This handles race conditions even without advisory locks
-      retries = 0
-      while Case.exists?(case_number: self.case_number) && retries < 5
-        next_number += 1
-        self.case_number = "C-#{next_number.to_s.rjust(4, '0')}"
-        retries += 1
-      end
-    ensure
-      # Release advisory lock if acquired
-      if lock_acquired && adapter_name.include?('mysql')
-        # MySQL requires explicit lock release
-        connection.execute("SELECT RELEASE_LOCK('case_number_generation')")
-      end
-      # PostgreSQL releases lock automatically on transaction commit/rollback
-    end
+    # Use CaseNumberGeneratorService to generate unique case number
+    self.case_number = CaseNumberGeneratorService.generate
   end
 end
 

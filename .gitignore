@@ -22,3 +22,7 @@ tmp/
 *.swo
 *~
 
+# Coverage reports
+frontend/coverage/
+backend/coverage/
+

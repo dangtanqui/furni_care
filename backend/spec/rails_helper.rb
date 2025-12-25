@@ -40,6 +40,14 @@ RSpec.configure do |config|
   # examples within a transaction, remove the following line or assign false
   # instead of true.
   config.use_transactional_fixtures = true
+  
+  # Allow specific tests to skip transactional fixtures to avoid connection pool issues
+  config.around(:each, :skip_transactional_fixtures) do |example|
+    self.use_transactional_tests = false
+    example.run
+  ensure
+    self.use_transactional_tests = true
+  end
 
   # You can uncomment this line to turn off ActiveRecord support entirely.
   # config.use_active_record = false

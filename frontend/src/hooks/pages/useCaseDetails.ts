@@ -6,6 +6,8 @@ import { useTechnicians } from '../useTechnicians';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { canEditStage as checkCanEditStage } from '../../utils/casePermissions';
+import { CASE_STATUS, COST_STATUS, FINAL_COST_STATUS } from '../../constants/caseStatus';
+import { STAGE } from '../../constants/stages';
 
 export function useCaseDetails() {
   const { id } = useParams();
@@ -32,11 +34,11 @@ export function useCaseDetails() {
         // If case is closed or cancelled, close all accordions.
         // If case is rejected but cost_status is rejected (cost rejected), still open Stage 3 for CS to cancel.
         // Otherwise, expand current stage.
-        if (res.data.status === 'closed' || res.data.status === 'cancelled') {
+        if (res.data.status === CASE_STATUS.CLOSED || res.data.status === CASE_STATUS.CANCELLED) {
           setExpandedStage(null);
-        } else if (res.data.status === 'rejected' && res.data.cost_status === 'rejected' && res.data.current_stage === 3) {
+        } else if (res.data.status === CASE_STATUS.REJECTED && res.data.cost_status === COST_STATUS.REJECTED && res.data.current_stage === STAGE.STAGE_3) {
           // When cost is rejected, open Stage 3 so CS can cancel
-          setExpandedStage(3);
+          setExpandedStage(STAGE.STAGE_3);
         } else {
           setExpandedStage(res.data.current_stage);
         }
@@ -56,7 +58,7 @@ export function useCaseDetails() {
     if (isOperationInProgress) return;
     // Prevent any updates if case is closed or cancelled
     // Allow updates when completed (CS needs to update to close the case)
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot update case: case is already closed or cancelled');
       return;
     }
@@ -86,7 +88,7 @@ export function useCaseDetails() {
     if (isOperationInProgress) return;
     // Prevent any uploads if case is closed or cancelled
     // Allow uploads when completed (CS may need to upload in Stage 5)
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot upload attachments: case is already closed or cancelled');
       return;
     }
@@ -116,7 +118,7 @@ export function useCaseDetails() {
     if (isOperationInProgress) return;
     // Prevent any deletions if case is closed or cancelled
     // Allow deletions when completed (CS may need to delete in Stage 5)
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot delete attachment: case is already closed or cancelled');
       return;
     }
@@ -146,7 +148,7 @@ export function useCaseDetails() {
     if (advanceInProgressRef.current || isOperationInProgress) return;
     
     // Prevent any stage advancement if case is closed or cancelled
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot advance stage: case is already closed or cancelled');
       return;
     }
@@ -177,7 +179,7 @@ export function useCaseDetails() {
   const handleApproveCost = async () => {
     if (isOperationInProgress) return;
     // Prevent cost approval if case is closed or cancelled
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot approve cost: case is already closed or cancelled');
       return;
     }
@@ -205,7 +207,7 @@ export function useCaseDetails() {
   const handleRejectCost = async () => {
     if (isOperationInProgress) return;
     // Prevent cost rejection if case is closed or cancelled
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot reject cost: case is already closed or cancelled');
       return;
     }
@@ -232,7 +234,7 @@ export function useCaseDetails() {
 
   const handleApproveFinalCost = async () => {
     if (isOperationInProgress) return;
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot approve final cost: case is already closed or cancelled');
       return;
     }
@@ -259,7 +261,7 @@ export function useCaseDetails() {
 
   const handleRejectFinalCost = async () => {
     if (isOperationInProgress) return;
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot reject final cost: case is already closed or cancelled');
       return;
     }
@@ -288,7 +290,7 @@ export function useCaseDetails() {
     if (isOperationInProgress) return;
     // Prevent redo if case is closed or cancelled
     // Allow redo when completed (CS can redo from Stage 5)
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot redo case: case is already closed or cancelled');
       return;
     }
@@ -317,7 +319,7 @@ export function useCaseDetails() {
   const handleCancelCase = async () => {
     if (isOperationInProgress) return;
     // Prevent cancel if case is closed or cancelled
-    if (caseData?.status === 'closed' || caseData?.status === 'cancelled') {
+    if (caseData?.status === CASE_STATUS.CLOSED || caseData?.status === CASE_STATUS.CANCELLED) {
       setError('Cannot cancel case: case is already closed or cancelled');
       return;
     }
@@ -334,7 +336,7 @@ export function useCaseDetails() {
       if (response?.data) {
         setCaseData(response.data);
         // Close all accordions when case is cancelled
-        if (response.data.status === 'cancelled') {
+        if (response.data.status === CASE_STATUS.CANCELLED) {
           setExpandedStage(null);
         }
       }

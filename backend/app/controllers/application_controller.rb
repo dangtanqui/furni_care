@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::API
   include ErrorHandler
+  include AuthConstants
   
   before_action :authorize_request
   
@@ -12,7 +13,7 @@ class ApplicationController < ActionController::API
     begin
       # Decode with expiration validation
       decoded = JWT.decode(header, jwt_secret, true, { 
-        algorithm: 'HS256',
+        algorithm: JWT_ALGORITHM,
         verify_expiration: true 
       })
       @current_user = User.find(decoded[0]['user_id'])
@@ -33,9 +34,9 @@ class ApplicationController < ActionController::API
         raise 'JWT_SECRET environment variable must be set in production'
       else
         Rails.logger.warn 'JWT_SECRET not set, using default secret (NOT SECURE FOR PRODUCTION)'
-        'default_secret'
+        DEFAULT_JWT_SECRET
       end
-    elsif Rails.env.production? && secret == 'default_secret'
+    elsif Rails.env.production? && secret == DEFAULT_JWT_SECRET
       raise 'JWT_SECRET cannot be "default_secret" in production'
     else
       secret
@@ -43,6 +44,6 @@ class ApplicationController < ActionController::API
   end
   
   def encode_token(payload)
-    JWT.encode(payload, jwt_secret, 'HS256')
+    JWT.encode(payload, jwt_secret, JWT_ALGORITHM)
   end
 end

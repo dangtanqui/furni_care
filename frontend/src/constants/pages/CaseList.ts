@@ -14,3 +14,35 @@ export const priorityColors: Record<string, string> = {
   high: 'text-red-600',
 };
 
+// Sort constants
+export const SORT_DIRECTION = {
+  ASC: 'asc' as const,
+  DESC: 'desc' as const,
+} as const;
+
+export const DEFAULT_SORT = {
+  column: 'created_at',
+  direction: SORT_DIRECTION.DESC,
+} as const;
+
+// Pagination constants
+export const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_PER_PAGE: 20,
+} as const;
+
+// Error messages
+export const ERROR_MESSAGES = {
+  LOAD_CASES_FAILED: 'Failed to load cases. Please try again.',
+} as const;
+
+// Toast messages
+export const TOAST_MESSAGES = {
+  FILTERS_APPLIED: 'Filters applied',
+} as const;
+
+// Toast durations (in milliseconds)
+export const TOAST_DURATION = {
+  FILTERS_APPLIED: 2000,
+} as const;
+

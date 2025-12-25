@@ -32,7 +32,12 @@ class Api::CaseAttachmentsController < ApplicationController
   private
 
   def set_case
-    @case = Case.find(params[:id])
+    # For create: params[:id] is the case id
+    # For destroy: params[:case_id] is the case id, params[:id] is the attachment id
+    case_id = params[:case_id] || params[:id]
+    @case = Case.find(case_id)
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Record not found' }, status: :not_found
   end
 end
 

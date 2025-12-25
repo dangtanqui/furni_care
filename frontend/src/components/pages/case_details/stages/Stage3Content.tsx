@@ -7,6 +7,9 @@ import EmptyState from '../../../EmptyState';
 import CostApprovalSection from './CostApprovalSection';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
+import { CASE_STATUS, COST_STATUS } from '../../../../constants/caseStatus';
+import { ATTACHMENT_TYPE } from '../../../../constants/attachmentTypes';
+import { STAGE } from '../../../../constants/stages';
 import type { CaseAttachmentItem } from '../../../../api/cases';
 import type { CaseDetail as CaseDetailType } from '../../../../api/cases';
 import { getCase } from '../../../../api/cases';
@@ -40,20 +43,20 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
     } catch { return [false, false]; }
   });
   const checklistItems = ['Prepare materials', 'Schedule with client'];
-  const isCurrent = nonNullCaseData.current_stage === 3;
+  const isCurrent = nonNullCaseData.current_stage === STAGE.STAGE_3;
   // Fallback check: only assigned technician can edit Stage 3
-  const isAssignedTechnician = isTechnician && 
+  const isAssignedTechnician: boolean = Boolean(isTechnician && 
                                 nonNullCaseData.assigned_to?.id && 
                                 currentUserId && 
-                                nonNullCaseData.assigned_to.id === currentUserId;
-  const canEditStage3 = isAssignedTechnician && 
-                        nonNullCaseData.current_stage >= 3 && 
-                        nonNullCaseData.status !== 'closed' && 
-                        nonNullCaseData.status !== 'cancelled';
+                                nonNullCaseData.assigned_to.id === currentUserId);
+  const canEditStage3: boolean = isAssignedTechnician && 
+                        nonNullCaseData.current_stage >= STAGE.STAGE_3 && 
+                        nonNullCaseData.status !== CASE_STATUS.CLOSED && 
+                        nonNullCaseData.status !== CASE_STATUS.CANCELLED;
   // Allow editing if canEdit OR canEditStage3 (fallback for assigned technician)
-  const editable = canEdit || canEditStage3;
-  const canAdvance = !form.cost_required || nonNullCaseData.cost_status === 'approved';
-  const isRejected = nonNullCaseData.cost_status === 'rejected';
+  const editable: boolean = canEdit || canEditStage3;
+  const canAdvance = !form.cost_required || nonNullCaseData.cost_status === COST_STATUS.APPROVED;
+  const isRejected = nonNullCaseData.cost_status === COST_STATUS.REJECTED;
   const [shouldValidateCost, setShouldValidateCost] = useState<boolean>(false);
   
   // Check if estimated_cost is required but not entered yet
@@ -63,8 +66,8 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
   const hasEstimatedCostInData = nonNullCaseData.estimated_cost !== null && nonNullCaseData.estimated_cost !== undefined;
   const estimatedCostMissing = form.cost_required && !hasEstimatedCostInForm && !hasEstimatedCostInData;
   const attachments = nonNullCaseData.stage_attachments?.['3'] || [];
-  const costAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type === 'cost');
-  const stageAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type !== 'cost');
+  const costAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type === ATTACHMENT_TYPE.COST);
+  const stageAttachments = attachments.filter((att: CaseAttachmentItem) => att.attachment_type !== ATTACHMENT_TYPE.COST);
 
   // Sync state with caseData when component mounts or caseData changes
   useEffect(() => {
@@ -289,11 +292,11 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                     cost_description: undefined,
                   };
                   // Only include status if it needs to be changed from pending
-                  if (nonNullCaseData.status === 'pending') {
-                    updateData.status = 'in_progress';
+                  if (nonNullCaseData.status === CASE_STATUS.PENDING) {
+                    updateData.status = CASE_STATUS.IN_PROGRESS;
                   }
                   await handleUpdate(updateData);
-                  if (nonNullCaseData.current_stage === 3 && canAdvance) {
+                  if (nonNullCaseData.current_stage === STAGE.STAGE_3 && canAdvance) {
                     await handleAdvance();
                     setTimeout(() => {
                       onOpenStage(4);
@@ -337,7 +340,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                     await handleUpdate({ 
                       ...form, 
                       solution_checklist: JSON.stringify(checklist),
-                      status: 'pending',
+                      status: CASE_STATUS.PENDING,
                       estimated_cost: form.estimated_cost ? Number(form.estimated_cost) : undefined
                     });
                     setTimeout(() => {
@@ -371,8 +374,8 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
                     cost_description: undefined,
                   };
                   // Only include status if it needs to be changed from pending
-                  if (nonNullCaseData.status === 'pending') {
-                    updateData.status = 'in_progress';
+                  if (nonNullCaseData.status === CASE_STATUS.PENDING) {
+                    updateData.status = CASE_STATUS.IN_PROGRESS;
                   }
                   await handleUpdate(updateData);
                   setTimeout(async () => {
@@ -390,7 +393,7 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
       )}
 
       {/* CS can cancel case when cost is rejected */}
-      {isCS && isRejected && form.cost_required && nonNullCaseData.status !== 'closed' && nonNullCaseData.status !== 'cancelled' && (
+      {isCS && isRejected && form.cost_required && nonNullCaseData.status !== CASE_STATUS.CLOSED && nonNullCaseData.status !== CASE_STATUS.CANCELLED && (
         <div className="stage3-cancel-section">
           <Button 
             onClick={async () => {
@@ -414,9 +417,9 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
         // Check if cost is pending approval using caseData (not form, because CS can't edit)
         // cost_status can be 'pending', null, or undefined when waiting for approval
         const costPendingApproval = nonNullCaseData.cost_required && 
-          nonNullCaseData.status === 'pending' && 
-          nonNullCaseData.cost_status !== 'approved' && 
-          nonNullCaseData.cost_status !== 'rejected';
+          nonNullCaseData.status === CASE_STATUS.PENDING && 
+          nonNullCaseData.cost_status !== COST_STATUS.APPROVED && 
+          nonNullCaseData.cost_status !== COST_STATUS.REJECTED;
         
         // When pending approval: show for CS and Technician (not Leader - Leader is approving)
         if (costPendingApproval && (isCS || isTechnician)) return true;
@@ -432,9 +435,9 @@ export default function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }
           ) : (() => {
             // Check if cost is pending approval
             const costPendingApproval = nonNullCaseData.cost_required && 
-              nonNullCaseData.status === 'pending' && 
-              nonNullCaseData.cost_status !== 'approved' && 
-              nonNullCaseData.cost_status !== 'rejected';
+              nonNullCaseData.status === CASE_STATUS.PENDING && 
+              nonNullCaseData.cost_status !== COST_STATUS.APPROVED && 
+              nonNullCaseData.cost_status !== COST_STATUS.REJECTED;
             return costPendingApproval;
           })() ? (
             <p>⏳ Waiting for Leader to complete</p>

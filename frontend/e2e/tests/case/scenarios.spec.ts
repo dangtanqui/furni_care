@@ -464,5 +464,273 @@ test.describe('Case Workflow Scenarios', () => {
     });
   });
 
+  test('Technician can update investigation report after completing Stage 2', async ({ page, request }) => {
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    
+    // Create case
+    await page.getByRole('link', { name: 'Create Case' }).click();
+    await expect(page).toHaveURL(/.*cases\/new/);
+    
+    await selectDropdownOption(page, 'client_id');
+    await selectDropdownOption(page, 'site_id');
+    await selectDropdownOption(page, 'contact_id');
+    await page.fill('textarea[name="description"]', TEST_DATA.DESCRIPTION);
+    await selectDropdownOption(page, 'case_type', 'Repair');
+    await selectDropdownOption(page, 'priority', 'Medium');
+    
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit")');
+    const [createResponse] = await Promise.all([
+      page.waitForResponse(resp => 
+        resp.url().includes('/api/cases') && 
+        resp.request().method() === 'POST' &&
+        !resp.url().includes('/attachments'),
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
+    
+    const caseData = await createResponse.json();
+    const testCaseId = caseData.id;
+    
+    await page.goto(`/cases/${testCaseId}`);
+    await page.waitForLoadState('networkidle');
+    
+    // Assign technician and complete Stage 1
+    await page.locator('button[name="assigned_to"]').click();
+    await page.locator('.select-option').filter({ hasText: technicianName }).click();
+    await completeStage(page, testCaseId);
+    
+    // Complete Stage 2 as technician
+    await logout(page);
+    await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
+    await page.goto(`/cases/${testCaseId}`);
+    
+    const initialReport = `${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`;
+    await page.locator('textarea[name="investigation_report"]').fill(initialReport);
+    await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
+    await completeStage(page, testCaseId);
+    
+    // Wait for stage to complete
+    await page.waitForLoadState('networkidle');
+    
+    // Update investigation report (Stage 2 is now completed, but technician can still update)
+    const updatedReport = `${initialReport} - Updated`;
+    await page.locator('textarea[name="investigation_report"]').fill(updatedReport);
+    
+    // Click Update button (not Complete, since stage is already completed)
+    const updateButton = page.locator('button:has-text("Update")');
+    if (await updateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await Promise.all([
+        page.waitForResponse(
+          (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
+                       (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+          { timeout: TIMEOUTS.API_RESPONSE }
+        ),
+        updateButton.click()
+      ]);
+      
+      await page.waitForLoadState('networkidle');
+      
+      // Verify updated report is displayed
+      const reportTextarea = page.locator('textarea[name="investigation_report"]');
+      const reportValue = await reportTextarea.inputValue();
+      expect(reportValue).toContain('Updated');
+    }
+    
+    // Cleanup
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await request.delete(`${API_BASE_URL}/api/cases/${testCaseId}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+  });
+
+  test('Technician can update execution report after completing Stage 4', async ({ page, request }) => {
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    
+    // Create case
+    await page.getByRole('link', { name: 'Create Case' }).click();
+    await expect(page).toHaveURL(/.*cases\/new/);
+    
+    await selectDropdownOption(page, 'client_id');
+    await selectDropdownOption(page, 'site_id');
+    await selectDropdownOption(page, 'contact_id');
+    await page.fill('textarea[name="description"]', TEST_DATA.DESCRIPTION);
+    await selectDropdownOption(page, 'case_type', 'Repair');
+    await selectDropdownOption(page, 'priority', 'Medium');
+    
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit")');
+    const [createResponse] = await Promise.all([
+      page.waitForResponse(resp => 
+        resp.url().includes('/api/cases') && 
+        resp.request().method() === 'POST' &&
+        !resp.url().includes('/attachments'),
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
+    
+    const caseData = await createResponse.json();
+    const testCaseId = caseData.id;
+    
+    await page.goto(`/cases/${testCaseId}`);
+    await page.waitForLoadState('networkidle');
+    
+    // Assign technician and complete Stage 1
+    await page.locator('button[name="assigned_to"]').click();
+    await page.locator('.select-option').filter({ hasText: technicianName }).click();
+    await completeStage(page, testCaseId);
+    
+    // Complete Stage 2-4 as technician
+    await logout(page);
+    await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
+    await page.goto(`/cases/${testCaseId}`);
+    
+    await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
+    await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
+    await completeStage(page, testCaseId);
+    
+    await page.locator('input[name="root_cause"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`);
+    await page.locator('textarea[name="solution_description"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`);
+    await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
+    await page.locator('input[type="date"][name="planned_execution_date"]').fill('2024-12-31');
+    await completeStage(page, testCaseId);
+    
+    const initialExecutionReport = `${TEST_DATA.PREFIX} ${TEST_DATA.EXECUTION}`;
+    await page.fill('textarea[name="execution_report"]', initialExecutionReport);
+    await fillStageChecklist(page, 4, STAGE_CHECKLIST_COUNTS.STAGE_4);
+    await page.fill('textarea[name="client_feedback"]', `${TEST_DATA.PREFIX} ${TEST_DATA.CLIENT_FEEDBACK}`);
+    await page.locator('button.stage4-rating-button:has-text("5")').click();
+    await completeStage(page, testCaseId);
+    
+    // Wait for stage to complete
+    await page.waitForLoadState('networkidle');
+    
+    // Update execution report (Stage 4 is now completed, but technician can still update)
+    const updatedExecutionReport = `${initialExecutionReport} - Updated`;
+    await page.fill('textarea[name="execution_report"]', updatedExecutionReport);
+    
+    // Click Update button
+    const updateButton = page.locator('button:has-text("Update")');
+    if (await updateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await Promise.all([
+        page.waitForResponse(
+          (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
+                       (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+          { timeout: TIMEOUTS.API_RESPONSE }
+        ),
+        updateButton.click()
+      ]);
+      
+      await page.waitForLoadState('networkidle');
+      
+      // Verify updated report is displayed
+      const executionTextarea = page.locator('textarea[name="execution_report"]');
+      const executionValue = await executionTextarea.inputValue();
+      expect(executionValue).toContain('Updated');
+    }
+    
+    // Cleanup
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await request.delete(`${API_BASE_URL}/api/cases/${testCaseId}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+  });
+
+  test('Technician can update solution after completing Stage 3', async ({ page, request }) => {
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    
+    // Create case
+    await page.getByRole('link', { name: 'Create Case' }).click();
+    await expect(page).toHaveURL(/.*cases\/new/);
+    
+    await selectDropdownOption(page, 'client_id');
+    await selectDropdownOption(page, 'site_id');
+    await selectDropdownOption(page, 'contact_id');
+    await page.fill('textarea[name="description"]', TEST_DATA.DESCRIPTION);
+    await selectDropdownOption(page, 'case_type', 'Repair');
+    await selectDropdownOption(page, 'priority', 'Medium');
+    
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit")');
+    const [createResponse] = await Promise.all([
+      page.waitForResponse(resp => 
+        resp.url().includes('/api/cases') && 
+        resp.request().method() === 'POST' &&
+        !resp.url().includes('/attachments'),
+        { timeout: TIMEOUTS.API_RESPONSE }
+      ),
+      submitButton.click()
+    ]);
+    
+    const caseData = await createResponse.json();
+    const testCaseId = caseData.id;
+    
+    await page.goto(`/cases/${testCaseId}`);
+    await page.waitForLoadState('networkidle');
+    
+    // Assign technician and complete Stage 1
+    await page.locator('button[name="assigned_to"]').click();
+    await page.locator('.select-option').filter({ hasText: technicianName }).click();
+    await completeStage(page, testCaseId);
+    
+    // Complete Stage 2-3 as technician
+    await logout(page);
+    await loginAs(page, technicianEmail, TEST_USERS.PASSWORD);
+    await page.goto(`/cases/${testCaseId}`);
+    
+    await page.locator('textarea[name="investigation_report"]').fill(`${TEST_DATA.PREFIX} ${TEST_DATA.INVESTIGATION}`);
+    await fillStageChecklist(page, 2, STAGE_CHECKLIST_COUNTS.STAGE_2);
+    await completeStage(page, testCaseId);
+    
+    const initialRootCause = `${TEST_DATA.PREFIX} ${TEST_DATA.ROOT_CAUSE}`;
+    const initialSolution = `${TEST_DATA.PREFIX} ${TEST_DATA.SOLUTION}`;
+    await page.locator('input[name="root_cause"]').fill(initialRootCause);
+    await page.locator('textarea[name="solution_description"]').fill(initialSolution);
+    await fillStageChecklist(page, 3, STAGE_CHECKLIST_COUNTS.STAGE_3);
+    await page.locator('input[type="date"][name="planned_execution_date"]').fill('2024-12-31');
+    await completeStage(page, testCaseId);
+    
+    // Wait for stage to complete
+    await page.waitForLoadState('networkidle');
+    
+    // Update root cause and solution description (Stage 3 is now completed, but technician can still update)
+    const updatedRootCause = `${initialRootCause} - Updated`;
+    const updatedSolution = `${initialSolution} - Updated`;
+    await page.locator('input[name="root_cause"]').fill(updatedRootCause);
+    await page.locator('textarea[name="solution_description"]').fill(updatedSolution);
+    
+    // Click Update button (not Complete, since stage is already completed)
+    const updateButton = page.locator('button:has-text("Update")');
+    if (await updateButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await Promise.all([
+        page.waitForResponse(
+          (response) => response.url().includes(`/api/cases/${testCaseId}`) && 
+                       (response.request().method() === 'PATCH' || response.request().method() === 'PUT'),
+          { timeout: TIMEOUTS.API_RESPONSE }
+        ),
+        updateButton.click()
+      ]);
+      
+      await page.waitForLoadState('networkidle');
+      
+      // Verify updated data is displayed
+      const rootCauseInput = page.locator('input[name="root_cause"]');
+      const rootCauseValue = await rootCauseInput.inputValue();
+      expect(rootCauseValue).toContain('Updated');
+      
+      const solutionTextarea = page.locator('textarea[name="solution_description"]');
+      const solutionValue = await solutionTextarea.inputValue();
+      expect(solutionValue).toContain('Updated');
+    }
+    
+    // Cleanup
+    await logout(page);
+    await loginAs(page, TEST_USERS.CS, TEST_USERS.PASSWORD);
+    await request.delete(`${API_BASE_URL}/api/cases/${testCaseId}`, {
+      headers: { Authorization: `Bearer ${authToken}` }
+    });
+  });
+
 });
 

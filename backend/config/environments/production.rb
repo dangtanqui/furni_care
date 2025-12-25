@@ -61,8 +61,11 @@ Rails.application.configure do
   # config.cache_store = :mem_cache_store
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter = :resque # Not used - ActiveJob disabled
-  # config.active_job.queue_name_prefix = "backend_production" # Not used - ActiveJob disabled
+  # For production, configure a proper queue adapter like Sidekiq or Resque:
+  # config.active_job.queue_adapter = :sidekiq
+  # config.active_job.queue_name_prefix = "backend_production"
+  # For now, using async adapter (in-memory) - should be replaced with proper queue backend
+  config.active_job.queue_adapter = :async
 
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = { host: ENV['MAILER_HOST'] || 'localhost' }
@@ -71,6 +74,17 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   config.action_mailer.raise_delivery_errors = false
   config.action_mailer.delivery_method = :smtp
+  
+  # SMTP configuration for email delivery
+  config.action_mailer.smtp_settings = {
+    address: ENV['SMTP_ADDRESS'] || 'smtp.gmail.com',
+    port: ENV['SMTP_PORT'] || 587,
+    domain: ENV['SMTP_DOMAIN'] || 'gmail.com',
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

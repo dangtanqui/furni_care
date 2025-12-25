@@ -1,5 +1,7 @@
 # Service for querying and filtering cases
 class CaseQueryService < BaseService
+  include QueryConstants
+
   def initialize(params:, current_user:)
     @params = params
     @current_user = current_user
@@ -17,7 +19,8 @@ class CaseQueryService < BaseService
   private
 
   def base_query
-    Case.includes(:client, :site, :contact, :assigned_to, :created_by)
+    # Eager load all associations that will be accessed in serializer
+    Case.includes(:client, :site, :contact, :assigned_to, :created_by, :cost_approved_by, :final_cost_approved_by)
   end
 
   def apply_filters(cases)
@@ -25,7 +28,7 @@ class CaseQueryService < BaseService
     cases = cases.where(case_type: @params[:case_type]) if @params[:case_type].present?
     
     if @params[:assigned_to].present?
-      if @params[:assigned_to] == 'unassigned'
+      if @params[:assigned_to] == UNASSIGNED
         cases = cases.where(assigned_to_id: nil)
       else
         cases = cases.where(assigned_to_id: @params[:assigned_to])
@@ -52,19 +55,31 @@ class CaseQueryService < BaseService
     elsif @params[:sort_by].present?
       # Legacy format: single sort
       sort_by = @params[:sort_by]
-      sort_direction = @params[:sort_direction]&.downcase == 'asc' ? 'asc' : 'desc'
+      sort_direction = @params[:sort_direction]&.downcase == SORT_DIRECTION_ASC ? SORT_DIRECTION_ASC : SORT_DIRECTION_DESC
       sorts = [{ 'column' => sort_by, 'direction' => sort_direction }]
     end
     
     # Default sort if no sorts provided
     if sorts.empty?
-      sorts = [{ 'column' => 'created_at', 'direction' => 'desc' }]
+      sorts = [{ 'column' => DEFAULT_SORT_COLUMN, 'direction' => DEFAULT_SORT_DIRECTION }]
+    end
+    
+    # Track which associations need to be eager loaded for sorting
+    needs_client_join = sorts.any? { |s| (s['column'] || s[:column]) == 'client' }
+    needs_site_join = sorts.any? { |s| (s['column'] || s[:column]) == 'site' }
+    
+    # Eager load associations that will be used for sorting to avoid N+1
+    if needs_client_join
+      cases = cases.includes(:client) unless cases.includes_values.include?(:client)
+    end
+    if needs_site_join
+      cases = cases.includes(:site) unless cases.includes_values.include?(:site)
     end
     
     # Apply multiple sorts in order (first sort has highest priority)
     sorts.each do |sort|
       column = sort['column'] || sort[:column]
-      direction = (sort['direction'] || sort[:direction] || 'desc').to_s.downcase == 'asc' ? :asc : :desc
+      direction = (sort['direction'] || sort[:direction] || SORT_DIRECTION_DESC).to_s.downcase == SORT_DIRECTION_ASC ? :asc : :desc
       
       case column
       when 'case_number'
@@ -90,9 +105,9 @@ class CaseQueryService < BaseService
   end
 
   def apply_pagination(cases)
-    page = @params[:page]&.to_i || 1
-    per_page = @params[:per_page]&.to_i || 20
-    per_page = [per_page, 100].min # Max 100 per page
+    page = @params[:page]&.to_i || DEFAULT_PAGE
+    per_page = @params[:per_page]&.to_i || DEFAULT_PER_PAGE
+    per_page = [per_page, MAX_PER_PAGE].min
     
     # Use count(:all) for better performance with large datasets
     # This avoids loading all records into memory
