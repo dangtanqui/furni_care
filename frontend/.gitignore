@@ -13,9 +13,14 @@ dist-ssr
 *.local
 
 # Environment variables
-.env
+# Ignore .env.local (local development overrides)
 .env.local
 .env.*.local
+# But allow these environment files to be tracked
+!.env
+!.env.development
+!.env.test
+!.env.staging
 
 # Editor directories and files
 .vscode/*

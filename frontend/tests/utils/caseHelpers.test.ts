@@ -7,7 +7,7 @@ import {
   getPriorityColorClass,
   getStatusIcon,
   getPriorityIcon
-} from '../caseHelpers';
+} from '../../src/utils/caseHelpers';
 import { CheckCircle2, Clock, AlertCircle, XCircle, Ban, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 describe('caseHelpers', () => {
@@ -90,5 +90,4 @@ describe('caseHelpers', () => {
     });
   });
 });
-
 

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useCaseList } from '../useCaseList';
-import { getCases } from '../../../api/cases';
-import { useTechnicians } from '../../useTechnicians';
-import { useToast } from '../../../contexts/ToastContext';
+import { useCaseList } from '../../../src/hooks/pages/useCaseList';
+import { getCases } from '../../../src/api/cases';
+import { useTechnicians } from '../../../src/hooks/useTechnicians';
+import { useToast } from '../../../src/contexts/ToastContext';
 
 // Mock dependencies
-vi.mock('../../../api/cases');
-vi.mock('../../useTechnicians');
-vi.mock('../../../contexts/ToastContext');
+vi.mock('../../../src/api/cases');
+vi.mock('../../../src/hooks/useTechnicians');
+vi.mock('../../../src/contexts/ToastContext');
 
 const mockGetCases = vi.mocked(getCases);
 const mockUseTechnicians = vi.mocked(useTechnicians);
@@ -206,5 +206,4 @@ describe('useCaseList', () => {
     });
   });
 });
-
 

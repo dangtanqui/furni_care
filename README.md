@@ -25,6 +25,7 @@ Tạo file `.env` trong folder `backend`:
 DATABASE_PASSWORD=your_mysql_password
 DATABASE_PORT=3306
 JWT_SECRET=your_secret_key
+CORS_ALLOWED_ORIGINS=[http://localhost:5173]
 ```
 
 ### 2. Backend Setup
@@ -40,15 +41,10 @@ Backend sẽ chạy tại `http://localhost:3000`
 
 ### 3. Frontend Setup
 
-Tạo file `.env` trong folder `frontend` (hoặc copy từ `.env.example`):
+Tạo file `.env` trong folder `frontend`:
 
 ```env
 VITE_API_URL=http://localhost:3000
-```
-
-**Lưu ý**: Nếu backend chạy ở port khác (ví dụ 3001), thay đổi giá trị:
-```env
-VITE_API_URL=http://localhost:3001
 ```
 
 Sau đó cài đặt và chạy:
@@ -74,11 +70,11 @@ Frontend sẽ chạy tại `http://localhost:5173` (hoặc port khác nếu 5173
 ### Case Management
 
 1. **Case List** - Danh sách case với filter và search
-2. **Create Case** - Tạo case mới (chỉ CS)
+2. **Create Case** - Tạo case mới
 3. **Case Detail** - Chi tiết case với 5 stages:
    - **Stage 1**: Input & Categorization
    - **Stage 2**: Site Investigation
-   - **Stage 3**: Solution & Plan (cost approval)
+   - **Stage 3**: Solution & Plan
    - **Stage 4**: Execution
    - **Stage 5**: Closing
 
@@ -96,7 +92,6 @@ Frontend sẽ chạy tại `http://localhost:5173` (hoặc port khác nếu 5173
   
 - **Leader**: 
   - Approve/reject costs
-  - Quản lý tổng thể
 
 ## 📁 Project Structure
 
