@@ -5,23 +5,23 @@ default: &default
 
 development:
   <<: *default
-  database: furni_care_development
-  username: root
+  database: <%= ENV['DATABASE_NAME'] || 'furni_care_development' %>
+  username: <%= ENV['DATABASE_USERNAME'] || 'root' %>
   password: <%= ENV['DATABASE_PASSWORD'] || '' %>
-  host: 127.0.0.1
+  host: <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
   port: <%= ENV['DATABASE_PORT'] || 3306 %>
 
 test:
   <<: *default
-  database: furni_care_test
-  username: root
+  database: <%= ENV['DATABASE_NAME'] || 'furni_care_test' %>
+  username: <%= ENV['DATABASE_USERNAME'] || 'root' %>
   password: <%= ENV['DATABASE_PASSWORD'] || '' %>
-  host: 127.0.0.1
+  host: <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
   port: <%= ENV['DATABASE_PORT'] || 3306 %>
 
 production:
   <<: *default
-  database: furni_care_production
+  database: <%= ENV['DATABASE_NAME'] || 'furni_care_production' %>
   username: <%= ENV['DATABASE_USERNAME'] || 'root' %>
   password: <%= ENV['DATABASE_PASSWORD'] || '' %>
   host: <%= ENV['DATABASE_HOST'] || '127.0.0.1' %>
