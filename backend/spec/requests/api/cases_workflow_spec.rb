@@ -59,10 +59,6 @@ RSpec.describe 'Case Workflow API', type: :request do
       }
       
       post '/api/cases', params: case_params, headers: auth_headers
-      if response.status != 201
-        puts "Response status: #{response.status}"
-        puts "Response body: #{response.body}"
-      end
       expect(response).to have_http_status(:created)
       response_data = JSON.parse(response.body)
       case_data = response_data['data'] || response_data
@@ -124,10 +120,6 @@ RSpec.describe 'Case Workflow API', type: :request do
       
       # Stage 4 to 5: Technician advances to stage 5
       post "/api/cases/#{case_id}/advance_stage", headers: technician_auth_headers
-      if response.status != 200
-        puts "Response status: #{response.status}"
-        puts "Response body: #{response.body}"
-      end
       expect(response).to have_http_status(:ok)
       response_data = JSON.parse(response.body)
       case_data = response_data['data'] || response_data
@@ -144,11 +136,6 @@ RSpec.describe 'Case Workflow API', type: :request do
         status: 'closed'
       }
       put "/api/cases/#{case_id}", params: update_params, headers: auth_headers
-      if response.status != 200
-        puts "Response status: #{response.status}"
-        puts "Response body: #{response.body}"
-        puts "Request params: #{update_params.inspect}"
-      end
       expect(response).to have_http_status(:ok)
       response_data = JSON.parse(response.body)
       case_data = response_data['data'] || response_data

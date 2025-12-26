@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
@@ -15,7 +15,7 @@ interface Stage4ContentProps {
   onOpenStage: (stageNum: number) => void;
 }
 
-export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentProps) {
+function Stage4Content({ canEdit, onOpenStage }: Stage4ContentProps) {
   const { caseData, isCS, isLeader, handleUpdate, handleAdvance, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
   
   if (!caseData) return null;
@@ -176,10 +176,14 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
       {canEdit && (
         <Button 
           onClick={async () => {
-            await handleUpdate({
-              ...form,
-              execution_checklist: JSON.stringify(checklist),
-            });
+            // Skip toast for update when completing (will show toast after advance)
+            await handleUpdate(
+              {
+                ...form,
+                execution_checklist: JSON.stringify(checklist),
+              },
+              { skipToast: isCurrent }
+            );
             // Only advance if Stage 4 is the current stage
             if (isCurrent) {
               // Advance stage after successful update
@@ -210,4 +214,6 @@ export default function Stage4Content({ canEdit, onOpenStage }: Stage4ContentPro
     </div>
   );
 }
+
+export default memo(Stage4Content);
 

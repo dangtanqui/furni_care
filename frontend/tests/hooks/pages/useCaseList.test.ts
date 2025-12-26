@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCaseList } from '../../../src/hooks/pages/useCaseList';
 import { getCases } from '../../../src/api/cases';
 import { useTechnicians } from '../../../src/hooks/useTechnicians';
@@ -9,6 +10,22 @@ import { useToast } from '../../../src/contexts/ToastContext';
 vi.mock('../../../src/api/cases');
 vi.mock('../../../src/hooks/useTechnicians');
 vi.mock('../../../src/contexts/ToastContext');
+
+// Create test QueryClient wrapper
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+};
 
 const mockGetCases = vi.mocked(getCases);
 const mockUseTechnicians = vi.mocked(useTechnicians);
@@ -57,7 +74,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       // Wait for initial load to complete
       await waitFor(() => {
@@ -85,7 +104,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -115,7 +136,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -156,7 +179,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -182,7 +207,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -210,7 +237,9 @@ describe('useCaseList', () => {
         config: {} as any,
       } as any);
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -241,7 +270,9 @@ describe('useCaseList', () => {
     it('should set error when API call fails', async () => {
       mockGetCases.mockRejectedValue(new Error('API Error'));
 
-      const { result } = renderHook(() => useCaseList());
+      const { result } = renderHook(() => useCaseList(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

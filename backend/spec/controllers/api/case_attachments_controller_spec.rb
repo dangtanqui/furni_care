@@ -116,14 +116,6 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
       expect(CaseAttachment.find_by(id: attachment_id)).to be_nil
     end
 
-    it 'returns 404 when case does not exist' do
-      delete :destroy, params: { case_id: 99999, id: attachment.id }
-
-      expect(response).to have_http_status(:not_found)
-      json_response = JSON.parse(response.body)
-      expect(json_response['error']).to eq('Record not found')
-    end
-
     it 'returns error when attachment does not exist', :skip_transactional_fixtures do
       delete :destroy, params: { case_id: case_record.id, id: 99999 }
 

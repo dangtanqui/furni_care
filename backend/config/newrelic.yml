@@ -1,0 +1,86 @@
+#
+# This file configures the New Relic Agent.  New Relic monitors
+# Ruby, .NET, Java, PHP, Node.js, Python, and Go applications with deep
+# visibility into application performance, errors and more.
+#
+# For complete documentation, see:
+# https://docs.newrelic.com/docs/agents/ruby-agent/installation-configuration/ruby-agent-configuration/
+
+common: &default_settings
+  # License key - required
+  license_key: '<%= ENV["NEW_RELIC_LICENSE_KEY"] %>'
+  
+  # Application name - set this to be something meaningful
+  app_name: <%= ENV["NEW_RELIC_APP_NAME"] || "FurniCare" %>
+  
+  # Monitor mode - set to false to disable the agent
+  monitor_mode: true
+  
+  # Developer mode - set to true to see more detailed logs
+  developer_mode: false
+  
+  # Log level - one of: fatal, error, warn, info, debug
+  log_level: info
+  
+  # Log file location
+  log_file_path: 'log'
+  log_file_name: 'newrelic_agent.log'
+  
+  # Browser monitoring
+  browser_monitoring:
+    auto_instrument: true
+    # Enable browser monitoring for all requests
+    enabled: true
+  
+  # Transaction tracer
+  transaction_tracer:
+    enabled: true
+    # Record SQL queries (obfuscated for security)
+    record_sql: obfuscated
+    # Stack trace threshold in seconds
+    stack_trace_threshold: 0.500
+    # Explain threshold in seconds
+    explain_threshold: 0.500
+  
+  # Error collector
+  error_collector:
+    enabled: true
+    capture_events: true
+    # Ignore specific error classes
+    ignore_status_codes: '404'
+  
+  # Slow SQL
+  slow_sql:
+    enabled: true
+    record_sql: obfuscated
+    explain_threshold: 0.500
+  
+  # Thread profiler
+  thread_profiler:
+    enabled: true
+  
+  # Application logging
+  application_logging:
+    enabled: true
+    forwarding:
+      enabled: true
+    metrics:
+      enabled: true
+    local_decorating:
+      enabled: true
+
+production:
+  <<: *default_settings
+  monitor_mode: true
+  developer_mode: false
+
+development:
+  <<: *default_settings
+  monitor_mode: false
+  developer_mode: true
+
+test:
+  <<: *default_settings
+  monitor_mode: false
+  developer_mode: false
+

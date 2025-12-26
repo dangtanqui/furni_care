@@ -26,3 +26,6 @@ tmp/
 frontend/coverage/
 backend/coverage/
 
+# Spec examples
+backend/spec/examples.txt
+

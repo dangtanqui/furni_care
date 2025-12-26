@@ -5,7 +5,7 @@
 ## 🛠️ Tech Stack
 
 - **Backend**: Rails 7.1, Ruby 3.2.6, MySQL
-- **Frontend**: React 18, TypeScript, Vite, TailwindCSS
+- **Frontend**: React 19, TypeScript, Vite, TailwindCSS, React Query (TanStack Query)
 
 ## 📋 Prerequisites
 
@@ -164,19 +164,71 @@ Email sẽ bao gồm:
 
 ```
 furni_care/
-├── backend/          # Rails API
+├── backend/                    # Rails API
 │   ├── app/
-│   ├── config/
-│   └── db/
-├── frontend/         # React App
+│   │   ├── constants/          # Application constants
+│   │   ├── controllers/        # API controllers
+│   │   │   ├── api/            # API endpoints
+│   │   │   └── concerns/       # Shared controller concerns
+│   │   ├── exceptions/         # Custom exceptions
+│   │   ├── jobs/               # Background jobs
+│   │   ├── mailers/            # Email templates
+│   │   ├── models/             # ActiveRecord models
+│   │   ├── policies/           # Authorization policies
+│   │   ├── serializers/        # JSON serializers
+│   │   └── services/           # Business logic services
+│   ├── config/                 # Rails configuration
+│   ├── db/                      # Database migrations & seeds
+│   ├── spec/                    # RSpec tests
+│   └── swagger/                 # API documentation
+│
+├── frontend/                    # React App
 │   ├── src/
-│   │   ├── api/
-│   │   ├── components/
-│   │   ├── contexts/
-│   │   └── pages/
-│   └── public/
+│   │   ├── api/                 # API client & endpoints
+│   │   ├── components/         # React components
+│   │   │   ├── pages/           # Page-specific components
+│   │   │   └── *.tsx            # Shared components
+│   │   ├── constants/          # Application constants
+│   │   ├── contexts/            # React contexts (Auth, Toast, etc.)
+│   │   ├── hooks/               # Custom React hooks
+│   │   │   ├── api/             # API hooks (React Query)
+│   │   │   └── pages/           # Page-specific hooks
+│   │   ├── lib/                 # Library configurations
+│   │   ├── pages/               # Page components
+│   │   ├── styles/              # CSS files
+│   │   ├── types/               # TypeScript type definitions
+│   │   └── utils/               # Utility functions
+│   │       ├── validation.ts   # Form validation utilities
+│   │       └── apiErrorHandler.ts  # Error handling utilities
+│   ├── tests/                   # Unit tests (Vitest)
+│   ├── e2e/                     # E2E tests (Playwright)
+│   ├── .storybook/              # Storybook configuration
+│   └── public/                  # Static assets
+│
 └── README.md
 ```
+
+### Frontend Architecture
+
+**Data Fetching:**
+- **React Query (TanStack Query)**: Quản lý server state, caching, và data synchronization
+- **API Hooks**: `useCases`, `useCase` - Custom hooks sử dụng React Query
+- **API Client**: Axios với interceptors cho authentication và error handling
+
+**State Management:**
+- **React Context**: AuthContext, ToastContext, CaseDetailsContext
+- **React Query**: Server state và caching
+- **Local State**: useState, useReducer cho component-specific state
+
+**Form Handling:**
+- **Validation**: `useFormValidation` hook với validation utilities
+- **Form State**: `useFormState` hook cho generic form management
+- **Error Handling**: Centralized error handler với user-friendly messages
+
+**Performance:**
+- **Code Splitting**: Lazy loading routes
+- **Memoization**: React.memo, useMemo, useCallback
+- **Image Optimization**: Lazy loading cho images
 
 ## 🔧 Development
 
@@ -207,6 +259,15 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Run linter
+npm run lint
+
+# Start Storybook
+npm run storybook
+
+# Build Storybook for production
+npm run build-storybook
 ```
 
 ## 🧪 Testing
@@ -261,9 +322,11 @@ npm run test:coverage
 ```
 
 **Test Structure:**
-- `src/utils/__tests__/` - Utility function tests
-- `src/components/__tests__/` - Component tests
-- `src/hooks/__tests__/` - Hook tests
+- `tests/utils/` - Utility function tests (validation, error handling, etc.)
+- `tests/components/` - Component tests
+- `tests/hooks/` - Hook tests (useFormValidation, useLoadingState, etc.)
+- `tests/api/` - API client tests
+- `tests/contexts/` - Context tests
 
 #### E2E Tests (Playwright)
 
@@ -327,17 +390,15 @@ npm run test:e2e:report
 - Backend và Frontend servers sẽ tự động được khởi động bởi Playwright
 - Có thể reset database trước mỗi test run để đảm bảo data consistency
 
-## 📚 API Documentation
+## 📖 Storybook
 
-Swagger/OpenAPI documentation is available at:
-- Swagger UI: `http://localhost:3000/api-docs`
-- Swagger JSON: `http://localhost:3000/api-docs/v1/swagger.json`
+Storybook là công cụ để phát triển và document UI components một cách độc lập.
 
-To update documentation, edit `backend/swagger/v1/swagger.yaml`.
+### Khởi động Storybook
 
-## 📝 Notes
+```bash
+cd frontend
+npm run storybook
+```
 
-- Đảm bảo MySQL đang chạy trước khi start backend
-- Backend và Frontend cần chạy đồng thời để ứng dụng hoạt động đầy đủ
-- File `.env` không được commit vào git (đã được ignore)
-- Nếu backend chạy ở port khác, nhớ cập nhật `VITE_API_URL` trong `frontend/.env`
+Storybook sẽ chạy tại `http://localhost:6006`

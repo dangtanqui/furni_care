@@ -94,13 +94,12 @@ class CasePolicy
   def can_update?
     return false if closed_or_cancelled?
     
-    # Stage 1, 5: Only CS can update
-    return @user.cs? if @case.current_stage == STAGE_1 || @case.current_stage == STAGE_5
+    # Stage 2, 3, 4, 5: Assigned technician can update, OR CS can update (for reassignment)
+    if @case.current_stage == STAGE_2 || @case.current_stage == STAGE_3 || @case.current_stage == STAGE_4 || @case.current_stage == STAGE_5
+      return true if is_assigned_technician?
+    end
     
-    # Stage 2, 3 , 4: Only assigned technician can update
-    return is_assigned_technician? if @case.current_stage == STAGE_2 || @case.current_stage == STAGE_3 || @case.current_stage == STAGE_4
-    
-    false
+    @user.cs?
   end
 
   def can_redo?

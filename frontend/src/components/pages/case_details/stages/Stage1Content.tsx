@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { User, Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import Select from '../../../Select';
@@ -6,6 +6,7 @@ import AttachmentGrid from '../../../AttachmentGrid';
 import EmptyState from '../../../EmptyState';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { TIMING } from '../../../../constants/timing';
+import type { CaseDetail } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage1Content.css';
 
 interface Stage1ContentProps {
@@ -13,7 +14,7 @@ interface Stage1ContentProps {
   onOpenStage: (stageNum: number) => void;
 }
 
-export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
+function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
   const { caseData, technicians, isCS, isTechnician, isLeader, handleUpdate, handleAdvance } = useCaseDetailsContext();
   
   if (!caseData) return null;
@@ -125,7 +126,7 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                   const wasCurrent = isCurrent;
                   
                   // If current_stage >= 3, rollback to stage 2 when updating Stage 1
-                  const updateData: any = { 
+                  const updateData: Partial<CaseDetail> & { assigned_to_id: number } = { 
                     assigned_to_id: Number(selectedId),
                     status: 'in_progress' // Set status to in_progress when reassigning
                   };
@@ -133,7 +134,8 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
                     updateData.current_stage = 2;
                   }
                   
-                  await handleUpdate(updateData);
+                  // Skip toast for update since we'll show toast after advance
+                  await handleUpdate(updateData, { skipToast: wasCurrent });
                   
                   // Only advance if it was current stage before update (to prevent duplicate calls)
                   if (wasCurrent && !isAdvancingRef.current) {
@@ -180,4 +182,6 @@ export default function Stage1Content({ canEdit, onOpenStage }: Stage1ContentPro
     </div>
   );
 }
+
+export default memo(Stage1Content);
 

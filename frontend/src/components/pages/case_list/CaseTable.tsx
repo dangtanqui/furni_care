@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Clock, CheckCircle, Inbox } from 'lucide-react';
 import { getStatusColorClass, getPriorityColorClass, formatCaseStatus, getStatusIcon, getPriorityIcon } from '../../../utils/caseHelpers';
@@ -8,8 +9,37 @@ import SkeletonLoader from '../../SkeletonLoader';
 import '../../../styles/components/pages/case_list/CaseTable.css';
 import type { CaseTableProps } from '../../../types/components/pages/CaseList';
 
-export default function CaseTable({ cases, loading, sort, onSort, pagination, onPageChange }: CaseTableProps) {
+function CaseTable({ cases, loading, sort, onSort, pagination, onPageChange }: CaseTableProps) {
   const navigate = useNavigate();
+
+  // Memoize sort handlers to prevent unnecessary re-renders
+  const handleSort = useCallback((column: string) => {
+    onSort(column);
+  }, [onSort]);
+
+  // Memoize row click handler
+  const handleRowClick = useCallback((caseId: number) => {
+    navigate(`/cases/${caseId}`);
+  }, [navigate]);
+
+  // Memoize row keydown handler
+  const handleRowKeyDown = useCallback((e: React.KeyboardEvent, caseId: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      navigate(`/cases/${caseId}`);
+    }
+  }, [navigate]);
+
+  // Memoize sort direction calculations
+  const getSortDirection = useCallback((column: string) => {
+    const sortEntry = sort.find(s => s.column === column);
+    return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
+  }, [sort]);
+
+  // Memoize sort icon direction
+  const getSortIconDirection = useCallback((column: string) => {
+    return sort.find(s => s.column === column)?.direction || 'asc';
+  }, [sort]);
 
   return (
     <div className="case-table-container">
@@ -19,100 +49,79 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
             <tr>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('case_number')}
+                onClick={() => handleSort('case_number')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'case_number');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('case_number')}
               >
                 <div className="case-table-header-content">
                   Case ID
-                  <SortIcon column="case_number" currentColumn={sort} direction={sort.find(s => s.column === 'case_number')?.direction || 'asc'} />
+                  <SortIcon column="case_number" currentColumn={sort} direction={getSortIconDirection('case_number')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('client')}
+                onClick={() => handleSort('client')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'client');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('client')}
               >
                 <div className="case-table-header-content">
                   Client
-                  <SortIcon column="client" currentColumn={sort} direction={sort.find(s => s.column === 'client')?.direction || 'asc'} />
+                  <SortIcon column="client" currentColumn={sort} direction={getSortIconDirection('client')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('site')}
+                onClick={() => handleSort('site')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'site');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('site')}
               >
                 <div className="case-table-header-content">
                   Site
-                  <SortIcon column="site" currentColumn={sort} direction={sort.find(s => s.column === 'site')?.direction || 'asc'} />
+                  <SortIcon column="site" currentColumn={sort} direction={getSortIconDirection('site')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('current_stage')}
+                onClick={() => handleSort('current_stage')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'current_stage');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('current_stage')}
               >
                 <div className="case-table-header-content">
                   Stage
-                  <SortIcon column="current_stage" currentColumn={sort} direction={sort.find(s => s.column === 'current_stage')?.direction || 'asc'} />
+                  <SortIcon column="current_stage" currentColumn={sort} direction={getSortIconDirection('current_stage')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('status')}
+                onClick={() => handleSort('status')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'status');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('status')}
               >
                 <div className="case-table-header-content">
                   Status
-                  <SortIcon column="status" currentColumn={sort} direction={sort.find(s => s.column === 'status')?.direction || 'asc'} />
+                  <SortIcon column="status" currentColumn={sort} direction={getSortIconDirection('status')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('priority')}
+                onClick={() => handleSort('priority')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'priority');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('priority')}
               >
                 <div className="case-table-header-content">
                   Priority
-                  <SortIcon column="priority" currentColumn={sort} direction={sort.find(s => s.column === 'priority')?.direction || 'asc'} />
+                  <SortIcon column="priority" currentColumn={sort} direction={getSortIconDirection('priority')} />
                 </div>
               </th>
               <th 
                 className="case-table-header-cell-full"
-                onClick={() => onSort('assigned_to')}
+                onClick={() => handleSort('assigned_to')}
                 role="columnheader"
-                aria-sort={(() => {
-                  const sortEntry = sort.find(s => s.column === 'assigned_to');
-                  return sortEntry ? (sortEntry.direction === 'asc' ? 'ascending' : 'descending') : 'none';
-                })()}
+                aria-sort={getSortDirection('assigned_to')}
               >
                 <div className="case-table-header-content">
                   Assigned
-                  <SortIcon column="assigned_to" currentColumn={sort} direction={sort.find(s => s.column === 'assigned_to')?.direction || 'asc'} />
+                  <SortIcon column="assigned_to" currentColumn={sort} direction={getSortIconDirection('assigned_to')} />
                 </div>
               </th>
               <th className="case-table-empty-cell"></th>
@@ -149,13 +158,8 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
                 <tr
                   key={c.id}
                   className="case-table-row"
-                  onClick={() => navigate(`/cases/${c.id}`)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      navigate(`/cases/${c.id}`);
-                    }
-                  }}
+                  onClick={() => handleRowClick(c.id)}
+                  onKeyDown={(e) => handleRowKeyDown(e, c.id)}
                   role="button"
                   tabIndex={0}
                   aria-label={`View case ${c.case_number}`}
@@ -210,4 +214,6 @@ export default function CaseTable({ cases, loading, sort, onSort, pagination, on
     </div>
   );
 }
+
+export default memo(CaseTable);
 

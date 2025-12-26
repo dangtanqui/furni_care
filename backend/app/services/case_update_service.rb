@@ -24,10 +24,12 @@ class CaseUpdateService < BaseService
     ActiveRecord::Base.transaction do
       old_assigned_to_id = @case.assigned_to_id
       old_status = @case.status
+      is_closing = case_params[:status] == CaseConstants::STATUSES[:CLOSED]
       
       if @case.update(update_params)
         handle_cost_update(cost_fields_updated) if cost_fields_updated
-        handle_final_cost_update(final_cost_updated, old_final_cost_status) if final_cost_updated
+        # Don't handle final_cost_update when closing case - preserve final_cost_status
+        handle_final_cost_update(final_cost_updated, old_final_cost_status) if final_cost_updated && !is_closing
         handle_stage_rollback
         
         updated_case = @case.reload

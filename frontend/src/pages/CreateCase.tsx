@@ -3,8 +3,10 @@ import Button from '../components/Button';
 import { useCreateCase } from '../hooks/pages/useCreateCase';
 import CaseForm from '../components/pages/create_case/CaseForm';
 import '../styles/pages/CreateCase.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function CreateCase() {
+  const navigate = useNavigate();
   const {
     form,
     handleFormChange,
@@ -19,6 +21,16 @@ export default function CreateCase() {
     clearFieldError,
     loading,
   } = useCreateCase();
+
+  const onSubmit = async (e: React.FormEvent) => {
+    const result = await handleSubmit(e);
+
+    // Navigate to case list on success (toast is handled by hook)
+    if (result.success) {
+      navigate('/');
+    }
+    // Error toast is handled by hook, no action needed here
+  };
 
   return (
     <div className="create-case-page">
@@ -44,7 +56,7 @@ export default function CreateCase() {
           onFormChange={handleFormChange}
           onFileChange={handleFileChange}
           onDeletePreview={handleDeletePreview}
-          onSubmit={handleSubmit}
+          onSubmit={onSubmit}
           errors={errors}
           onClearFieldError={clearFieldError}
           loading={loading}

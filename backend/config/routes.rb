@@ -13,6 +13,16 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => '/api-docs'
   mount Rswag::Api::Engine => '/api-docs'
   
+  # Sidekiq Web UI (protect with authentication in production)
+  if Rails.env.production?
+    require 'sidekiq/web'
+    # TODO: Add authentication middleware before mounting Sidekiq::Web
+    # Example: authenticate :user, ->(u) { u.admin? } do
+    #   mount Sidekiq::Web => '/sidekiq'
+    # end
+    mount Sidekiq::Web => '/sidekiq'
+  end
+  
   namespace :api do
     get 'health', to: 'health#index'
     

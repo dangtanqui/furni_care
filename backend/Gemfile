@@ -10,6 +10,12 @@ gem "jwt"
 gem "rack-cors"
 gem "image_processing", "~> 1.2"
 gem "rack-attack" # Rate limiting
+gem "sidekiq" # Background job processing
+gem "redis" # Required for Sidekiq and caching
+gem "aws-sdk-s3", require: false # AWS S3 for Active Storage
+gem "sentry-ruby" # Error tracking
+gem "sentry-rails" # Sentry integration for Rails
+gem "newrelic_rpm" # Application performance monitoring
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false

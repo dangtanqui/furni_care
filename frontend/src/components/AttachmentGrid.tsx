@@ -1,26 +1,57 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { X } from 'lucide-react';
 import ImageViewer from './ImageViewer';
 import type { AttachmentGridProps } from '../types/components/AttachmentGrid';
 import '../styles/components/AttachmentGrid.css';
 
-export default function AttachmentGrid({ attachments, canEdit = false, onDelete }: AttachmentGridProps) {
+/**
+ * Lazy-loaded image component
+ */
+const LazyImage = memo(({ src, alt, className, onClick }: { src: string; alt: string; className?: string; onClick?: () => void }) => {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+});
+
+LazyImage.displayName = 'LazyImage';
+
+function AttachmentGrid({ attachments, canEdit = false, onDelete }: AttachmentGridProps) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
-  if (!attachments?.length) return null;
+  // Memoize image attachments filter
+  const imageAttachments = useMemo(() => {
+    if (!attachments?.length) return [];
+    return attachments.filter(att => {
+      const ext = att.filename.split('.').pop()?.toLowerCase();
+      return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext || '');
+    });
+  }, [attachments]);
 
-  // Filter only image attachments for viewer
-  const imageAttachments = attachments.filter(att => {
-    const ext = att.filename.split('.').pop()?.toLowerCase();
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext || '');
-  });
-
-  const handleImageClick = (attId: number) => {
+  const handleImageClick = useCallback((attId: number) => {
     const index = imageAttachments.findIndex(att => att.id === attId);
     if (index !== -1) {
       setViewerIndex(index);
     }
-  };
+  }, [imageAttachments]);
+
+  const handleDelete = useCallback((e: React.MouseEvent, attId: number) => {
+    e.stopPropagation();
+    onDelete?.(attId);
+  }, [onDelete]);
+
+  const imageUrls = useMemo(() => 
+    imageAttachments.map(att => att.url),
+    [imageAttachments]
+  );
+
+  if (!attachments?.length) return null;
 
   return (
     <>
@@ -29,7 +60,7 @@ export default function AttachmentGrid({ attachments, canEdit = false, onDelete 
           const isImage = imageAttachments.some(img => img.id === att.id);
           return (
             <div key={att.id} className="attachment-item">
-              <img
+              <LazyImage
                 src={att.url}
                 alt={att.filename}
                 className={`attachment-image ${isImage ? 'attachment-image-clickable' : ''}`}
@@ -37,10 +68,7 @@ export default function AttachmentGrid({ attachments, canEdit = false, onDelete 
               />
               {canEdit && onDelete && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(att.id);
-                  }}
+                  onClick={(e) => handleDelete(e, att.id)}
                   className="attachment-delete-button"
                   type="button"
                   aria-label={`Delete ${att.filename}`}
@@ -53,9 +81,9 @@ export default function AttachmentGrid({ attachments, canEdit = false, onDelete 
           );
         })}
       </div>
-      {viewerIndex !== null && imageAttachments.length > 0 && (
+      {viewerIndex !== null && imageUrls.length > 0 && (
         <ImageViewer
-          images={imageAttachments.map(att => att.url)}
+          images={imageUrls}
           currentIndex={viewerIndex}
           onClose={() => setViewerIndex(null)}
         />
@@ -63,4 +91,6 @@ export default function AttachmentGrid({ attachments, canEdit = false, onDelete 
     </>
   );
 }
+
+export default memo(AttachmentGrid);
 

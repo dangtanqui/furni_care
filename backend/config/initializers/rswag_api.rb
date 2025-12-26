@@ -22,8 +22,6 @@ Rails.application.config.after_initialize do
     
     yaml_content = YAML.load_file(swagger_yaml_path)
     File.write(swagger_json_path, JSON.pretty_generate(yaml_content))
-    
-    Rails.logger.info "Generated swagger.json from swagger.yaml"
   end
 end
 

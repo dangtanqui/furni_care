@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { getMe } from '../api/auth';
 import { ROLES } from '../constants/roles';
+import { setUser as setSentryUser } from '../utils/errorTracker';
 
 interface User {
   id: number;
@@ -56,6 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // They will be cleared only if user unchecks "Remember Me"
     setToken(null);
     setUser(null);
+    // Clear Sentry user context
+    setSentryUser(null);
   };
 
   useEffect(() => {
@@ -63,6 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       getMe()
         .then(res => {
           setUser(res.data.user);
+          // Set Sentry user context
+          setSentryUser(res.data.user);
         })
         .catch(() => {
           // Token is invalid or expired
@@ -70,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
     } else {
       setUser(null);
+      setSentryUser(null);
     }
   }, [token]);
 
@@ -83,6 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(TOKEN_EXPIRATION_KEY, expirationTime.toString());
     setToken(newToken);
     setUser(newUser);
+    // Set Sentry user context
+    setSentryUser(newUser);
   };
 
   return (

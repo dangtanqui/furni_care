@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { ApiErrorHandler } from '../utils/apiErrorHandler';
+import { ErrorCategory } from '../types/errors';
 import { Armchair } from 'lucide-react';
 import LoginForm from '../components/pages/login/LoginForm';
 import '../styles/pages/Login.css';
@@ -55,8 +57,26 @@ export default function Login() {
       
       login(res.data.token, res.data.user, rememberMe);
       navigate('/');
-    } catch {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      // Error is already normalized by axios interceptor to AppError
+      // Check status directly (already extracted by interceptor)
+      const status = err?.status;
+      const message = err?.message || '';
+      
+      // Check if it's a rate limit error (429) or message contains rate limit info
+      const isRateLimit = status === 429 || 
+                          message.toLowerCase().includes('too many') ||
+                          message.toLowerCase().includes('rate limit');
+      
+      if (isRateLimit) {
+        // Extract retry_after from normalized error
+        const retryAfterMinutes = err?.retry_after_minutes || 
+                                  Math.ceil((err?.retry_after || 1200) / 60);
+        setError(`Too many login attempts. Please try again in ${retryAfterMinutes} minute${retryAfterMinutes !== 1 ? 's' : ''}.`);
+      } else {
+        // For non-rate-limit errors, show generic login error
+        setError('Invalid email or password');
+      }
       setLoading(false);
     }
   };

@@ -51,11 +51,18 @@ class CaseFinalCostService < BaseService
   def handle_final_cost_update(old_final_cost_status = nil)
     @case.reload
     
+    # Don't update final_cost_status if case is being closed
+    # When closing, final_cost_status should remain as approved
+    if @case.status == CaseConstants::STATUSES[:CLOSED]
+      return
+    end
+    
     # Use provided old_final_cost_status or fallback to current status if not provided
     was_rejected = (old_final_cost_status || @case.final_cost_status) == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
     
     # Get old and new final_cost values
-    old_final_cost = @case.final_cost_was
+    # Use attribute_was to get the previous value before the update
+    old_final_cost = @case.attribute_was(:final_cost)
     new_final_cost = @case.final_cost
     estimated_cost = @case.estimated_cost
     

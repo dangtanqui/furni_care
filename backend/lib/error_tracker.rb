@@ -1,53 +1,63 @@
-# Error tracking service wrapper
-# 
-# To integrate with error tracking service (e.g., Sentry, Rollbar):
-# 1. Add gem to Gemfile: gem 'sentry-ruby' or gem 'rollbar'
-# 2. Configure in config/initializers/error_tracker.rb
-# 3. Update methods below to use actual service
+# Error tracking service wrapper using Sentry
 module ErrorTracker
   class << self
     # Track exception
     # @param exception [Exception] The exception to track
     # @param context [Hash] Additional context (user, request, etc.)
     def capture_exception(exception, context = {})
-      # TODO: Integrate with error tracking service
-      # Example with Sentry:
-      # Sentry.capture_exception(exception, contexts: { custom: context })
-      
-      # For now, just log to Rails logger
-      Rails.logger.error "ErrorTracker: #{exception.class} - #{exception.message}"
-      Rails.logger.error "Context: #{context.inspect}" if context.present?
-      Rails.logger.error exception.backtrace.join("\n") if exception.respond_to?(:backtrace)
+      if defined?(Sentry) && Sentry.configuration.dsn.present?
+        Sentry.capture_exception(exception, contexts: { custom: context })
+      else
+        # Fallback to Rails logger if Sentry is not configured
+        Rails.logger.error "ErrorTracker: #{exception.class} - #{exception.message}"
+        Rails.logger.error "Context: #{context.inspect}" if context.present?
+        Rails.logger.error exception.backtrace.join("\n") if exception.respond_to?(:backtrace)
+      end
+    rescue => e
+      # Ensure we always log even if Sentry fails
+      Rails.logger.error "Sentry error: #{e.message}"
+      Rails.logger.error "Original error: #{exception.class} - #{exception.message}"
     end
 
     # Track message
     # @param message [String] Error message
     # @param level [Symbol] Severity level (:error, :warning, :info)
     # @param context [Hash] Additional context
-    def capture_message(message, level: :error, context: {})
-      # TODO: Integrate with error tracking service
-      # Example with Sentry:
-      # Sentry.capture_message(message, level: level, contexts: { custom: context })
-      
-      # For now, just log to Rails logger
+    def capture_message(message, level = :error, context = {})
+      if defined?(Sentry) && Sentry.configuration.dsn.present?
+        Sentry.capture_message(message, level: level, contexts: { custom: context })
+      else
+        # Fallback to Rails logger if Sentry is not configured
+        Rails.logger.public_send(level, "ErrorTracker: #{message}")
+        Rails.logger.public_send(level, "Context: #{context.inspect}") if context.present?
+      end
+    rescue => e
+      # Ensure we always log even if Sentry fails
+      Rails.logger.public_send(level, "Sentry error: #{e.message}")
       Rails.logger.public_send(level, "ErrorTracker: #{message}")
-      Rails.logger.public_send(level, "Context: #{context.inspect}") if context.present?
     end
 
     # Set user context for error tracking
     # @param user [User] Current user
     def set_user(user)
-      # TODO: Set user context in error tracking service
-      # Example with Sentry:
-      # Sentry.set_user(id: user.id, email: user.email, username: user.name)
+      return unless defined?(Sentry) && Sentry.configuration.dsn.present?
+      
+      Sentry.set_user(
+        id: user.id,
+        email: user.email,
+        username: user.name
+      )
+    rescue => e
+      Rails.logger.error "Sentry set_user error: #{e.message}"
     end
 
     # Clear user context
     def clear_user
-      # TODO: Clear user context in error tracking service
-      # Example with Sentry:
-      # Sentry.set_user(nil)
+      return unless defined?(Sentry) && Sentry.configuration.dsn.present?
+      
+      Sentry.set_user(nil)
+    rescue => e
+      Rails.logger.error "Sentry clear_user error: #{e.message}"
     end
   end
 end
-

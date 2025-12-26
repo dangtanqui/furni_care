@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Upload, X } from 'lucide-react';
 import ImageViewer from './ImageViewer';
 import type { FileUploadProps } from '../types/components/FileUpload';
 import '../styles/components/FileUpload.css';
 
-export default function FileUpload({
+/**
+ * Lazy-loaded preview image component
+ */
+const PreviewImage = memo(({ src, alt, onClick }: { src: string; alt: string; onClick: () => void }) => {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="file-upload-preview-image"
+      onClick={onClick}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+});
+
+PreviewImage.displayName = 'PreviewImage';
+
+function FileUpload({
   label = 'Photos / Attachments',
   accept = 'image/*,.pdf,.doc,.docx',
   showPreview = false,
@@ -17,6 +35,16 @@ export default function FileUpload({
   uploadText = 'Click to upload photos/documents',
 }: FileUploadProps) {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  const handlePreviewClick = useCallback((idx: number) => {
+    setViewerIndex(idx);
+  }, []);
+
+  const handleDelete = useCallback((e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    onDeletePreview?.(idx);
+  }, [onDeletePreview]);
+
   return (
     <div>
       <label htmlFor={id} className="file-upload-label">{label}</label>
@@ -40,18 +68,14 @@ export default function FileUpload({
           <div className="file-upload-preview-grid">
             {previews.map((src, idx) => (
               <div key={idx} className="file-upload-preview-item">
-                <img
+                <PreviewImage
                   src={src}
                   alt={`Upload ${idx + 1}`}
-                  className="file-upload-preview-image"
-                  onClick={() => setViewerIndex(idx)}
+                  onClick={() => handlePreviewClick(idx)}
                 />
                 {onDeletePreview && (
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeletePreview(idx);
-                    }}
+                    onClick={(e) => handleDelete(e, idx)}
                     className="file-upload-delete-button"
                     type="button"
                     aria-label={`Delete image ${idx + 1}`}
@@ -74,4 +98,6 @@ export default function FileUpload({
     </div>
   );
 }
+
+export default memo(FileUpload);
 

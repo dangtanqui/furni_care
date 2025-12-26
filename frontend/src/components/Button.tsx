@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/utilities.css';
@@ -24,7 +25,7 @@ type ButtonProps = BaseButtonProps &
     ? { href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseButtonProps>
     : Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseButtonProps>);
 
-export default function Button({
+function Button({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
@@ -123,3 +124,5 @@ export default function Button({
     </button>
   );
 }
+
+export default memo(Button);

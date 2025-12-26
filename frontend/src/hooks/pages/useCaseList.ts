@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
-import { getCases } from '../../api/cases';
-import type { CaseListItem } from '../../api/cases';
+import { useCases } from '../api/useCases';
 import { useTechnicians } from '../useTechnicians';
-import { useToast } from '../../contexts/ToastContext';
 import {
   DEFAULT_SORT,
   SORT_DIRECTION,
   PAGINATION,
   ERROR_MESSAGES,
-  TOAST_MESSAGES,
-  TOAST_DURATION,
 } from '../../constants/pages/CaseList';
 
 export function useCaseList() {
-  const [cases, setCases] = useState<CaseListItem[]>([]);
   const [filter, setFilter] = useState({ status: '', case_type: '', assigned_to: '' });
   const { technicians } = useTechnicians();
-  const { showInfo } = useToast();
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<{
+    page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  }>({
     page: PAGINATION.DEFAULT_PAGE,
     per_page: PAGINATION.DEFAULT_PER_PAGE,
     total: 0,
@@ -26,46 +25,34 @@ export function useCaseList() {
   const [sort, setSort] = useState<Array<{ column: string; direction: 'asc' | 'desc' }>>([
     { column: DEFAULT_SORT.column, direction: DEFAULT_SORT.direction },
   ]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
+  // Use React Query hook for data fetching
+  const {
+    data: casesResponse,
+    isLoading: loading,
+    error: queryError,
+  } = useCases({
+    page: pagination.page,
+    per_page: pagination.per_page,
+    sorts: sort.length > 0 ? sort : [{ column: DEFAULT_SORT.column, direction: DEFAULT_SORT.direction }],
+    status: filter.status || undefined,
+    case_type: filter.case_type || undefined,
+    assigned_to: filter.assigned_to || undefined,
+  });
+
+  // Update pagination when data changes
   useEffect(() => {
-    loadCases();
-  }, [filter, pagination.page, sort]);
-
-  useEffect(() => {
-  }, []);
-
-  const loadCases = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: Record<string, string> = {
-        page: String(pagination.page),
-        per_page: String(pagination.per_page),
-      };
-      // Send all sorts as JSON array for multiple column sorting
-      if (sort.length > 0) {
-        params.sorts = JSON.stringify(sort.map(s => ({ column: s.column, direction: s.direction })));
-      } else {
-        // Default sort if no sort is active
-        params.sorts = JSON.stringify([
-          { column: DEFAULT_SORT.column, direction: DEFAULT_SORT.direction },
-        ]);
-      }
-      if (filter.status) params.status = filter.status;
-      if (filter.case_type) params.case_type = filter.case_type;
-      if (filter.assigned_to) params.assigned_to = filter.assigned_to;
-      const res = await getCases(params);
-      setCases(res.data.data);
-      setPagination(res.data.pagination);
-    } catch (error) {
-      setError(ERROR_MESSAGES.LOAD_CASES_FAILED);
-      setCases([]);
-    } finally {
-      setLoading(false);
+    if (casesResponse?.pagination) {
+      setPagination(casesResponse.pagination);
     }
-  };
+  }, [casesResponse]);
+
+  // Convert React Query error to string
+  const error = queryError
+    ? (queryError as Error)?.message || ERROR_MESSAGES.LOAD_CASES_FAILED
+    : null;
+
+  const cases = casesResponse?.data || [];
 
   const handleSort = (column: string) => {
     setSort(prev => {
@@ -96,12 +83,8 @@ export function useCaseList() {
   };
 
   const handleFilterChange = (newFilter: typeof filter) => {
-    const hasActiveFilters = newFilter.status || newFilter.case_type || newFilter.assigned_to;
     setFilter(newFilter);
     setPagination(prev => ({ ...prev, page: PAGINATION.DEFAULT_PAGE })); // Reset to page 1 when filter changes
-    if (hasActiveFilters) {
-      showInfo(TOAST_MESSAGES.FILTERS_APPLIED, TOAST_DURATION.FILTERS_APPLIED);
-    }
   };
 
   return {

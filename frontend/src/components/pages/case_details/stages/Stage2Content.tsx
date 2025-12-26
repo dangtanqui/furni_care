@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
@@ -14,7 +14,7 @@ interface Stage2ContentProps {
   onOpenStage: (stageNum: number) => void;
 }
 
-export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
+function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
   const { caseData, isCS, isLeader, handleUpdate, handleAdvance, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
   
   if (!caseData) return null;
@@ -56,9 +56,13 @@ export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentPro
   };
 
   const handleFinish = async () => {
-    await handleUpdate({ investigation_report: report, investigation_checklist: JSON.stringify(checklist) });
+    // Skip toast for update when completing (will show toast after advance)
+    await handleUpdate(
+      { investigation_report: report, investigation_checklist: JSON.stringify(checklist) },
+      { skipToast: isCurrent }
+    );
     // Only advance if Stage 2 is the current stage
-    if (nonNullCaseData.current_stage === 2) {
+    if (isCurrent) {
       await handleAdvance();
       // Open Stage 3 after advancing
       setTimeout(() => {
@@ -149,4 +153,6 @@ export default function Stage2Content({ canEdit, onOpenStage }: Stage2ContentPro
     </div>
   );
 }
+
+export default memo(Stage2Content);
 

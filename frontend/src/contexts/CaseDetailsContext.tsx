@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { CaseDetail as CaseDetailType } from '../api/cases';
+import type { CaseDetail } from '../api/cases';
 
 interface CaseDetailsContextType {
-  caseData: CaseDetailType | null;
+  caseData: CaseDetail | null;
   technicians: { id: number; name: string }[];
   isCS: boolean;
   isTechnician: boolean;
@@ -11,7 +11,7 @@ interface CaseDetailsContextType {
   currentUserId?: number;
   error: string | null;
   loading: boolean;
-  handleUpdate: (data: Partial<CaseDetailType>) => Promise<void>;
+  handleUpdate: (data: Partial<CaseDetail>, options?: { skipToast?: boolean }) => Promise<void>;
   handleAttachmentsUpload: (stage: number, files: File[], attachmentType?: string) => Promise<void>;
   handleAttachmentDelete: (attachmentId: number) => Promise<void>;
   handleAdvance: () => Promise<void>;

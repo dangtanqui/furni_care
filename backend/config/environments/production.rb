@@ -29,8 +29,8 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Use AWS S3 for file storage in production
+  config.active_storage.service = :amazon
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil # Not used - ActionCable disabled
@@ -57,15 +57,16 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Use Redis for caching in production
+  config.cache_store = :redis_cache_store, {
+    url: ENV['REDIS_URL'] || ENV['REDIS_CACHE_URL'] || 'redis://localhost:6379/1',
+    namespace: 'furnicare:cache',
+    expires_in: 90.minutes
+  }
 
-  # Use a real queuing backend for Active Job (and separate queues per environment).
-  # For production, configure a proper queue adapter like Sidekiq or Resque:
-  # config.active_job.queue_adapter = :sidekiq
-  # config.active_job.queue_name_prefix = "backend_production"
-  # For now, using async adapter (in-memory) - should be replaced with proper queue backend
-  config.active_job.queue_adapter = :async
+  # Use Sidekiq for background job processing
+  config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_name_prefix = "furnicare_production"
 
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = { host: ENV['MAILER_HOST'] || 'localhost' }

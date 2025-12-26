@@ -1,4 +1,5 @@
-import axios from 'axios';
+import axios, { type AxiosError } from 'axios';
+import { ApiErrorHandler } from '../utils/apiErrorHandler';
 
 const api = axios.create({
   baseURL: '/api',
@@ -14,30 +15,21 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response) {
-      // Handle HTTP error responses
-      const status = error.response.status;
-      
-      if (status === 401) {
-        // Unauthorized - token expired or invalid
-        localStorage.removeItem('token');
-        // Only redirect if not already on login page
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
-      } else if (status === 403) {
-        // Forbidden - user doesn't have permission
-        // Don't redirect, let the component handle the error
-        return Promise.reject(error);
+  (error: AxiosError) => {
+    const appError = ApiErrorHandler.extractError(error);
+    const category = ApiErrorHandler.categorizeError(appError);
+
+    if (category === 'authentication') {
+      // Unauthorized - token expired or invalid
+      localStorage.removeItem('token');
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
       }
-    } else if (error.request) {
-      // Network error - request was made but no response received
-      // Return a user-friendly error
-      return Promise.reject(new Error('Network error. Please check your connection and try again.'));
     }
-    
-    return Promise.reject(error);
+
+    // Return normalized error
+    return Promise.reject(appError);
   }
 );
 

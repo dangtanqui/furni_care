@@ -12,6 +12,8 @@ class CaseService < BaseService
     @case.created_by = @current_user
     @case.current_stage = STAGE_1
     @case.status = CaseConstants::STATUSES[:OPEN]
+    # assigned_to_id can be set during creation if explicitly provided in params
+    # If not provided, it will remain nil (no auto-assignment)
     
     if @case.save
       BusinessEventLogger.log_case_created(case_id: @case.id, user_id: @current_user.id)

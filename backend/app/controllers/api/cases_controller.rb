@@ -48,7 +48,8 @@ class Api::CasesController < ApplicationController
   end
   
   def create
-    @case = Case.new(case_params)
+    # Use create_case_params to exclude fields that shouldn't be set during creation
+    @case = Case.new(create_case_params)
     result = CaseService.new(case_record: @case, current_user: current_user).create
     render_service_result(result, serializer: CaseSerializer, detail: true, status: :created)
   end
@@ -122,6 +123,17 @@ class Api::CasesController < ApplicationController
     render json: { error: 'Record not found' }, status: :not_found
   end
   
+  def create_case_params
+    # Only permit fields that can be set during case creation
+    # current_stage and status are set by the service
+    # assigned_to_id can be set during creation if explicitly provided
+    params.permit(
+      :client_id, :site_id, :contact_id,
+      :description, :case_type, :priority,
+      :assigned_to_id
+    )
+  end
+
   def case_params
     params.permit(
       :client_id, :site_id, :contact_id, :assigned_to_id,

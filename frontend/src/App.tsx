@@ -1,20 +1,17 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
+import { queryClient } from './lib/react-query';
 
 // Lazy load routes for code splitting
 const Login = lazy(() => import('./pages/Login'));
 const CaseList = lazy(() => import('./pages/CaseList'));
 const CreateCase = lazy(() => import('./pages/CreateCase'));
 const CaseDetail = lazy(() => import('./pages/CaseDetails'));
-
-function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { token } = useAuth();
-  return token ? <>{children}</> : <Navigate to="/login" />;
-}
 
 // Loading component for lazy routes
 function LoadingFallback() {
@@ -30,31 +27,48 @@ function LoadingFallback() {
   );
 }
 
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { token } = useAuth();
+  return token ? <>{children}</> : <Navigate to="/login" />;
+}
+
 function AppRoutes() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route index element={<CaseList />} />
-          <Route path="cases/new" element={<CreateCase />} />
-          <Route path="cases/:id" element={<CaseDetail />} />
-        </Route>
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+        <Route index element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CaseList />
+          </Suspense>
+        } />
+        <Route path="cases/new" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CreateCase />
+          </Suspense>
+        } />
+        <Route path="cases/:id" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CaseDetail />
+          </Suspense>
+        } />
+      </Route>
+    </Routes>
   );
 }
 
 export default function App() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <ToastProvider>
-            <AppRoutes />
-          </ToastProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+        </ToastProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

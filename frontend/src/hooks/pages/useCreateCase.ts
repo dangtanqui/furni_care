@@ -1,15 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { createCase, uploadAttachments } from '../../api/cases';
 import type { CaseDetail } from '../../api/cases';
 import { getClients, getSites, getContacts } from '../../api/data';
 import type { Client, Site, Contact } from '../../api/data';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../../contexts/ToastContext';
 
+export type CreateCaseResult = 
+  | { success: true; caseId: number }
+  | { success: false };
+
 export function useCreateCase() {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { showSuccess, showError } = useToast();
+
   const [clients, setClients] = useState<Client[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -56,12 +61,41 @@ export function useCreateCase() {
     // Reset input value first to allow uploading the same file again
     e.target.value = '';
     
+    // Track processing status for toast notifications
+    const processingStatus = {
+      total: selectedFiles.length,
+      success: 0,
+      error: 0,
+      completed: 0,
+    };
+    
+    const checkAndShowToast = () => {
+      processingStatus.completed++;
+      if (processingStatus.completed === processingStatus.total) {
+        if (processingStatus.success > 0 && processingStatus.error === 0) {
+          // All attachments succeeded
+          showSuccess(processingStatus.success === 1 
+            ? 'Attachments uploaded successfully' 
+            : `${processingStatus.success} attachments uploaded successfully`);
+        } else if (processingStatus.error > 0 && processingStatus.success === 0) {
+          // All attachments failed
+          showError(processingStatus.error === 1 
+            ? 'Failed to uploade attachment' 
+            : `Failed to uploade ${processingStatus.error} attachment${processingStatus.error > 1 ? 's' : ''}`);
+        } else if (processingStatus.success > 0 && processingStatus.error > 0) {
+          // Mixed results
+          showSuccess(`${processingStatus.success} attachment${processingStatus.success > 1 ? 's' : ''} uploaded successfully`);
+          showError(`${processingStatus.error} attachment${processingStatus.error > 1 ? 's' : ''} failed to uploade`);
+        }
+      }
+    };
+    
     // Update files state
     setFiles(prev => {
       const startFileIndex = prev.length;
       const newFiles = [...prev, ...selectedFiles];
       
-      // Process only NEW image files
+      // Process files
       selectedFiles.forEach((file, idx) => {
         if (file.type.startsWith('image/')) {
           // Create unique identifier for this file (name + size + lastModified)
@@ -69,6 +103,8 @@ export function useCreateCase() {
           
           // Skip if already processed
           if (processedFilesRef.current.has(fileKey)) {
+            processingStatus.success++;
+            checkAndShowToast();
             return;
           }
           
@@ -86,15 +122,25 @@ export function useCreateCase() {
               
               // Track mapping
               setPreviewToFileIndex(prevMapping => [...prevMapping, fileIndex]);
+              processingStatus.success++;
+            } else {
+              processingStatus.error++;
             }
+            checkAndShowToast();
           };
           
           reader.onerror = () => {
             // Remove from processed set on error so it can be retried
             processedFilesRef.current.delete(fileKey);
+            processingStatus.error++;
+            checkAndShowToast();
           };
           
           reader.readAsDataURL(file);
+        } else {
+          // Non-image files are added directly without preview
+          processingStatus.success++;
+          checkAndShowToast();
         }
       });
       
@@ -125,6 +171,9 @@ export function useCreateCase() {
       // Adjust indices for files that come after the deleted one
       return newMapping.map(idx => idx > fileIndex ? idx - 1 : idx);
     });
+    
+    // Show success toast when attachments is deleted
+    showSuccess('Attachment removed successfully');
   };
 
   const handleFormChange = (newForm: typeof form) => {
@@ -154,11 +203,11 @@ export function useCreateCase() {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<CreateCaseResult> => {
     e.preventDefault();
     
     // Prevent double submission
-    if (loading) return;
+    if (loading) return { success: false };
     
     // Client-side validation for required fields
     const validationErrors: Record<string, string> = {};
@@ -186,7 +235,7 @@ export function useCreateCase() {
     // If there are validation errors, display them and stop
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      return;
+      return { success: false };
     }
     
     setErrors({});
@@ -203,12 +252,15 @@ export function useCreateCase() {
       if (files.length) {
         await uploadAttachments(res.data.id, 1, files, 'case_creation');
       }
+      // Invalidate case list cache to ensure new case appears immediately
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
       setFiles([]);
       setPreviews([]);
       setPreviewToFileIndex([]);
       processedFilesRef.current.clear();
+      // Show success toast
       showSuccess('Case created successfully');
-      navigate('/');
+      return { success: true, caseId: res.data.id };
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data?.errors) {
         const responseErrors = error.response.data.errors as Record<string, string[]>;
@@ -217,11 +269,13 @@ export function useCreateCase() {
           return acc;
         }, {});
         setErrors(normalizedErrors);
-        showError('Failed to create case. Please check the form for errors.');
+        // Don't show toast for validation errors - they're shown in the form
+        return { success: false };
       } else {
-        // If there's no specific error from backend, don't display anything
-        setErrors({});
+        // Show error toast for unknown errors
         showError('Failed to create case. Please try again.');
+        setErrors({});
+        return { success: false };
       }
     } finally {
       setLoading(false);
