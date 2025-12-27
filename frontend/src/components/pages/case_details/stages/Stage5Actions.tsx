@@ -34,7 +34,6 @@ function Stage5Actions({
   finalCostMissing,
   finalCostPendingApproval,
   savedFinalCost,
-  form,
   caseData,
   getUpdateData,
   onUpdate,
