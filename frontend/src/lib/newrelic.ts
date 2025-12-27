@@ -37,8 +37,8 @@ if (licenseKey && appId && accountId) {
     }
   }
 
-  const agent = new BrowserAgent(opts)
-  agent.observe()
+  // BrowserAgent automatically starts observing when instantiated
+  new BrowserAgent(opts)
 }
 
 export default {}

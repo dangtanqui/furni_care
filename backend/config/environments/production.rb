@@ -58,11 +58,23 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
   # Use Redis for caching in production
-  config.cache_store = :redis_cache_store, {
-    url: ENV['REDIS_URL'] || ENV['REDIS_CACHE_URL'] || 'redis://localhost:6379/1',
-    namespace: 'furnicare:cache',
-    expires_in: 90.minutes
-  }
+  # Temporarily disabled due to connection_pool compatibility issue with Rails 7.1
+  # TODO: Fix connection_pool/redis_cache_store compatibility - see issue with connection_pool 3.0.2
+  # When fixed, uncomment the Redis cache store configuration below:
+  #
+  # if ENV['REDIS_URL'].present? || ENV['REDIS_CACHE_URL'].present?
+  #   redis_cache_url = ENV['REDIS_CACHE_URL'] || ENV['REDIS_URL']
+  #   config.cache_store = :redis_cache_store, {
+  #     url: redis_cache_url,
+  #     namespace: 'furnicare:cache',
+  #     expires_in: 90.minutes
+  #   }
+  # else
+  #   config.cache_store = :memory_store
+  # end
+  
+  # Temporary: Use memory store until Redis cache store issue is resolved
+  config.cache_store = :memory_store
 
   # Use Sidekiq for background job processing
   config.active_job.queue_adapter = :sidekiq

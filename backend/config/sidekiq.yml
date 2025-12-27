@@ -1,0 +1,5 @@
+:concurrency: <%= ENV.fetch("SIDEKIQ_CONCURRENCY", 5).to_i %>
+
+# Note: Queue names are configured in config/initializers/sidekiq.rb
+# to match the queue_name_prefix set in config/environments/*.rb
+# This ensures queues match ActiveJob's queue_name_prefix automatically

@@ -68,8 +68,8 @@ Rails.application.configure do
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
   
-  # Use async adapter for development (in-memory queue)
-  config.active_job.queue_adapter = :async
+  config.active_job.queue_adapter = :sidekiq
+  config.active_job.queue_name_prefix = "furnicare_development"
 
   # Ensure logs are output to STDOUT in development
   config.logger = ActiveSupport::Logger.new(STDOUT)

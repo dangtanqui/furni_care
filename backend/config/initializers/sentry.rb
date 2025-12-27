@@ -4,6 +4,10 @@ if ENV['SENTRY_DSN'].present?
     config.dsn = ENV['SENTRY_DSN']
     config.breadcrumbs_logger = [:active_support_logger, :http_logger]
     
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/ruby/data-management/data-collected/ for more info
+    config.send_default_pii = true
+    
     # Performance monitoring - sample 50% of transactions
     config.traces_sample_rate = ENV.fetch('SENTRY_TRACES_SAMPLE_RATE', '0.5').to_f
     

@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login as loginApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
-import { ApiErrorHandler } from '../utils/apiErrorHandler';
-import { ErrorCategory } from '../types/errors';
 import { Armchair } from 'lucide-react';
 import LoginForm from '../components/pages/login/LoginForm';
 import '../styles/pages/Login.css';

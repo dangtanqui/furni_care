@@ -1,3 +1,5 @@
+return unless defined?(Rswag::Api)
+
 Rswag::Api.configure do |c|
   # Specify a root folder where Swagger JSON files are generated
   # NOTE: If you're using the rswag-api to serve API descriptions, you'll need

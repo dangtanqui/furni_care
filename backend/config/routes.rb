@@ -9,14 +9,19 @@ Rails.application.routes.draw do
     end
   }
   
-  # Swagger documentation
-  mount Rswag::Ui::Engine => '/api-docs'
-  mount Rswag::Api::Engine => '/api-docs'
+  if defined?(Rswag::Ui)
+    # Swagger documentation
+    mount Rswag::Ui::Engine => '/api-docs'
+  end
+  if defined?(Rswag::Api)
+    # Swagger documentation
+    mount Rswag::Api::Engine => '/api-docs'
+  end
   
-  # Sidekiq Web UI (protect with authentication in production)
   if Rails.env.production?
+    # Sidekiq Web UI
     require 'sidekiq/web'
-    # TODO: Add authentication middleware before mounting Sidekiq::Web
+    # TODO: Add authentication middleware before mounting Sidekiq::Web in production
     # Example: authenticate :user, ->(u) { u.admin? } do
     #   mount Sidekiq::Web => '/sidekiq'
     # end

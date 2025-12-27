@@ -9,10 +9,9 @@ class CaseExecutionSummaryJob < ApplicationJob
     return unless case_record.current_stage == StageConstants::STAGE_5
     
     contact_email = case_record.contact&.email.presence
-    client_email = case_record.client&.email.presence
     
     # Only send if there's an email address
-    return unless contact_email.present? || client_email.present?
+    return unless contact_email.present?
     
     CaseMailer.execution_summary(case_record).deliver_now
   rescue ActiveRecord::RecordNotFound => e

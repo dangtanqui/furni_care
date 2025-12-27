@@ -10,7 +10,6 @@ export default defineConfig(({ mode }) => {
   // .env.local (highest priority) > .env.[mode] > .env
   // Read .env.local first to ensure it takes priority
   let apiUrl: string | null = null
-  let source = 'default'
   
   // Read .env.local first (highest priority)
   try {
@@ -20,7 +19,6 @@ export default defineConfig(({ mode }) => {
       const localMatch = envLocalContent.match(/^VITE_API_URL\s*=\s*(.+)$/m)
       if (localMatch && localMatch[1]) {
         apiUrl = localMatch[1].trim()
-        source = '.env.local'
       }
     }
   } catch (e: any) {
@@ -34,10 +32,8 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '')
     if (env.VITE_API_URL) {
       apiUrl = env.VITE_API_URL
-      source = `.env.${mode} or .env`
     } else {
       apiUrl = 'http://localhost:3000'
-      source = 'default fallback'
     }
   }
   

@@ -43,7 +43,14 @@ module Backend
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
     
+    # Use Sidekiq for background job processing (can be overridden in environment files)
+    config.active_job.queue_adapter = :sidekiq
+    
     # Enable Rack::Attack for rate limiting
     config.middleware.use Rack::Attack
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore,
+      key: "_my_app_session",
+      same_site: :lax
   end
 end
