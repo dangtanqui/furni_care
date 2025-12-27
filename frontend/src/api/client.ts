@@ -1,8 +1,19 @@
 import axios, { type AxiosError } from 'axios';
 import { ApiErrorHandler } from '../utils/apiErrorHandler';
 
+// Use VITE_API_URL if provided (for production), otherwise use relative URL (for dev with proxy)
+const getBaseURL = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  if (apiUrl) {
+    // Ensure it ends with /api
+    return apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+  }
+  // Fallback to relative URL for dev mode (will use Vite proxy)
+  return '/api';
+};
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseURL(),
 });
 
 api.interceptors.request.use((config) => {

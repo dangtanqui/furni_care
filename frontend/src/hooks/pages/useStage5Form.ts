@@ -81,6 +81,7 @@ export function useStage5Form({
     [form.final_cost]
   );
   const savedFinalCost = useMemo(() => caseData?.final_cost ?? null, [caseData?.final_cost]);
+  const approvedFinalCost = useMemo(() => caseData?.approved_final_cost ?? null, [caseData?.approved_final_cost]);
   const estimatedCost = useMemo(() => caseData?.estimated_cost ?? null, [caseData?.estimated_cost]);
 
   const hasFinalCostInForm = useMemo(
@@ -129,12 +130,51 @@ export function useStage5Form({
     [formFinalCost, estimatedCost, costsEqual]
   );
 
-  const finalCostPendingApproval = useMemo(
+  // Check if form final cost differs from approved final cost (if exists) or saved final cost
+  // Priority: approved_final_cost > savedFinalCost
+  const referenceFinalCost = useMemo(
+    () => approvedFinalCost ?? savedFinalCost,
+    [approvedFinalCost, savedFinalCost]
+  );
+
+  const formFinalCostDiffersFromReference = useMemo(
     () =>
       Boolean(
-        showFinalCostSection &&
-          !finalCostMissing &&
-          !formFinalCostEqualsEstimated &&
+        formFinalCost !== null &&
+          referenceFinalCost !== null &&
+          !costsEqual(formFinalCost, referenceFinalCost)
+      ),
+    [formFinalCost, referenceFinalCost, costsEqual]
+  );
+
+  // Check if form final cost equals approved final cost (if exists)
+  const formFinalCostEqualsApproved = useMemo(
+    () =>
+      Boolean(
+        approvedFinalCost !== null &&
+          formFinalCost !== null &&
+          costsEqual(formFinalCost, approvedFinalCost)
+      ),
+    [approvedFinalCost, formFinalCost, costsEqual]
+  );
+
+  const finalCostPendingApproval = useMemo(
+    () => {
+      if (!showFinalCostSection || finalCostMissing) return false;
+      
+      // If there's an approved_final_cost and form value matches it, no approval needed
+      if (approvedFinalCost !== null && formFinalCostEqualsApproved) {
+        return false;
+      }
+      
+      // If there's an approved_final_cost but form value differs, need approval
+      if (approvedFinalCost !== null) {
+        return formFinalCostDiffersFromReference;
+      }
+      
+      // If no approved_final_cost yet, use original logic
+      return Boolean(
+        !formFinalCostEqualsEstimated &&
           (caseData?.final_cost_status === FINAL_COST_STATUS.PENDING ||
             caseData?.final_cost_status === FINAL_COST_STATUS.REJECTED ||
             (savedFinalCostDiffers &&
@@ -144,10 +184,14 @@ export function useStage5Form({
               !savedFinalCost &&
               !caseData?.final_cost_status &&
               !caseData?.final_cost_approved_by))
-      ),
+      );
+    },
     [
       showFinalCostSection,
       finalCostMissing,
+      approvedFinalCost,
+      formFinalCostEqualsApproved,
+      formFinalCostDiffersFromReference,
       formFinalCostEqualsEstimated,
       caseData?.final_cost_status,
       caseData?.final_cost_approved_by,
@@ -158,18 +202,25 @@ export function useStage5Form({
   );
 
   const showSaveButton = useMemo(
-    () =>
-      Boolean(
-        showFinalCostSection &&
-          !formFinalCostEqualsEstimated &&
-          formFinalCostDiffers &&
-          caseData?.final_cost_status !== FINAL_COST_STATUS.APPROVED
-      ),
+    () => {
+      if (!showFinalCostSection) return false;
+      
+      // If there's an approved_final_cost (was approved before), compare with it
+      // Otherwise, compare with estimated_cost
+      if (approvedFinalCost !== null) {
+        // Was approved before - compare with approved value
+        return formFinalCostDiffersFromReference;
+      }
+      
+      // Not approved yet - compare with estimated cost
+      return !formFinalCostEqualsEstimated && formFinalCostDiffers;
+    },
     [
       showFinalCostSection,
+      approvedFinalCost,
+      formFinalCostDiffersFromReference,
       formFinalCostEqualsEstimated,
       formFinalCostDiffers,
-      caseData?.final_cost_status,
     ]
   );
 
@@ -199,23 +250,32 @@ export function useStage5Form({
         } else {
           updateData.final_cost = finalCost;
           
-          // Only set status and final_cost_status to PENDING if:
-          // 1. We're NOT closing the case
-          // 2. Final cost differs from estimated cost
-          // 3. Final cost has NOT been approved yet
-          const finalCostDiffers = estimatedCost !== null && Math.abs(finalCost - estimatedCost) >= 0.01;
-          const finalCostNotApproved = !finalCostApproved;
-          
-          if (!isClosing && finalCostDiffers && finalCostNotApproved) {
-            updateData.status = CASE_STATUS.PENDING;
-            updateData.final_cost_status = FINAL_COST_STATUS.PENDING;
+          // If there's an approved_final_cost (was approved before), compare with it
+          // Otherwise, compare with estimated cost
+          if (approvedFinalCost !== null) {
+            // Was approved before - compare with approved value
+            const formFinalCostDiffersFromApproved = !costsEqual(finalCost, approvedFinalCost);
+            
+            // If CS changed from approved value, reset to PENDING for re-approval
+            if (!isClosing && formFinalCostDiffersFromApproved) {
+              updateData.status = CASE_STATUS.PENDING;
+              updateData.final_cost_status = FINAL_COST_STATUS.PENDING;
+            }
+          } else {
+            // Not approved yet - compare with estimated cost
+            const finalCostDiffers = estimatedCost !== null && Math.abs(finalCost - estimatedCost) >= 0.01;
+            
+            if (!isClosing && finalCostDiffers) {
+              updateData.status = CASE_STATUS.PENDING;
+              updateData.final_cost_status = FINAL_COST_STATUS.PENDING;
+            }
           }
         }
       }
 
       return updateData;
     },
-    [form, estimatedCost, caseData?.final_cost_status]
+    [form, estimatedCost, caseData?.final_cost_status, approvedFinalCost, costsEqual]
   );
 
   return {

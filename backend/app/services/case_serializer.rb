@@ -82,6 +82,7 @@ class CaseSerializer
       final_rating: @case.final_rating,
       final_cost: @case.final_cost,
       final_cost_status: @case.final_cost_status,
+      approved_final_cost: @case.approved_final_cost, # The final cost value that was approved (for comparison)
       final_cost_approved_by: @case.final_cost_approved_by ? { id: @case.final_cost_approved_by_id, name: @case.final_cost_approved_by.name } : nil,
 
       stage_attachments: attachments_hash,

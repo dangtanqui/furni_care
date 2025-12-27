@@ -32,6 +32,22 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" />;
 }
 
+function NotFound() {
+  return (
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column',
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',
+      gap: '1rem'
+    }}>
+      <h1>404 - Not Found</h1>
+      <p>The page you're looking for doesn't exist.</p>
+    </div>
+  );
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -52,7 +68,9 @@ function AppRoutes() {
             <CaseDetail />
           </Suspense>
         } />
+        <Route path="*" element={<NotFound />} />
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

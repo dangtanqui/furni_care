@@ -85,6 +85,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_24_085226) do
     t.decimal "final_cost", precision: 15, scale: 2
     t.string "final_cost_status"
     t.bigint "final_cost_approved_by_id"
+    t.decimal "approved_final_cost", precision: 15, scale: 2
     t.index ["assigned_to_id", "status"], name: "index_cases_on_assigned_to_id_and_status"
     t.index ["assigned_to_id"], name: "index_cases_on_assigned_to_id"
     t.index ["case_number"], name: "index_cases_on_case_number", unique: true

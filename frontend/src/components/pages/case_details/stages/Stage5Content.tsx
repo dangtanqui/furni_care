@@ -246,6 +246,7 @@ function Stage5Content({ canEdit, onCloseAccordion }: Stage5ContentProps) {
             savedFinalCost={savedFinalCost}
             form={form}
             caseData={caseData}
+            getUpdateData={getUpdateData}
             onUpdate={handleUpdate}
             onClose={handleClose}
             onRedo={handleRedo}

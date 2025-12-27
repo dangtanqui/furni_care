@@ -24,6 +24,7 @@ class CaseFinalCostService < BaseService
       @case.update(
         final_cost_status: CaseConstants::FINAL_COST_STATUSES[:APPROVED],
         final_cost_approved_by: @current_user,
+        approved_final_cost: @case.final_cost, # Save the approved value for comparison later
         status: CaseConstants::STATUSES[:COMPLETED] # but CS still needs to close the case
       )
       BusinessEventLogger.log_final_cost_approved(case_id: @case.id, user_id: @current_user.id)

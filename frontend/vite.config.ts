@@ -43,6 +43,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       port: 5173,
+      // Vite automatically handles SPA routing in dev mode
+      // All routes will be served with index.html for client-side routing
       proxy: {
         '/api': {
           target: apiUrl,

@@ -65,6 +65,7 @@ export interface CaseDetail {
   final_rating: number;
   final_cost: number | null;
   final_cost_status: FinalCostStatus;
+  approved_final_cost: number | null; // The final cost value that was approved (for comparison)
   final_cost_approved_by: { id: number; name: string } | null;
   stage_attachments: Record<
     string,

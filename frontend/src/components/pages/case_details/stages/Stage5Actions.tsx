@@ -18,6 +18,7 @@ interface Stage5ActionsProps {
     final_cost: string;
   };
   caseData: CaseDetail;
+  getUpdateData: (includeFinalCost: boolean, status?: string) => Partial<CaseDetail>;
   onUpdate: (data: Partial<CaseDetail>) => Promise<void>;
   onClose: () => Promise<void>;
   onRedo: () => Promise<void>;
@@ -35,31 +36,20 @@ function Stage5Actions({
   savedFinalCost,
   form,
   caseData,
+  getUpdateData,
   onUpdate,
   onClose,
   onRedo,
   onCloseAccordion,
 }: Stage5ActionsProps) {
   const handleSave = useCallback(async () => {
-    const updateData: Partial<CaseDetail> = {
-      cs_notes: form.cs_notes,
-      final_feedback: form.final_feedback,
-      final_rating: form.final_rating,
-    };
-    if (form.final_cost !== '') {
-      updateData.final_cost = Number(form.final_cost);
-      const finalCost = Number(form.final_cost);
-      const estimatedCost = caseData.estimated_cost;
-      if (estimatedCost !== null && Math.abs(finalCost - estimatedCost) >= 0.01) {
-        updateData.status = CASE_STATUS.PENDING;
-        updateData.final_cost_status = FINAL_COST_STATUS.PENDING;
-      }
-    }
+    // Use getUpdateData from hook which handles approved_final_cost logic correctly
+    const updateData = getUpdateData(true);
     await onUpdate(updateData);
     setTimeout(() => {
       onCloseAccordion();
     }, TIMING.ACCORDION_CLOSE_DELAY);
-  }, [form, caseData, onUpdate, onCloseAccordion]);
+  }, [getUpdateData, onUpdate, onCloseAccordion]);
 
   return (
     <>
