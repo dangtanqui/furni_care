@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/api/models/data_models.dart';
 import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
-import '../../../core/api/models/case_models.dart';
+import '../../../core/utils/error_handler.dart';
 
 class CreateCaseProvider with ChangeNotifier {
   final CaseService _caseService;
@@ -99,9 +99,13 @@ class CreateCaseProvider with ChangeNotifier {
   Future<void> _loadContacts(int siteId) async {
     try {
       _contacts = await _dataService.getContacts(siteId);
+      _errors.remove('contact_id');
       notifyListeners();
     } catch (e) {
-      // Handle error
+      _contacts = [];
+      final errorMessage = e is AppError ? e.message : 'Failed to load contacts';
+      _errors['contact_id'] = errorMessage;
+      notifyListeners();
     }
   }
   
@@ -177,13 +181,18 @@ class CreateCaseProvider with ChangeNotifier {
       }
       
       _isLoading = false;
+      notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      if (e.toString().contains('errors')) {
-        // Parse validation errors
-        // Simplified error handling
+      if (e is AppError) {
+        // Handle validation errors from API
+        if (e.statusCode == 422 && e.message.contains('errors')) {
+          // Parse validation errors if needed
+        }
       }
+      // Log error for debugging
+      debugPrint('Error creating case: $e');
       notifyListeners();
       return false;
     }

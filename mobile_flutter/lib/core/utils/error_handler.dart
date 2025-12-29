@@ -75,8 +75,23 @@ class AppError {
     if (exception is DioException) {
       return fromDioError(exception);
     }
+    
+    // Handle TypeError and other runtime errors
+    final message = exception.toString();
+    String cleanMessage = message;
+    
+    // Extract meaningful error message
+    if (message.contains('_TypeError')) {
+      cleanMessage = 'Data format error. Please try again.';
+    } else if (message.contains('type') && message.contains('is not a subtype')) {
+      cleanMessage = 'Data format error. Please try again.';
+    } else {
+      // Remove "Exception: " prefix if present
+      cleanMessage = message.replaceFirst(RegExp(r'^.*Exception:\s*'), '');
+    }
+    
     return AppError(
-      message: exception.toString(),
+      message: cleanMessage,
       category: 'unknown',
     );
   }

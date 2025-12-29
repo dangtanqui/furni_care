@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../features/auth/providers/auth_provider.dart';
-import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/skeleton_loader.dart';
 import '../providers/case_list_provider.dart';
@@ -18,25 +17,66 @@ class CaseListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Case List'),
-        backgroundColor: const Color(0xFF1e3a5f),
+        backgroundColor: const Color(0xFF0d9488),
         foregroundColor: Colors.white,
-        actions: [
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, _) {
-              if (authProvider.isCS) {
-                return IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    context.go('/cases/new');
+        flexibleSpace: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                // Logo/App Name
+                const Text(
+                  'FurniCare',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                // User info and logout
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) {
+                    if (authProvider.user != null) {
+                      return Row(
+                        children: [
+                          // User name
+                          Text(
+                            authProvider.user!.name,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(width: 12),
+                          // Logout button
+                          IconButton(
+                            icon: const Icon(Icons.logout, size: 20),
+                            onPressed: () async {
+                              await authProvider.logout();
+                              if (context.mounted) {
+                                context.go('/login');
+                              }
+                            },
+                            tooltip: 'Logout',
+                          ),
+                          // Add case button (for CS only)
+                          if (authProvider.isCS) ...[
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.add, size: 20),
+                              onPressed: () {
+                                context.go('/cases/new');
+                              },
+                              tooltip: 'Create Case',
+                            ),
+                          ],
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
                   },
-                  tooltip: 'Create Case',
-                );
-              }
-              return const SizedBox.shrink();
-            },
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
       body: ChangeNotifierProvider(
         create: (context) {

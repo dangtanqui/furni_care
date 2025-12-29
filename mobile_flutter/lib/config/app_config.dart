@@ -1,8 +1,13 @@
-import 'package:flutter_dotenv/flutter_dotenv';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
   static String get apiBaseUrl {
-    return dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000/api';
+    String baseUrl = dotenv.env['API_BASE_URL'] ?? 'https://furni-care.onrender.com/api';
+    // Ensure base URL ends with /api
+    if (!baseUrl.endsWith('/api')) {
+      baseUrl = baseUrl.endsWith('/') ? '${baseUrl}api' : '$baseUrl/api';
+    }
+    return baseUrl;
   }
 
   static Future<void> load() async {

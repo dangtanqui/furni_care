@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/api/models/case_models.dart';
 import '../../../core/services/case_service.dart';
-import '../../../shared/widgets/button.dart';
-import '../../../shared/widgets/skeleton_loader.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../providers/case_details_provider.dart';
 import '../widgets/case_header.dart';
+import '../widgets/stage_sections.dart';
 
 class CaseDetailsScreen extends StatelessWidget {
   final int caseId;
@@ -22,11 +20,17 @@ class CaseDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Case Details'),
-        backgroundColor: const Color(0xFF1e3a5f),
+        backgroundColor: const Color(0xFF0d9488),
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
       ),
       body: ChangeNotifierProvider(
@@ -58,27 +62,8 @@ class CaseDetailsScreen extends StatelessWidget {
                   CaseHeader(caseData: provider.caseData!),
                   const SizedBox(height: 16),
                   
-                  // Stage sections would go here
-                  // Simplified for now
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Stage ${provider.caseData!.currentStage}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(provider.caseData!.stageName),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Stage sections with accordion
+                  StageSections(caseData: provider.caseData!),
                 ],
               ),
             );

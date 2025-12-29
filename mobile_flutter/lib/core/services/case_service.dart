@@ -57,14 +57,25 @@ class CaseService {
   
   Future<CaseDetail> createCase(Map<String, dynamic> data) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      final response = await _apiClient.post<dynamic>(
         ApiEndpoints.cases,
         data: data,
       );
       
-      return CaseDetail.fromJson(response.data!);
+      if (response.data == null) {
+        throw Exception('Response data is null');
+      }
+      
+      if (response.data is! Map<String, dynamic>) {
+        throw Exception('Expected Map but got ${response.data.runtimeType}');
+      }
+      
+      return CaseDetail.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
-      throw AppError.fromException(e as Exception);
+      if (e is AppError) {
+        rethrow;
+      }
+      throw AppError.fromException(e is Exception ? e : Exception(e.toString()));
     }
   }
   

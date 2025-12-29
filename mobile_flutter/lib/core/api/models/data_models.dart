@@ -39,13 +39,13 @@ class Contact {
   final int id;
   final String name;
   final String phone;
-  final String email;
+  final String? email;
   
   Contact({
     required this.id,
     required this.name,
     required this.phone,
-    required this.email,
+    this.email,
   });
   
   factory Contact.fromJson(Map<String, dynamic> json) => _$ContactFromJson(json);

@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
-import '../config/app_config.dart';
+import 'dart:io';
+import 'package:furni_care_mobile/config/app_config.dart';
 import '../storage/secure_storage.dart';
 
 class ApiClient {
@@ -8,14 +10,26 @@ class ApiClient {
   
   ApiClient() {
     _dio = Dio(BaseOptions(
-      baseURL: AppConfig.apiBaseUrl,
+      baseUrl: AppConfig.apiBaseUrl,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     ));
     
+    _setupHttpClientAdapter();
     _setupInterceptors();
+  }
+  
+  void _setupHttpClientAdapter() {
+    // Only bypass SSL verification in debug mode for development
+    if (kDebugMode) {
+      (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+        final client = HttpClient();
+        client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+        return client;
+      };
+    }
   }
   
   void _setupInterceptors() {

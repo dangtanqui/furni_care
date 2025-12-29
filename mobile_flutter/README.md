@@ -28,6 +28,24 @@ cp .env.example .env
 flutter run
 ```
 
+5. Nếu có bug run lại
+```bash
+flutter clean
+flutter pub get
+flutter run
+```
+
+6. Có file lỗi
+- Cài đặt dependencies (nếu chưa chạy)
+```bash
+flutter pub get
+```
+
+- Generate các file .g.dart cho JSON serialization
+```bash
+flutter pub run build_runner build -delete-conflicting-outputs
+```
+
 ## Project Structure
 
 - `lib/config/` - App configuration and routes
@@ -43,3 +61,8 @@ The app connects to the existing Ruby backend API. Ensure the backend is running
 
 The app uses JWT token-based authentication. Tokens are stored securely using `flutter_secure_storage`.
 
+## iOS
+
+sudo gem uninstall cocoapods
+sudo gem install cocoapods
+pod setup

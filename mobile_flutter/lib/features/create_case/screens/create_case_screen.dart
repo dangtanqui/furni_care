@@ -2,25 +2,108 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/text_field.dart';
 import '../providers/create_case_provider.dart';
 
-class CreateCaseScreen extends StatelessWidget {
+class CreateCaseScreen extends StatefulWidget {
   const CreateCaseScreen({super.key});
+  
+  @override
+  State<CreateCaseScreen> createState() => _CreateCaseScreenState();
+}
+
+class _CreateCaseScreenState extends State<CreateCaseScreen> {
+  late TextEditingController _descriptionController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController();
+  }
+  
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+  
+  Future<void> _showAttachmentOptions(BuildContext context, CreateCaseProvider provider) async {
+    final ImagePicker picker = ImagePicker();
+    
+    final option = await showModalBottomSheet<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.pop(context, 'gallery'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo'),
+                onTap: () => Navigator.pop(context, 'camera'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.insert_drive_file),
+                title: const Text('Choose File'),
+                onTap: () => Navigator.pop(context, 'file'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    
+    if (option == null) return;
+    
+    if (option == 'gallery' || option == 'camera') {
+      // Pick image
+      final XFile? image = await picker.pickImage(
+        source: option == 'camera' ? ImageSource.camera : ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        provider.addFile(image.path);
+      }
+    } else if (option == 'file') {
+      // Pick file
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+      );
+      if (result != null) {
+        for (final file in result.files) {
+          if (file.path != null) {
+            provider.addFile(file.path!);
+          }
+        }
+      }
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Case'),
-        backgroundColor: const Color(0xFF1e3a5f),
+        backgroundColor: const Color(0xFF0d9488),
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
       ),
       body: ChangeNotifierProvider(
@@ -31,6 +114,11 @@ class CreateCaseScreen extends StatelessWidget {
         },
         child: Consumer<CreateCaseProvider>(
           builder: (context, provider, _) {
+            // Sync controller with provider description
+            if (_descriptionController.text != provider.description) {
+              _descriptionController.text = provider.description;
+            }
+            
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
@@ -86,14 +174,21 @@ class CreateCaseScreen extends StatelessWidget {
                         labelText: 'Contact Person *',
                         errorText: provider.errors['contact_id'],
                         border: const OutlineInputBorder(),
+                        hintText: provider.siteId.isEmpty 
+                            ? 'Select Site first' 
+                            : provider.contacts.isEmpty 
+                                ? 'No contacts available' 
+                                : null,
                       ),
-                      items: provider.contacts.map((contact) {
-                        return DropdownMenuItem(
-                          value: contact.id.toString(),
-                          child: Text('${contact.name} - ${contact.phone}'),
-                        );
-                      }).toList(),
-                      onChanged: provider.siteId.isEmpty
+                      items: provider.contacts.isEmpty
+                          ? null
+                          : provider.contacts.map((contact) {
+                              return DropdownMenuItem(
+                                value: contact.id.toString(),
+                                child: Text('${contact.name} - ${contact.phone}'),
+                              );
+                            }).toList(),
+                      onChanged: provider.siteId.isEmpty || provider.contacts.isEmpty
                           ? null
                           : (value) {
                               provider.setContactId(value ?? '');
@@ -104,7 +199,7 @@ class CreateCaseScreen extends StatelessWidget {
                     // Description
                     AppTextField(
                       label: 'Description',
-                      controller: TextEditingController(text: provider.description),
+                      controller: _descriptionController,
                       onChanged: provider.setDescription,
                       maxLines: 4,
                       errorText: provider.errors['description'],
@@ -115,18 +210,7 @@ class CreateCaseScreen extends StatelessWidget {
                     ElevatedButton.icon(
                       icon: const Icon(Icons.attach_file),
                       label: const Text('Add Attachments'),
-                      onPressed: () async {
-                        final result = await FilePicker.platform.pickFiles(
-                          allowMultiple: true,
-                        );
-                        if (result != null) {
-                          for (final file in result.files) {
-                            if (file.path != null) {
-                              provider.addFile(file.path!);
-                            }
-                          }
-                        }
-                      },
+                      onPressed: () => _showAttachmentOptions(context, provider),
                     ),
                     if (provider.filePaths.isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -197,9 +281,18 @@ class CreateCaseScreen extends StatelessWidget {
                                   const SnackBar(
                                     content: Text('Case created successfully'),
                                     backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
                                   ),
                                 );
-                                context.pop();
+                                // Wait a bit for snackbar to show, then navigate back
+                                await Future.delayed(const Duration(milliseconds: 500));
+                                if (context.mounted) {
+                                  if (context.canPop()) {
+                                    context.pop();
+                                  } else {
+                                    context.go('/');
+                                  }
+                                }
                               } else if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

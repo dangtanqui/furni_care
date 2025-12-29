@@ -30,7 +30,7 @@ dependencies:
   
   # File/Image picking
   image_picker: ^1.0.7
-  file_picker: ^6.1.1
+  file_picker: ^8.1.4
   
   # Navigation
   go_router: ^13.0.0
@@ -55,5 +55,4 @@ flutter:
     - .env
     - .env.development
     - .env.staging
-    - .env.production
 

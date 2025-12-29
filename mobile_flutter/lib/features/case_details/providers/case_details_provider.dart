@@ -30,6 +30,7 @@ class CaseDetailsProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = e.toString();
+      _caseData = null;
       notifyListeners();
     }
   }

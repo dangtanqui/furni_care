@@ -97,41 +97,41 @@ class CaseDetail {
   final String caseType;
   final CasePriority priority;
   @JsonKey(name: 'investigation_report')
-  final String investigationReport;
+  final String? investigationReport;
   @JsonKey(name: 'investigation_checklist')
-  final String investigationChecklist;
+  final String? investigationChecklist;
   @JsonKey(name: 'root_cause')
-  final String rootCause;
+  final String? rootCause;
   @JsonKey(name: 'solution_description')
-  final String solutionDescription;
+  final String? solutionDescription;
   @JsonKey(name: 'solution_checklist')
-  final String solutionChecklist;
+  final String? solutionChecklist;
   @JsonKey(name: 'planned_execution_date')
-  final String plannedExecutionDate;
+  final String? plannedExecutionDate;
   @JsonKey(name: 'cost_required')
-  final bool costRequired;
+  final bool? costRequired;
   @JsonKey(name: 'estimated_cost')
-  final double estimatedCost;
+  final double? estimatedCost;
   @JsonKey(name: 'cost_description')
-  final String costDescription;
+  final String? costDescription;
   @JsonKey(name: 'cost_status')
   final CostStatus? costStatus;
   @JsonKey(name: 'execution_report')
-  final String executionReport;
+  final String? executionReport;
   @JsonKey(name: 'execution_checklist')
-  final String executionChecklist;
+  final String? executionChecklist;
   @JsonKey(name: 'client_signature')
-  final String clientSignature;
+  final String? clientSignature;
   @JsonKey(name: 'client_feedback')
-  final String clientFeedback;
+  final String? clientFeedback;
   @JsonKey(name: 'client_rating')
-  final int clientRating;
+  final int? clientRating;
   @JsonKey(name: 'cs_notes')
-  final String csNotes;
+  final String? csNotes;
   @JsonKey(name: 'final_feedback')
-  final String finalFeedback;
+  final String? finalFeedback;
   @JsonKey(name: 'final_rating')
-  final int finalRating;
+  final int? finalRating;
   @JsonKey(name: 'final_cost')
   final double? finalCost;
   @JsonKey(name: 'final_cost_status')
@@ -141,7 +141,7 @@ class CaseDetail {
   @JsonKey(name: 'final_cost_approved_by')
   final UserInfo? finalCostApprovedBy;
   @JsonKey(name: 'stage_attachments')
-  final Map<String, List<CaseAttachment>> stageAttachments;
+  final Map<String, List<CaseAttachment>>? stageAttachments;
   @JsonKey(name: 'created_at')
   final String createdAt;
   @JsonKey(name: 'updated_at')
@@ -163,29 +163,29 @@ class CaseDetail {
     required this.description,
     required this.caseType,
     required this.priority,
-    required this.investigationReport,
-    required this.investigationChecklist,
-    required this.rootCause,
-    required this.solutionDescription,
-    required this.solutionChecklist,
-    required this.plannedExecutionDate,
-    required this.costRequired,
-    required this.estimatedCost,
-    required this.costDescription,
+    this.investigationReport,
+    this.investigationChecklist,
+    this.rootCause,
+    this.solutionDescription,
+    this.solutionChecklist,
+    this.plannedExecutionDate,
+    this.costRequired,
+    this.estimatedCost,
+    this.costDescription,
     this.costStatus,
-    required this.executionReport,
-    required this.executionChecklist,
-    required this.clientSignature,
-    required this.clientFeedback,
-    required this.clientRating,
-    required this.csNotes,
-    required this.finalFeedback,
-    required this.finalRating,
+    this.executionReport,
+    this.executionChecklist,
+    this.clientSignature,
+    this.clientFeedback,
+    this.clientRating,
+    this.csNotes,
+    this.finalFeedback,
+    this.finalRating,
     this.finalCost,
     this.finalCostStatus,
     this.approvedFinalCost,
     this.finalCostApprovedBy,
-    required this.stageAttachments,
+    this.stageAttachments,
     required this.createdAt,
     required this.updatedAt,
   });
