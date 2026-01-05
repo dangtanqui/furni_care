@@ -19,9 +19,7 @@ class CaseListProvider with ChangeNotifier {
   String _assignedToFilter = '';
   
   // Sorting
-  List<Map<String, String>> _sorts = [
-    {'column': 'case_number', 'direction': 'asc'}
-  ];
+  List<Map<String, String>> _sorts = [];
   
   // Pagination
   int _currentPage = 1;
@@ -45,6 +43,7 @@ class CaseListProvider with ChangeNotifier {
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   int get total => _total;
+  int get perPage => _perPage;
   
   Future<void> _loadTechnicians() async {
     try {

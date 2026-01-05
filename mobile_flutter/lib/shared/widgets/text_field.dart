@@ -51,6 +51,10 @@ class AppTextField extends StatelessWidget {
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade500, // Darker to match other placeholders
+            ),
             suffixIcon: suffixIcon,
             errorText: null, // We'll show error below with icon
             errorStyle: const TextStyle(fontSize: 12),

@@ -10,32 +10,57 @@ class CaseHeader extends StatelessWidget {
   });
   
   String _formatStatus(CaseStatus status) {
-    return status.toString().split('.').last.split(RegExp(r'(?=[A-Z])')).join(' ');
+    final statusStr = status.toString().split('.').last.split(RegExp(r'(?=[A-Z])')).join(' ');
+    // Capitalize first letter
+    return statusStr.isEmpty ? statusStr : statusStr[0].toUpperCase() + statusStr.substring(1);
   }
   
-  Color _getStatusColor(CaseStatus status) {
+  String _formatPriority(CasePriority priority) {
+    final priorityStr = priority.toString().split('.').last;
+    // Capitalize first letter
+    return priorityStr.isEmpty ? priorityStr : priorityStr[0].toUpperCase() + priorityStr.substring(1);
+  }
+  
+  Color _getStatusBackgroundColor(CaseStatus status) {
     switch (status) {
       case CaseStatus.open:
-        return Colors.blue.shade700;
+        return Colors.blue.shade100;
       case CaseStatus.inProgress:
       case CaseStatus.pending:
-        return Colors.yellow.shade700;
+        return Colors.yellow.shade100;
       case CaseStatus.completed:
       case CaseStatus.closed:
-        return Colors.green.shade700;
+        return Colors.green.shade100;
       case CaseStatus.cancelled:
-        return Colors.grey.shade700;
+        return Colors.grey.shade100;
       case CaseStatus.rejected:
-        return Colors.red.shade700;
+        return Colors.red.shade100;
+    }
+  }
+  
+  Color _getStatusTextColor(CaseStatus status) {
+    switch (status) {
+      case CaseStatus.open:
+        return Colors.blue.shade800; // Darker for better readability
+      case CaseStatus.inProgress:
+      case CaseStatus.pending:
+        return Colors.yellow.shade800; // Darker for better readability
+      case CaseStatus.completed:
+      case CaseStatus.closed:
+        return Colors.green.shade800; // Darker for better readability
+      case CaseStatus.cancelled:
+        return Colors.grey.shade800; // Darker for better readability
+      case CaseStatus.rejected:
+        return Colors.red.shade800; // Darker for better readability
     }
   }
   
   Color _getPriorityColor(CasePriority priority) {
     switch (priority) {
       case CasePriority.low:
-        return Colors.grey.shade600;
+        return Colors.grey.shade500; // text-gray-500
       case CasePriority.medium:
-        return Colors.yellow.shade600;
+        return Colors.amber.shade700; // More readable than yellow-600
       case CasePriority.high:
         return Colors.red.shade600;
     }
@@ -56,13 +81,13 @@ class CaseHeader extends StatelessWidget {
                   'Case ID: ',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                    color: Colors.black, // Changed to black
                   ),
                 ),
                 Text(
                   caseData.caseNumber,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.normal, // Not bold
                     fontSize: 16,
                   ),
                 ),
@@ -77,7 +102,7 @@ class CaseHeader extends StatelessWidget {
                   'Client: ',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                    color: Colors.black, // Changed to black
                   ),
                 ),
                 Text(caseData.client.name),
@@ -92,7 +117,7 @@ class CaseHeader extends StatelessWidget {
                   'Current Stage: ',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                    color: Colors.black, // Changed to black
                   ),
                 ),
                 Text('${caseData.currentStage} - ${caseData.stageName}'),
@@ -116,26 +141,47 @@ class CaseHeader extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             
-            // Status and Priority
+            // Status
             Row(
               children: [
+                const Text(
+                  'Status: ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black, // Changed to black
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(caseData.status).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    color: _getStatusBackgroundColor(caseData.status),
+                    borderRadius: BorderRadius.circular(999), // Fully rounded pill
                   ),
                   child: Text(
                     _formatStatus(caseData.status),
                     style: TextStyle(
-                      color: _getStatusColor(caseData.status),
+                      color: _getStatusTextColor(caseData.status),
                       fontWeight: FontWeight.w500,
+                      fontSize: 14,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Priority - separate row
+            Row(
+              children: [
+                const Text(
+                  'Priority: ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black, // Changed to black
+                  ),
+                ),
                 Text(
-                  'Priority: ${caseData.priority.toString().split('.').last}',
+                  _formatPriority(caseData.priority),
                   style: TextStyle(
                     color: _getPriorityColor(caseData.priority),
                     fontWeight: FontWeight.w500,
@@ -146,48 +192,64 @@ class CaseHeader extends StatelessWidget {
             const SizedBox(height: 16),
             
             // Stage progress indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(5, (index) {
-                final stageNum = index + 1;
-                final isCompleted = stageNum < caseData.currentStage;
-                final isCurrent = stageNum == caseData.currentStage && 
-                    caseData.status != CaseStatus.closed;
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate available width and adjust connector width
+                final totalConnectorWidth = (constraints.maxWidth - (32 * 5) - (4 * 4)) / 4; // 5 circles, 4 gaps
+                final connectorWidth = totalConnectorWidth.clamp(20.0, 40.0);
                 
-                return Column(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isCompleted
-                            ? Colors.green
-                            : isCurrent
-                                ? Colors.blue
-                                : Colors.grey.shade300,
-                      ),
-                      child: Center(
-                        child: isCompleted
-                            ? const Icon(Icons.check, color: Colors.white, size: 20)
-                            : Text(
-                                '$stageNum',
-                                style: TextStyle(
-                                  color: isCurrent ? Colors.white : Colors.grey.shade600,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
-                    if (index < 4)
-                      Container(
-                        width: 40,
-                        height: 2,
-                        color: isCompleted ? Colors.green : Colors.grey.shade300,
-                      ),
-                  ],
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: List.generate(5, (index) {
+                    final stageNum = index + 1;
+                    final isCompleted = stageNum < caseData.currentStage;
+                    final isCurrent = stageNum == caseData.currentStage && 
+                        caseData.status != CaseStatus.closed;
+                    
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isCompleted
+                                ? Colors.green.shade500
+                                : isCurrent
+                                    ? const Color(0xFF0d9488) // Teal color for current stage
+                                    : Colors.grey.shade300,
+                          ),
+                          child: Center(
+                            child: isCompleted
+                                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                                : Text(
+                                    '$stageNum',
+                                    style: TextStyle(
+                                      color: isCurrent ? Colors.white : Colors.grey.shade600,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        if (index < 4)
+                          Container(
+                            margin: const EdgeInsets.only(left: 0), // No gap - connector attached to circle
+                            width: connectorWidth,
+                            height: 3, // Thicker connector line
+                            decoration: BoxDecoration(
+                              color: isCompleted ? Colors.green.shade500 : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(1.5),
+                            ),
+                          ),
+                        if (index < 4)
+                          const SizedBox(width: 4), // Gap before next circle
+                      ],
+                    );
+                  }),
                 );
-              }),
+              },
             ),
           ],
         ),

@@ -8,6 +8,9 @@ import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/text_field.dart';
+import '../../../shared/widgets/app_header_back.dart';
+import '../../../shared/widgets/custom_select.dart';
+import '../../../shared/widgets/file_upload.dart';
 import '../providers/create_case_provider.dart';
 
 class CreateCaseScreen extends StatefulWidget {
@@ -32,40 +35,10 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
     super.dispose();
   }
   
-  Future<void> _showAttachmentOptions(BuildContext context, CreateCaseProvider provider) async {
+  Future<void> _handleFileSelection(String option, CreateCaseProvider provider) async {
     final ImagePicker picker = ImagePicker();
     
-    final option = await showModalBottomSheet<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from Gallery'),
-                onTap: () => Navigator.pop(context, 'gallery'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take Photo'),
-                onTap: () => Navigator.pop(context, 'camera'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.insert_drive_file),
-                title: const Text('Choose File'),
-                onTap: () => Navigator.pop(context, 'file'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    
-    if (option == null) return;
-    
     if (option == 'gallery' || option == 'camera') {
-      // Pick image
       final XFile? image = await picker.pickImage(
         source: option == 'camera' ? ImageSource.camera : ImageSource.gallery,
         imageQuality: 85,
@@ -74,7 +47,6 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
         provider.addFile(image.path);
       }
     } else if (option == 'file') {
-      // Pick file
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
       );
@@ -91,21 +63,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create New Case'),
-        backgroundColor: const Color(0xFF0d9488),
-        foregroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-        ),
-      ),
+      appBar: const AppHeaderBack(),
       body: ChangeNotifierProvider(
         create: (context) {
           final caseService = Provider.of<CaseService>(context, listen: false);
@@ -125,147 +83,277 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Client dropdown
-                    DropdownButtonFormField<String>(
-                      value: provider.clientId.isEmpty ? null : provider.clientId,
-                      decoration: InputDecoration(
-                        labelText: 'Client *',
-                        errorText: provider.errors['client_id'],
-                        border: const OutlineInputBorder(),
+                    // Title
+                    const Text(
+                      'Create New Case',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1e3a5f),
                       ),
-                      items: provider.clients.map((client) {
-                        return DropdownMenuItem(
-                          value: client.id.toString(),
-                          child: Text(client.name),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        provider.setClientId(value ?? '');
-                      },
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Client dropdown
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Client *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: provider.errors['client_id'] != null 
+                                ? Colors.red 
+                                : const Color(0xFF1e3a5f),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomSelect(
+                          value: provider.clientId.isEmpty ? null : provider.clientId,
+                          onChange: (value) {
+                            provider.setClientId(value);
+                          },
+                          placeholder: 'Select Client',
+                          options: provider.clients.map((client) {
+                            return SelectOption(
+                              value: client.id.toString(),
+                              label: client.name,
+                            );
+                          }).toList(),
+                        ),
+                        if (provider.errors['client_id'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Client ${provider.errors['client_id']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 16),
                     
                     // Site dropdown
-                    DropdownButtonFormField<String>(
-                      value: provider.siteId.isEmpty ? null : provider.siteId,
-                      decoration: InputDecoration(
-                        labelText: 'Site *',
-                        errorText: provider.errors['site_id'],
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: provider.sites.map((site) {
-                        return DropdownMenuItem(
-                          value: site.id.toString(),
-                          child: Text('${site.name} - ${site.city}'),
-                        );
-                      }).toList(),
-                      onChanged: provider.clientId.isEmpty
-                          ? null
-                          : (value) {
-                              provider.setSiteId(value ?? '');
-                            },
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Site *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: provider.errors['site_id'] != null 
+                                ? Colors.red 
+                                : const Color(0xFF1e3a5f),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomSelect(
+                          value: provider.siteId.isEmpty ? null : provider.siteId,
+                          onChange: (value) {
+                            if (!provider.clientId.isEmpty) {
+                              provider.setSiteId(value);
+                            }
+                          },
+                          placeholder: 'Select Site',
+                          options: provider.sites.map((site) {
+                            return SelectOption(
+                              value: site.id.toString(),
+                              label: '${site.name} - ${site.city}',
+                            );
+                          }).toList(),
+                          disabled: provider.clientId.isEmpty,
+                        ),
+                        if (provider.errors['site_id'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Site ${provider.errors['site_id']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 16),
                     
                     // Contact dropdown
-                    DropdownButtonFormField<String>(
-                      value: provider.contactId.isEmpty ? null : provider.contactId,
-                      decoration: InputDecoration(
-                        labelText: 'Contact Person *',
-                        errorText: provider.errors['contact_id'],
-                        border: const OutlineInputBorder(),
-                        hintText: provider.siteId.isEmpty 
-                            ? 'Select Site first' 
-                            : provider.contacts.isEmpty 
-                                ? 'No contacts available' 
-                                : null,
-                      ),
-                      items: provider.contacts.isEmpty
-                          ? null
-                          : provider.contacts.map((contact) {
-                              return DropdownMenuItem(
-                                value: contact.id.toString(),
-                                child: Text('${contact.name} - ${contact.phone}'),
-                              );
-                            }).toList(),
-                      onChanged: provider.siteId.isEmpty || provider.contacts.isEmpty
-                          ? null
-                          : (value) {
-                              provider.setContactId(value ?? '');
-                            },
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Contact Person *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: provider.errors['contact_id'] != null 
+                                ? Colors.red 
+                                : const Color(0xFF1e3a5f),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomSelect(
+                          value: provider.contactId.isEmpty ? null : provider.contactId,
+                          onChange: (value) {
+                            if (!provider.siteId.isEmpty && provider.contacts.isNotEmpty) {
+                              provider.setContactId(value);
+                            }
+                          },
+                          placeholder: 'Select Contact Person',
+                          options: provider.contacts.map((contact) {
+                            return SelectOption(
+                              value: contact.id.toString(),
+                              label: '${contact.name} - ${contact.phone}',
+                            );
+                          }).toList(),
+                          disabled: provider.siteId.isEmpty || provider.contacts.isEmpty,
+                        ),
+                        if (provider.errors['contact_id'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Contact Person ${provider.errors['contact_id']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 16),
                     
-                    // Description
+                    // Description textarea
                     AppTextField(
                       label: 'Description',
                       controller: _descriptionController,
                       onChanged: provider.setDescription,
-                      maxLines: 4,
+                      maxLines: 5,
+                      hint: 'Describe the issue...',
                       errorText: provider.errors['description'],
                     ),
                     const SizedBox(height: 16),
                     
                     // File upload
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.attach_file),
-                      label: const Text('Add Attachments'),
-                      onPressed: () => _showAttachmentOptions(context, provider),
+                    FileUpload(
+                      label: 'Photos / Attachments',
+                      filePaths: provider.filePaths,
+                      onFileSelected: (option) => _handleFileSelection(option, provider),
+                      onDelete: (index) => provider.removeFile(index),
                     ),
-                    if (provider.filePaths.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      ...provider.filePaths.asMap().entries.map((entry) {
-                        return ListTile(
-                          title: Text(entry.value.split('/').last),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => provider.removeFile(entry.key),
-                          ),
-                        );
-                      }),
-                    ],
                     const SizedBox(height: 16),
                     
-                    // Case type and priority row
-                    Row(
+                    // Case type dropdown - vertical
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: provider.caseType.isEmpty ? null : provider.caseType,
-                            decoration: InputDecoration(
-                              labelText: 'Type *',
-                              errorText: provider.errors['case_type'],
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'warranty', child: Text('Warranty')),
-                              DropdownMenuItem(value: 'maintenance', child: Text('Maintenance')),
-                              DropdownMenuItem(value: 'repair', child: Text('Repair')),
-                            ],
-                            onChanged: (value) {
-                              provider.setCaseType(value ?? '');
-                            },
+                        Text(
+                          'Type *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: provider.errors['case_type'] != null 
+                                ? Colors.red 
+                                : const Color(0xFF1e3a5f),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            value: provider.priority.isEmpty ? null : provider.priority,
-                            decoration: InputDecoration(
-                              labelText: 'Priority *',
-                              errorText: provider.errors['priority'],
-                              border: const OutlineInputBorder(),
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'low', child: Text('Low')),
-                              DropdownMenuItem(value: 'medium', child: Text('Medium')),
-                              DropdownMenuItem(value: 'high', child: Text('High')),
+                        const SizedBox(height: 8),
+                        CustomSelect(
+                          value: provider.caseType.isEmpty ? null : provider.caseType,
+                          onChange: (value) {
+                            provider.setCaseType(value);
+                          },
+                          placeholder: 'Select Type',
+                          options: const [
+                            SelectOption(value: 'warranty', label: 'Warranty'),
+                            SelectOption(value: 'maintenance', label: 'Maintenance'),
+                            SelectOption(value: 'repair', label: 'Repair'),
+                          ],
+                        ),
+                        if (provider.errors['case_type'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Type ${provider.errors['case_type']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
                             ],
-                            onChanged: (value) {
-                              provider.setPriority(value ?? '');
-                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Priority dropdown - vertical
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Priority *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: provider.errors['priority'] != null 
+                                ? Colors.red 
+                                : const Color(0xFF1e3a5f),
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        CustomSelect(
+                          value: provider.priority.isEmpty ? null : provider.priority,
+                          onChange: (value) {
+                            provider.setPriority(value);
+                          },
+                          placeholder: 'Select Priority',
+                          options: const [
+                            SelectOption(value: 'low', label: 'Low'),
+                            SelectOption(value: 'medium', label: 'Medium'),
+                            SelectOption(value: 'high', label: 'High'),
+                          ],
+                        ),
+                        if (provider.errors['priority'] != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.error_outline, size: 16, color: Colors.red.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Priority ${provider.errors['priority']}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 32),
@@ -276,7 +364,10 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       onPressed: provider.isFormValid && !provider.isLoading
                           ? () async {
                               final success = await provider.submit();
-                              if (success && context.mounted) {
+                              if (!mounted) return; // Check if widget is still mounted
+                              
+                              if (success) {
+                                // Show success message before navigation
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Case created successfully'),
@@ -284,16 +375,17 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                                     duration: Duration(seconds: 2),
                                   ),
                                 );
-                                // Wait a bit for snackbar to show, then navigate back
-                                await Future.delayed(const Duration(milliseconds: 500));
-                                if (context.mounted) {
-                                  if (context.canPop()) {
-                                    context.pop();
-                                  } else {
-                                    context.go('/');
-                                  }
+                                // Wait a bit for SnackBar to show, then navigate
+                                await Future.delayed(const Duration(milliseconds: 300));
+                                if (!mounted) return; // Check again before navigation
+                                
+                                if (context.canPop()) {
+                                  context.pop();
+                                } else {
+                                  context.go('/');
                                 }
-                              } else if (context.mounted) {
+                              } else {
+                                // Show error message
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Failed to create case'),
@@ -316,4 +408,3 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
     );
   }
 }
-

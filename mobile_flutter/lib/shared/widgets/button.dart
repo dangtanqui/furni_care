@@ -35,7 +35,9 @@ class AppButton extends StatelessWidget {
     
     switch (variant) {
       case ButtonVariant.primary:
-        backgroundColor = isEnabled ? const Color(0xFF0d9488) : Colors.grey;
+        backgroundColor = isEnabled 
+            ? const Color(0xFF0d9488) 
+            : const Color(0xFF0d9488).withOpacity(0.5); // Light theme color instead of grey
         textColor = Colors.white;
         break;
       case ButtonVariant.secondary:

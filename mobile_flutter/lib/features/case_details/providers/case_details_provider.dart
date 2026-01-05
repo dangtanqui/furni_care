@@ -38,5 +38,23 @@ class CaseDetailsProvider with ChangeNotifier {
   Future<void> refresh() async {
     await _loadCase();
   }
+  
+  Future<void> updateCase(Map<String, dynamic> data) async {
+    try {
+      _caseData = await _caseService.updateCase(_caseId, data);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+  
+  Future<void> advanceStage() async {
+    try {
+      _caseData = await _caseService.advanceStage(_caseId);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 

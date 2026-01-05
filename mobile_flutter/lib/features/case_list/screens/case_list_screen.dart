@@ -6,8 +6,11 @@ import '../../../core/services/data_service.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/skeleton_loader.dart';
+import '../../../shared/widgets/button.dart';
+import '../../../shared/widgets/app_header.dart';
 import '../providers/case_list_provider.dart';
 import '../widgets/case_table.dart';
+import '../widgets/case_table_new.dart';
 import '../widgets/case_filters.dart';
 
 class CaseListScreen extends StatelessWidget {
@@ -16,68 +19,7 @@ class CaseListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0d9488),
-        foregroundColor: Colors.white,
-        flexibleSpace: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                // Logo/App Name
-                const Text(
-                  'FurniCare',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                // User info and logout
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, _) {
-                    if (authProvider.user != null) {
-                      return Row(
-                        children: [
-                          // User name
-                          Text(
-                            authProvider.user!.name,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(width: 12),
-                          // Logout button
-                          IconButton(
-                            icon: const Icon(Icons.logout, size: 20),
-                            onPressed: () async {
-                              await authProvider.logout();
-                              if (context.mounted) {
-                                context.go('/login');
-                              }
-                            },
-                            tooltip: 'Logout',
-                          ),
-                          // Add case button (for CS only)
-                          if (authProvider.isCS) ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.add, size: 20),
-                              onPressed: () {
-                                context.go('/cases/new');
-                              },
-                              tooltip: 'Create Case',
-                            ),
-                          ],
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      appBar: const AppHeader(),
       body: ChangeNotifierProvider(
         create: (context) {
           final caseService = Provider.of<CaseService>(context, listen: false);
@@ -86,25 +28,72 @@ class CaseListScreen extends StatelessWidget {
         },
         child: Consumer<CaseListProvider>(
           builder: (context, provider, _) {
-            return Column(
-              children: [
-                // Filters
-                const CaseFilters(),
-                
-                // Error message
-                if (provider.error != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    color: Colors.red.shade50,
-                    child: Text(
-                      provider.error!,
-                      style: TextStyle(color: Colors.red.shade700),
+            return CustomScrollView(
+              slivers: [
+                // Header section - sticky
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Title
+                        const Text(
+                          'Case List',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1e3a5f),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Create Case button - full width
+                        Consumer<AuthProvider>(
+                          builder: (context, authProvider, _) {
+                            if (authProvider.isCS) {
+                              return AppButton(
+                                text: 'Create Case',
+                                onPressed: () {
+                                  context.go('/cases/new');
+                                },
+                                variant: ButtonVariant.primary,
+                                leftIcon: Icons.add,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // Filters
+                        const CaseFilters(),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Error message
+                        if (provider.error != null)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Text(
+                              provider.error!,
+                              style: TextStyle(color: Colors.red.shade700),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                ),
                 
-                // Case table
-                Expanded(
+                // Case table - scrollable
+                SliverFillRemaining(
+                  hasScrollBody: false,
                   child: provider.isLoading && provider.cases.isEmpty
                       ? ListView.builder(
                           itemCount: 5,
@@ -119,7 +108,7 @@ class CaseListScreen extends StatelessWidget {
                               title: 'No cases found',
                               description: 'Try adjusting your filters or create a new case to get started.',
                             )
-                          : const CaseTable(),
+                          : const CaseTableNew(),
                 ),
               ],
             );
