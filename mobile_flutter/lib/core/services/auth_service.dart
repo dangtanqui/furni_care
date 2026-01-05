@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../api/api_client.dart';
 import '../api/endpoints.dart';
 import '../api/models/auth_models.dart';
@@ -21,7 +22,10 @@ class AuthService {
       
       return LoginResponse.fromJson(response.data!);
     } catch (e) {
-      throw AppError.fromException(e as Exception);
+      debugPrint('AuthService.login error: ${e.runtimeType} - $e');
+      final appError = AppError.fromException(e is Exception ? e : Exception(e.toString()));
+      debugPrint('AuthService converted to AppError: ${appError.message}, statusCode: ${appError.statusCode}');
+      throw appError;
     }
   }
   

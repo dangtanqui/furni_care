@@ -28,15 +28,17 @@ class AppTextField extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    final hasError = errorText != null && errorText!.isNotEmpty;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF1e3a5f),
+            color: hasError ? Colors.red : const Color(0xFF1e3a5f),
           ),
         ),
         const SizedBox(height: 8),
@@ -50,23 +52,25 @@ class AppTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffixIcon,
-            errorText: errorText,
+            errorText: null, // We'll show error below with icon
+            errorStyle: const TextStyle(fontSize: 12),
+            errorMaxLines: 2,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.red : Colors.grey.shade300,
+                color: hasError ? Colors.red : Colors.grey.shade300,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: errorText != null ? Colors.red : Colors.grey.shade300,
+                color: hasError ? Colors.red : Colors.grey.shade300,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: Color(0xFF0d9488),
+              borderSide: BorderSide(
+                color: hasError ? Colors.red : const Color(0xFF0d9488),
                 width: 2,
               ),
             ),
@@ -80,6 +84,33 @@ class AppTextField extends StatelessWidget {
             ),
           ),
         ),
+        // Error message with icon - aligned with input field
+        if (hasError) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 16,
+                  color: Colors.red,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorText!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

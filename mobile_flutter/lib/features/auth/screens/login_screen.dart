@@ -20,16 +20,51 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPassword = false;
   bool _rememberMe = false;
   String? _errorMessage;
+  String? _emailError;
+  String? _passwordError;
+  
+  // Static variables to persist state across widget rebuilds
+  static String? _pendingErrorMessage;
+  static String? _pendingEmail;
+  static String? _pendingPassword;
+  static bool? _pendingRememberMe;
   
   @override
   void initState() {
     super.initState();
-    _loadRememberedEmail();
+    // Restore pending form values if widget was recreated
+    // Only restore if controllers are empty (first time) or if we have pending values
+    if (_pendingEmail != null && _emailController.text.isEmpty) {
+      _emailController.text = _pendingEmail!;
+    }
+    if (_pendingPassword != null && _passwordController.text.isEmpty) {
+      _passwordController.text = _pendingPassword!;
+    }
+    if (_pendingRememberMe != null) {
+      _rememberMe = _pendingRememberMe!;
+    }
+    
+    // Only load remembered email if we don't have pending values
+    if (_pendingEmail == null) {
+      _loadRememberedEmail();
+    }
+    
+    // Restore pending error message if any
+    if (_pendingErrorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = _pendingErrorMessage;
+            _pendingErrorMessage = null;
+          });
+        }
+      });
+    }
   }
   
   Future<void> _loadRememberedEmail() async {
     final rememberedEmail = await SecureStorage.getRememberedEmail();
-    if (rememberedEmail != null) {
+    if (rememberedEmail != null && _emailController.text.isEmpty) {
       setState(() {
         _emailController.text = rememberedEmail;
         _rememberMe = true;
@@ -38,13 +73,53 @@ class _LoginScreenState extends State<LoginScreen> {
   }
   
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+    // Save current form values to static variables to prevent loss if widget rebuilds
+    _pendingEmail = _emailController.text;
+    _pendingPassword = _passwordController.text;
+    _pendingRememberMe = _rememberMe;
+    
+    // Clear previous errors
+    if (mounted) {
+      setState(() {
+        _errorMessage = null;
+        _pendingErrorMessage = null;
+        _emailError = null;
+        _passwordError = null;
+      });
+    } else {
+      _errorMessage = null;
+      _pendingErrorMessage = null;
+      _emailError = null;
+      _passwordError = null;
     }
     
-    setState(() {
-      _errorMessage = null;
-    });
+    // Validate required fields
+    bool isValid = true;
+    final emailValue = _emailController.text.trim();
+    if (emailValue.isEmpty) {
+      _emailError = 'Email is required';
+      isValid = false;
+    } else {
+      // Validate email format
+      final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+      if (!emailRegex.hasMatch(emailValue)) {
+        _emailError = 'Email must be a valid email';
+        isValid = false;
+      }
+    }
+    if (_passwordController.text.isEmpty) {
+      _passwordError = 'Password is required';
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      if (mounted) {
+        setState(() {
+          // Errors already set above
+        });
+      }
+      return;
+    }
     
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
@@ -55,25 +130,75 @@ class _LoginScreenState extends State<LoginScreen> {
         _rememberMe,
       );
       
+      // Clear pending values only on successful login
+      _pendingEmail = null;
+      _pendingPassword = null;
+      _pendingRememberMe = null;
+      _pendingErrorMessage = null;
+      
       if (mounted) {
         // Navigation will be handled by router
       }
     } catch (e) {
+      // Parse error properly
+      AppError error;
+      if (e is AppError) {
+        error = e;
+      } else {
+        error = AppError.fromException(e is Exception ? e : Exception(e.toString()));
+      }
+      
+      // Set error message - form values are preserved in controllers
+      String errorMsg;
+      if (error.message.isNotEmpty && error.message != 'An error occurred') {
+        errorMsg = error.message;
+      } else if (error.statusCode == 401) {
+        errorMsg = 'Invalid email or password';
+      } else if (error.statusCode == 429) {
+        errorMsg = 'Too many login attempts. Please try again later.';
+      } else {
+        errorMsg = 'An error occurred. Please try again.';
+      }
+      
+      // Store error message in static variable to persist across widget rebuilds
+      _pendingErrorMessage = errorMsg;
+      _errorMessage = errorMsg;
+      
+      // Restore form values from static variables in case widget was rebuilt
+      if (_pendingEmail != null) {
+        _emailController.text = _pendingEmail!;
+      }
+      if (_pendingPassword != null) {
+        _passwordController.text = _pendingPassword!;
+      }
+      if (_pendingRememberMe != null) {
+        _rememberMe = _pendingRememberMe!;
+      }
+      
+      // Try to set immediately if mounted
       if (mounted) {
-        final error = e is AppError ? e : AppError.fromException(e as Exception);
-        
-        // Check if it's a rate limit error
-        if (error.statusCode == 429 || 
-            error.message.toLowerCase().contains('too many') ||
-            error.message.toLowerCase().contains('rate limit')) {
-          setState(() {
-            _errorMessage = error.message;
-          });
-        } else {
-          setState(() {
-            _errorMessage = 'Invalid email or password';
-          });
-        }
+        setState(() {
+          _errorMessage = errorMsg;
+        });
+      } else {
+        // Schedule setState for next frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _pendingErrorMessage != null) {
+            setState(() {
+              _errorMessage = _pendingErrorMessage;
+              // Restore form values again in case widget was recreated
+              if (_pendingEmail != null) {
+                _emailController.text = _pendingEmail!;
+              }
+              if (_pendingPassword != null) {
+                _passwordController.text = _pendingPassword!;
+              }
+              if (_pendingRememberMe != null) {
+                _rememberMe = _pendingRememberMe!;
+              }
+            });
+          }
+        });
       }
     }
   }
@@ -95,6 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Navigation handled by router
       });
     }
+    
     
     return Scaffold(
       body: Container(
@@ -130,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
-                              Icons.chair,
+                              Icons.chair_outlined,
                               size: 40,
                               color: Color(0xFF0d9488),
                             ),
@@ -156,9 +282,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 32),
                         
-                        // Error message
-                        if (_errorMessage != null) ...[
+                        // Error message - show at top for visibility
+                        if (_errorMessage != null && _errorMessage!.isNotEmpty) ...[
                           Container(
+                            width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.red.shade50,
@@ -188,12 +315,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 16),
                         ],
                         
-                        // Email field
+                        // Email field - values are preserved in controllers
                         AppTextField(
                           label: 'Email',
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           enabled: !authProvider.isLoading,
+                          errorText: _emailError,
+                          onChanged: (value) {
+                            // Clear error when user starts typing
+                            if (_emailError != null) {
+                              setState(() {
+                                _emailError = null;
+                              });
+                            }
+                          },
                         ),
                         const SizedBox(height: 16),
                         
@@ -203,6 +339,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           obscureText: !_showPassword,
                           enabled: !authProvider.isLoading,
+                          errorText: _passwordError,
+                          onChanged: (value) {
+                            // Clear error when user starts typing
+                            if (_passwordError != null) {
+                              setState(() {
+                                _passwordError = null;
+                              });
+                            }
+                          },
                           suffixIcon: IconButton(
                             icon: Icon(
                               _showPassword ? Icons.visibility_off : Icons.visibility,
@@ -218,20 +363,51 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         
                         // Remember me checkbox
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _rememberMe,
-                              onChanged: authProvider.isLoading
-                                  ? null
-                                  : (value) {
-                                      setState(() {
-                                        _rememberMe = value ?? false;
-                                      });
-                                    },
-                            ),
-                            const Text('Remember Me'),
-                          ],
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Checkbox(
+                                value: _rememberMe,
+                                onChanged: authProvider.isLoading
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          _rememberMe = value ?? false;
+                                        });
+                                      },
+                                fillColor: MaterialStateProperty.resolveWith<Color>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.selected)) {
+                                      return const Color(0xFF0d9488);
+                                    }
+                                    return Colors.transparent;
+                                  },
+                                ),
+                                side: const BorderSide(
+                                  color: Color(0xFF0d9488),
+                                  width: 2,
+                                ),
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: authProvider.isLoading
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          _rememberMe = !_rememberMe;
+                                        });
+                                      },
+                                child: const Text(
+                                  'Remember Me',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
                         
@@ -252,24 +428,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 'Demo accounts:',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
+                                  color: Colors.grey.shade700,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
+                              Text(
                                 'cs@demo.com | tech@demo.com | leader@demo.com',
-                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade700,
+                                ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
+                              Text(
                                 'Password: password',
-                                style: TextStyle(fontSize: 12),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade700,
+                                ),
                               ),
                             ],
                           ),
