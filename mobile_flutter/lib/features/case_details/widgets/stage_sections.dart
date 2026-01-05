@@ -34,7 +34,7 @@ class _StageSectionsState extends State<StageSections> {
     super.initState();
     // Expand current stage by default
     _expandedStages[widget.caseData.currentStage] = true;
-    // Initialize selected technician
+    // Initialize selected technician - always use current assignedToId
     _selectedTechnicianId = widget.caseData.assignedToId?.toString();
     // Load technicians if CS
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -46,9 +46,17 @@ class _StageSectionsState extends State<StageSections> {
   @override
   void didUpdateWidget(StageSections oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Sync selected technician when caseData changes
+    // Sync selected technician when caseData changes - always update to current value
     if (widget.caseData.assignedToId != oldWidget.caseData.assignedToId) {
-      _selectedTechnicianId = widget.caseData.assignedToId?.toString();
+      setState(() {
+        _selectedTechnicianId = widget.caseData.assignedToId?.toString();
+      });
+    }
+    // Also update when returning to stage 1
+    if (widget.caseData.assignedToId != null) {
+      setState(() {
+        _selectedTechnicianId = widget.caseData.assignedToId?.toString();
+      });
     }
   }
   
@@ -1184,115 +1192,118 @@ class _StageSectionsState extends State<StageSections> {
                 ? const BorderSide(color: Color(0xFF0d9488), width: 2) // Ring for current stage
                 : BorderSide.none,
           ),
-          child: ExpansionTile(
-            leading: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _getStageColor(stage, widget.caseData.currentStage, widget.caseData.status),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              dividerColor: Colors.transparent, // Remove divider line
+            ),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
               ),
-              child: Center(
-                child: isCompleted
-                    ? const Icon(Icons.check, color: Colors.white, size: 16)
-                    : Text(
-                        '$stage',
-                        style: TextStyle(
-                          color: isCurrent ? Colors.white : Colors.grey.shade600,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+              collapsedShape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(12)),
+              ),
+              leading: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _getStageColor(stage, widget.caseData.currentStage, widget.caseData.status),
+                ),
+                child: Center(
+                  child: isCompleted
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : Text(
+                          '$stage',
+                          style: TextStyle(
+                            color: isCurrent ? Colors.white : Colors.grey.shade600,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-            title: Text(
-              'Stage $stage: ${_getStageName(stage)}',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF1e3a5f),
-                fontSize: 14,
+              title: Text(
+                'Stage $stage: ${_getStageName(stage)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF1e3a5f),
+                  fontSize: 14,
+                ),
               ),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Badge for Current/Completed/Not Started
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? Colors.green.shade50
-                        : isCurrent
-                            ? const Color(0xFF0d9488).withOpacity(0.1) // Teal background
-                            : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    isCompleted
-                        ? 'Completed'
-                        : isCurrent
-                            ? 'Current'
-                            : 'Not Started',
-                    style: TextStyle(
-                      fontSize: 12,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Badge for Current/Completed/Not Started
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
                       color: isCompleted
-                          ? Colors.green.shade700
+                          ? Colors.green.shade50
                           : isCurrent
-                              ? const Color(0xFF0d9488) // Teal text
-                              : Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
+                              ? const Color(0xFF0d9488).withOpacity(0.1) // Teal background
+                              : Colors.transparent,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      isCompleted
+                          ? 'Completed'
+                          : isCurrent
+                              ? 'Current'
+                              : 'Not Started',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isCompleted
+                            ? Colors.green.shade700
+                            : isCurrent
+                                ? const Color(0xFF0d9488) // Teal text
+                                : Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  _expandedStages[stage] ?? false
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: Colors.grey.shade400,
-                  size: 20,
-                ),
-              ],
-            ),
-            initiallyExpanded: _expandedStages[stage] ?? false,
-            onExpansionChanged: (expanded) {
-              setState(() {
-                if (expanded) {
-                  // Close all other stages when opening this one
+                  const SizedBox(width: 8),
+                  Icon(
+                    _expandedStages[stage] ?? false
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.grey.shade400,
+                    size: 20,
+                  ),
+                ],
+              ),
+              initiallyExpanded: _expandedStages[stage] ?? false,
+              onExpansionChanged: (expanded) {
+                setState(() {
+                  // Always close all other stages when opening any stage
                   for (int i = 1; i <= 5; i++) {
                     if (i != stage) {
                       _expandedStages[i] = false;
                     }
                   }
-                }
-                _expandedStages[stage] = expanded;
-              });
-            },
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    top: BorderSide(
-                      color: Colors.grey.shade200,
-                      width: 1,
+                  // Set current stage expanded state
+                  _expandedStages[stage] = expanded;
+                });
+              },
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
                     ),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildStageContent(stage),
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: hasData
-                      ? _buildStageContent(stage)
-                      : const Text(
-                          'No data available for this stage.',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }),

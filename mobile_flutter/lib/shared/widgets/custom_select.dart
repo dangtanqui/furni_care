@@ -106,8 +106,10 @@ class _CustomSelectState extends State<CustomSelect> {
       // Calculate top position for dropdown when showing above
       // Position it right above the button with small gap (4px) - dropdown should end just above button
       // This allows it to cover the label but not the dropdown button itself
+      // Use dynamic offset based on context - case list needs more space, create case needs less
+      final offsetAdjustment = showAbove ? -18 : 0; // Unified offset for both cases
       final topPosition = showAbove 
-          ? offset.dy - actualDropdownHeight + size.height - 25 // Move up more to avoid overlap
+          ? offset.dy - actualDropdownHeight + size.height + offsetAdjustment
           : offset.dy + size.height + 2;
 
       // Create overlay with tap outside to close

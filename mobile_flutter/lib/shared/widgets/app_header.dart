@@ -49,6 +49,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                         children: [
                           // User icon and name - use Flexible to prevent overflow
                           Flexible(
+                            flex: 2,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -65,29 +66,28 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                                       fontSize: 14,
                                       color: Colors.white,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
+                                    overflow: TextOverflow.fade,
                                     maxLines: 1,
+                                    softWrap: false,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                // Role badge - use Flexible to prevent overflow
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF0d9488),
-                                      borderRadius: BorderRadius.circular(4),
+                                // Role badge - should not truncate
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0d9488),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    authProvider.user!.role.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    child: Text(
-                                      authProvider.user!.role.toUpperCase(),
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.visible,
                                   ),
                                 ),
                               ],
