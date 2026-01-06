@@ -63,25 +63,25 @@ Rails.application.configure do
   # 1. Upgrade connection_pool: gem 'connection_pool', '~> 2.4'
   # 2. Use redis-store directly: gem 'redis-store', '~> 1.10'
   # 3. Use the configuration below which avoids connection_pool dependency
-  if ENV['REDIS_URL'].present? || ENV['REDIS_CACHE_URL'].present?
-    redis_cache_url = ENV['REDIS_CACHE_URL'] || ENV['REDIS_URL']
-    begin
-      # Try using redis_cache_store with explicit pool configuration
-      config.cache_store = :redis_cache_store, {
-        url: redis_cache_url,
-        namespace: 'furnicare:cache',
-        expires_in: 90.minutes,
-        pool_size: 5,
-        pool_timeout: 5
-      }
-    rescue => e
-      # Fallback to memory store if Redis cache store fails
-      Rails.logger.warn "Failed to initialize Redis cache store: #{e.message}. Falling back to memory store."
-      config.cache_store = :memory_store
-    end
-  else
+  # if ENV['REDIS_URL'].present? || ENV['REDIS_CACHE_URL'].present?
+  #   redis_cache_url = ENV['REDIS_CACHE_URL'] || ENV['REDIS_URL']
+  #   begin
+  #     # Try using redis_cache_store with explicit pool configuration
+  #     config.cache_store = :redis_cache_store, {
+  #       url: redis_cache_url,
+  #       namespace: 'furnicare:cache',
+  #       expires_in: 90.minutes,
+  #       pool_size: 5,
+  #       pool_timeout: 5
+  #     }
+  #   rescue => e
+  #     # Fallback to memory store if Redis cache store fails
+  #     Rails.logger.warn "Failed to initialize Redis cache store: #{e.message}. Falling back to memory store."
+  #     config.cache_store = :memory_store
+  #   end
+  # else
     config.cache_store = :memory_store
-  end
+  # end
 
   # Use Sidekiq for background job processing
   config.active_job.queue_adapter = :sidekiq
