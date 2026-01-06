@@ -9,13 +9,13 @@ gem "bcrypt", "~> 3.1.7"
 gem "jwt"
 gem "rack-cors"
 gem "image_processing", "~> 1.2"
-gem "rack-attack" # Rate limiting
-gem "sidekiq" # Background job processing
-gem "redis" # Required for Sidekiq and caching
-gem "aws-sdk-s3", require: false # AWS S3 for Active Storage
-gem "sentry-ruby" # Error tracking
-gem "sentry-rails" # Sentry integration for Rails
-gem "newrelic_rpm" # Application performance monitoring
+gem "rack-attack"
+gem "sidekiq"
+gem "redis"
+gem "aws-sdk-s3", require: false
+gem "sentry-ruby"
+gem "sentry-rails"
+gem "newrelic_rpm"
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
@@ -23,16 +23,16 @@ gem "bootsnap", require: false
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
   gem "dotenv-rails"
-  gem "rspec-rails", "~> 6.0" # Testing framework
-  gem "factory_bot_rails" # Test data factories
-  gem "rswag" # Swagger/OpenAPI documentation
-  gem "rswag-api" # Swagger API endpoint
-  gem "rswag-ui" # Swagger UI
+  gem "rspec-rails", "~> 6.0"
+  gem "factory_bot_rails"
+  gem "rswag"
+  gem "rswag-api"
+  gem "rswag-ui"
 end
 
 group :test do
-  gem "shoulda-matchers", "~> 6.0" # Matchers for RSpec
-  gem "simplecov", require: false # Code coverage
+  gem "shoulda-matchers", "~> 6.0"
+  gem "simplecov", require: false
 end
 
 group :development do

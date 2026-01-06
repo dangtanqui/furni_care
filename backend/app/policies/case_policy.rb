@@ -53,6 +53,11 @@ class CasePolicy
 
   public
 
+  def can_create?
+    # Only cs can create a case
+    @user.cs?
+  end
+
   def can_approve_cost?
     return false if closed_or_cancelled?
     # Only leader can approve cost at Stage 3

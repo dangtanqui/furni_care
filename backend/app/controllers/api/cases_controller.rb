@@ -1,12 +1,12 @@
 # API Controller for case management endpoints
 # 
 # Endpoints:
-#   GET    /api/cases - List cases with filtering, sorting, and pagination
-#   GET    /api/cases/:id - Get case details
+#   GET    /api/cases - List cases with filtering, sorting, and pagination (authorized users only)
+#   GET    /api/cases/:id - Get case details (authorized users only)
 #   POST   /api/cases - Create new case (CS only)
 #   PUT    /api/cases/:id - Update case (authorized users only)
 #   DELETE /api/cases/:id - Delete case (CS only)
-#   POST   /api/cases/:id/advance_stage - Advance case to next stage
+#   POST   /api/cases/:id/advance_stage - Advance case to next stage (authorized users only)
 #   POST   /api/cases/:id/approve_cost - Approve cost estimate (Leader only)
 #   POST   /api/cases/:id/reject_cost - Reject cost estimate (Leader only)
 #   POST   /api/cases/:id/approve_final_cost - Approve final cost (Leader only)
@@ -48,6 +48,7 @@ class Api::CasesController < ApplicationController
   end
   
   def create
+    authorize_case_action(:create)
     # Use create_case_params to exclude fields that shouldn't be set during creation
     @case = Case.new(create_case_params)
     result = CaseService.new(case_record: @case, current_user: current_user).create
@@ -79,7 +80,7 @@ class Api::CasesController < ApplicationController
   end
   
   def redo_case
-    @case = Case.find(params[:id])
+    @case = Case.find(params[:id]) # TODO: Use set_case method instead
     authorize_case_action(:redo, @case)
     result = CaseService.new(case_record: @case, current_user: current_user).redo_case
     render_service_result(result, serializer: CaseSerializer, detail: true)
@@ -93,6 +94,7 @@ class Api::CasesController < ApplicationController
 
   def approve_final_cost
     authorize_case_action(:approve_final_cost)
+    # TODO: Why do we need to reload the case here?
     @case.reload # Ensure we have the latest data before calling service
     result = CaseService.new(case_record: @case, current_user: current_user).approve_final_cost
     render_service_result(result, serializer: CaseSerializer, detail: true)
@@ -113,14 +115,14 @@ class Api::CasesController < ApplicationController
   private
   
   def set_case
-    # Eager load all associations to avoid N+1 queries in serializer
+    # Eager load all associations to avoid N + 1 queries in serializer
     @case = Case.includes(
       :client, :site, :contact, :assigned_to, :created_by,
       :cost_approved_by, :final_cost_approved_by,
       case_attachments: { file_attachment: :blob }
     ).find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Record not found' }, status: :not_found
+    render json: { error: "Case not found by id: #{params[:id]}" }, status: :not_found
   end
   
   def create_case_params
