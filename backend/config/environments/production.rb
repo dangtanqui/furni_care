@@ -63,6 +63,7 @@ Rails.application.configure do
   # 1. Upgrade connection_pool: gem 'connection_pool', '~> 2.4'
   # 2. Use redis-store directly: gem 'redis-store', '~> 1.10'
   # 3. Use the configuration below which avoids connection_pool dependency
+  # Tôi đã comment code này vì build lỗi trên production, chắc có lẻ do sài redis free nên k đủ tài nguyên
   # if ENV['REDIS_URL'].present? || ENV['REDIS_CACHE_URL'].present?
   #   redis_cache_url = ENV['REDIS_CACHE_URL'] || ENV['REDIS_URL']
   #   begin
@@ -80,7 +81,7 @@ Rails.application.configure do
   #     config.cache_store = :memory_store
   #   end
   # else
-    config.cache_store = :memory_store
+  config.cache_store = :memory_store
   # end
 
   # Use Sidekiq for background job processing
