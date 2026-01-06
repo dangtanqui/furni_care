@@ -45,17 +45,19 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
         imageQuality: 85,
       );
       if (image != null) {
-        provider.addFile(image.path);
+        provider.addFile(image.path, context);
       }
     } else if (option == 'file') {
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
       );
       if (result != null) {
-        for (final file in result.files) {
-          if (file.path != null) {
-            provider.addFile(file.path!);
-          }
+        final filePaths = result.files
+            .where((file) => file.path != null)
+            .map((file) => file.path!)
+            .toList();
+        if (filePaths.isNotEmpty) {
+          provider.addFiles(filePaths, context);
         }
       }
     }
@@ -261,7 +263,10 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       label: 'Photos / Attachments',
                       filePaths: provider.filePaths,
                       onFileSelected: (option) => _handleFileSelection(option, provider),
-                      onDelete: (index) => provider.removeFile(index),
+                      onDelete: (index) {
+                        provider.removeFile(index);
+                        ToastHelper.showSuccess(context, 'Attachment removed successfully');
+                      },
                     ),
                     const SizedBox(height: 16),
                     
@@ -364,7 +369,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       text: 'Submit',
                       onPressed: provider.isFormValid && !provider.isLoading
                           ? () async {
-                              final success = await provider.submit();
+                              final success = await provider.submit(context);
                               if (!mounted) return; // Check if widget is still mounted
                               
                               if (success) {
@@ -381,7 +386,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                                 }
                               } else {
                                 // Show error toast
-                                ToastHelper.showError(context, 'Failed to create case');
+                                ToastHelper.showError(context, 'Failed to create case. Please try again.');
                               }
                             }
                           : null,

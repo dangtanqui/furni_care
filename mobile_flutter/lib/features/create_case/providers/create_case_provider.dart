@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 import '../../../core/api/models/data_models.dart';
 import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../core/utils/error_handler.dart';
+import '../../../shared/utils/file_duplicate_check.dart';
+import '../../../shared/utils/toast_helper.dart';
 
 class CreateCaseProvider with ChangeNotifier {
   final CaseService _caseService;
@@ -22,6 +27,7 @@ class CreateCaseProvider with ChangeNotifier {
   String _caseType = '';
   String _priority = '';
   List<String> _filePaths = [];
+  Set<String> _processedFiles = {}; // Track processed files to prevent duplicates
   
   CreateCaseProvider(this._caseService, this._dataService) {
     _loadClients();
@@ -133,17 +139,53 @@ class CreateCaseProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  void addFile(String filePath) {
-    _filePaths.add(filePath);
+  void addFile(String filePath, BuildContext context) {
+    addFiles([filePath], context);
+  }
+  
+  void addFiles(List<String> filePaths, BuildContext context) {
+    // Check for duplicates using the utility function
+    final uniqueFiles = filterDuplicateFiles(
+      filePaths,
+      _processedFiles,
+      context,
+    );
+    
+    if (uniqueFiles.isEmpty) {
+      // All files were duplicates, already showed error toast
+      return;
+    }
+    
+    // Add unique files
+    _filePaths.addAll(uniqueFiles);
     notifyListeners();
   }
   
   void removeFile(int index) {
+    if (index < 0 || index >= _filePaths.length) return;
+    
+    final filePath = _filePaths[index];
+    
+    // Remove from processed files set to allow re-upload
+    try {
+      final file = File(filePath);
+      if (file.existsSync()) {
+        final stat = file.statSync();
+        final fileName = filePath.split('/').last;
+        final fileKey = '$fileName-${stat.size}-${stat.modified.millisecondsSinceEpoch}';
+        _processedFiles.remove(fileKey);
+      }
+    } catch (e) {
+      // If we can't get file info, try to remove by filename only
+      final fileName = filePath.split('/').last;
+      _processedFiles.removeWhere((key) => key.startsWith('$fileName-'));
+    }
+    
     _filePaths.removeAt(index);
     notifyListeners();
   }
   
-  Future<bool> submit() async {
+  Future<bool> submit(BuildContext context) async {
     // Validation
     _errors = {};
     if (_clientId.isEmpty) _errors['client_id'] = 'is required';
@@ -172,27 +214,87 @@ class CreateCaseProvider with ChangeNotifier {
       
       // Upload attachments if any
       if (_filePaths.isNotEmpty) {
-        await _caseService.uploadAttachments(
-          caseData.id,
-          1,
-          _filePaths,
-          attachmentType: 'case_creation',
-        );
+        try {
+          await _caseService.uploadAttachments(
+            caseData.id,
+            1,
+            _filePaths,
+            attachmentType: 'case_creation',
+          );
+        } catch (uploadError) {
+          // If attachment upload fails, show error but don't fail the entire operation
+          // The case was created successfully, attachments just failed
+          _isLoading = false;
+          notifyListeners();
+          
+          String errorMessage = 'Failed to upload attachments.';
+          if (uploadError is AppError) {
+            errorMessage = uploadError.message;
+          } else if (uploadError is DioException && uploadError.response != null) {
+            final data = uploadError.response!.data;
+            if (data is Map<String, dynamic>) {
+              errorMessage = data['error'] ?? data['message'] ?? errorMessage;
+            }
+          }
+          
+          ToastHelper.showError(context, 'Case created successfully, but $errorMessage');
+          
+          // Clear files and processed files
+          _filePaths.clear();
+          _processedFiles.clear();
+          
+          return true; // Still return success since case was created
+        }
       }
+      
+      // Clear files and processed files on success
+      _filePaths.clear();
+      _processedFiles.clear();
       
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
+      
       if (e is AppError) {
         // Handle validation errors from API
-        if (e.statusCode == 422 && e.message.contains('errors')) {
-          // Parse validation errors if needed
+        if (e.statusCode == 422) {
+          // Parse validation errors - AppError already extracts the first error message
+          // Set it as a general error for now (backend should return field-specific errors)
+          _errors = {'general': e.message};
+          // Don't show toast for validation errors - they're shown in the form
+          notifyListeners();
+          return false;
         }
       }
-      // Log error for debugging
-      debugPrint('Error creating case: $e');
+      
+      // Check if it's a DioException to parse validation errors properly
+      if (e is DioException && e.response != null && e.response!.statusCode == 422) {
+        try {
+          final data = e.response!.data;
+          if (data is Map<String, dynamic> && data.containsKey('errors')) {
+            final errors = data['errors'] as Map<String, dynamic>;
+            // Normalize errors: join arrays into strings, similar to frontend
+            _errors = errors.map((key, value) {
+              if (value is List) {
+                return MapEntry(key, value.join(' '));
+              } else {
+                return MapEntry(key, value.toString());
+              }
+            });
+            // Don't show toast for validation errors - they're shown in the form
+            notifyListeners();
+            return false;
+          }
+        } catch (parseError) {
+          // If parsing fails, fall through to show general error toast
+        }
+      }
+      
+      // Show error toast for unknown errors
+      ToastHelper.showError(context, 'Failed to create case. Please try again.');
+      _errors = {};
       notifyListeners();
       return false;
     }
