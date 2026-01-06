@@ -11,7 +11,6 @@ class ApplicationController < ActionController::API
     header = header.split(' ').last if header
     
     begin
-      # Decode with expiration validation
       decoded = JWT.decode(header, jwt_secret, true, { 
         algorithm: JWT_ALGORITHM,
         verify_expiration: true 

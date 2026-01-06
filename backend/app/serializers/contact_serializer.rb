@@ -1,4 +1,3 @@
-# Serializer for Contact model
 class ContactSerializer
   def initialize(contact, options = {})
     @contact = contact

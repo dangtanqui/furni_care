@@ -1,4 +1,3 @@
-# Service for case business logic operations
 class CaseService < BaseService
   include StageConstants
 
@@ -98,5 +97,4 @@ class CaseService < BaseService
     # Delegate to CaseFinalCostService
     CaseFinalCostService.new(case_record: @case, current_user: @current_user).reject_final_cost
   end
-
 end

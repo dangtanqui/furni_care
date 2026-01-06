@@ -4,4 +4,3 @@ class CaseAttachment < ApplicationRecord
   
   validates :stage, presence: true, inclusion: { in: 1..5 }
 end
-

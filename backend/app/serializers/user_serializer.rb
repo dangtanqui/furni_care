@@ -1,4 +1,3 @@
-# Serializer for User model
 class UserSerializer
   def initialize(user, options = {})
     @user = user

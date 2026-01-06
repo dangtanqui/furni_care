@@ -9,7 +9,6 @@ class Api::ClientsController < ApplicationController
     sites = client.sites.order(:name)
     render json: SiteSerializer.collection(sites)
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Record not found' }, status: :not_found
+    render json: { error: "Client not found by id: #{params[:id]}" }, status: :not_found
   end
 end
-

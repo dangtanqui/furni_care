@@ -13,7 +13,6 @@ class Case < ApplicationRecord
   has_many :case_attachments, dependent: :destroy
   has_many_attached :attachments
 
-  # Validations
   validates :case_number, presence: true, uniqueness: true
   validates :current_stage, inclusion: { in: StageConstants::STAGE_RANGE }
   validates :status, inclusion: { in: CaseConstants::STATUSES_ARRAY }
@@ -53,8 +52,6 @@ class Case < ApplicationRecord
   def generate_case_number
     return if case_number.present?
     
-    # Use CaseNumberGeneratorService to generate unique case number
     self.case_number = CaseNumberGeneratorService.generate
   end
 end
-

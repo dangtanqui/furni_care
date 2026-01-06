@@ -1,4 +1,3 @@
-# Base exception class for application-specific errors
 class ApplicationError < StandardError
   attr_reader :status, :details
 
@@ -8,4 +7,3 @@ class ApplicationError < StandardError
     @details = details
   end
 end
-

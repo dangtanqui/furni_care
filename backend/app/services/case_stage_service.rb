@@ -1,4 +1,3 @@
-# Service for case stage transitions and stage-related operations
 class CaseStageService < BaseService
   include StageConstants
 
@@ -103,4 +102,3 @@ class CaseStageService < BaseService
     end
   end
 end
-

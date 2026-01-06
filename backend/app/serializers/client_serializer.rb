@@ -1,4 +1,3 @@
-# Serializer for Client model
 class ClientSerializer
   def initialize(client, options = {})
     @client = client

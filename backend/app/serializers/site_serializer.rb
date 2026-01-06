@@ -1,4 +1,3 @@
-# Serializer for Site model
 class SiteSerializer
   def initialize(site, options = {})
     @site = site

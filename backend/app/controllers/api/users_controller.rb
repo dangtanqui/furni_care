@@ -4,4 +4,3 @@ class Api::UsersController < ApplicationController
     render json: UserSerializer.collection(users, include_email: true)
   end
 end
-

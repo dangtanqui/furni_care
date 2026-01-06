@@ -1,4 +1,3 @@
-# Concern for authorization helpers
 module Authorizable
   extend ActiveSupport::Concern
 

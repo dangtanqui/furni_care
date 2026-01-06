@@ -1,4 +1,3 @@
-# Service for case attachment operations
 class CaseAttachmentService < BaseService
   include ActionView::Helpers::UrlHelper
   include Rails.application.routes.url_helpers

@@ -1,4 +1,3 @@
-# Concern for handling errors consistently across controllers
 module ErrorHandler
   extend ActiveSupport::Concern
 
@@ -58,7 +57,6 @@ module ErrorHandler
   end
 
   def handle_standard_error(exception)
-    # Track error with error tracking service
     ErrorTracker.capture_exception(exception, {
       user_id: current_user&.id,
       request_path: request.path,

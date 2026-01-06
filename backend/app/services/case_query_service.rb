@@ -1,4 +1,3 @@
-# Service for querying and filtering cases
 class CaseQueryService < BaseService
   include QueryConstants
 

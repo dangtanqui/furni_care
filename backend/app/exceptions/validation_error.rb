@@ -1,4 +1,3 @@
-# Exception raised when validation fails
 class ValidationError < ApplicationError
   attr_reader :errors
 
@@ -7,4 +6,3 @@ class ValidationError < ApplicationError
     @errors = errors || {}
   end
 end
-

@@ -1,4 +1,3 @@
-# Service for authentication operations
 class AuthService < BaseService
   def initialize(current_user: nil)
     @current_user = current_user

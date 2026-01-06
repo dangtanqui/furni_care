@@ -1,31 +1,11 @@
-# API Controller for authentication endpoints
-# 
-# Endpoints:
-#   POST /api/auth/login - Authenticate user and return JWT token
-#     Params: email (string), password (string), remember_me (boolean, optional)
-#     Returns: { token: string, user: { id, email, name, role, phone } }
-#   
-#   POST /api/auth/register - Register new user
-#     Params: email, password, name, role, phone (optional)
-#     Returns: { token: string, user: { id, email, name, role, phone } }
-#   
-#   GET /api/auth/me - Get current authenticated user
-#     Requires: Authorization header with Bearer token
-#     Returns: { user: { id, email, name, role, phone } }
 class Api::AuthController < ApplicationController
   include ServiceResponse
   include AuthConstants
   
   skip_before_action :authorize_request, only: [:login, :register]
   
-  # POST /api/auth/login
-  # Authenticate user with email and password
-  # @param email [String] User email
-  # @param password [String] User password
-  # @param remember_me [Boolean] Optional - if true, token expires in 30 days, else 1 day
-  # @return [JSON] { token: string, user: object }
   def login
-    remember_me = params[:remember_me] == true || params[:remember_me] == TRUE_STRING
+    remember_me = params[:remember_me] == true || params[:remember_me] == "true" # TODO: Thống nhất sử dụng "true" cho tất cả các endpoints
     expires_in = remember_me ? REMEMBER_ME_EXPIRATION_DAYS.days : DEFAULT_EXPIRATION_DAYS.day
     
     result = AuthService.new.login(
@@ -56,4 +36,3 @@ class Api::AuthController < ApplicationController
     params.permit(:email, :password, :name, :role, :phone)
   end
 end
-

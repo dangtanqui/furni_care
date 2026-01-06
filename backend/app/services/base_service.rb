@@ -1,4 +1,3 @@
-# Base service class for common service patterns
 class BaseService
   def self.call(*args, **kwargs, &block)
     new(*args, **kwargs).call(&block)

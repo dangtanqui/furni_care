@@ -1,4 +1,3 @@
-# Service for serializing case data to JSON
 class CaseSerializer
   include ActionView::Helpers::UrlHelper
   include Rails.application.routes.url_helpers

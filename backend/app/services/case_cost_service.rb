@@ -1,4 +1,3 @@
-# Service for case cost approval/rejection operations (Stage 3)
 class CaseCostService < BaseService
   include StageConstants
 
@@ -56,4 +55,3 @@ class CaseCostService < BaseService
     end
   end
 end
-

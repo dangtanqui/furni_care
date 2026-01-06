@@ -1,4 +1,3 @@
-# Concern for handling service results consistently
 module ServiceResponse
   extend ActiveSupport::Concern
 
@@ -11,7 +10,6 @@ module ServiceResponse
              end
       render json: data, status: status || result.status || :ok
     else
-      # Handle single error vs multiple errors consistently
       error_response = if result.errors.is_a?(Array) && result.errors.length == 1
                          { error: result.errors.first }
                        else

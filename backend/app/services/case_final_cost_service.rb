@@ -1,4 +1,3 @@
-# Service for case final cost operations (Stage 5)
 class CaseFinalCostService < BaseService
   include StageConstants
 
@@ -128,4 +127,3 @@ class CaseFinalCostService < BaseService
     end
   end
 end
-

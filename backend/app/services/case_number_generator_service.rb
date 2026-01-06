@@ -1,4 +1,3 @@
-# Service for generating unique case numbers
 class CaseNumberGeneratorService
   def self.generate
     # Use database-level locking to prevent race conditions
@@ -77,4 +76,3 @@ class CaseNumberGeneratorService
     end
   end
 end
-

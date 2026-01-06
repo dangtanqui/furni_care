@@ -1,4 +1,3 @@
-# Service for case update operations with business logic
 class CaseUpdateService < BaseService
   include StageConstants
 
@@ -176,4 +175,3 @@ class CaseUpdateService < BaseService
     end
   end
 end
-

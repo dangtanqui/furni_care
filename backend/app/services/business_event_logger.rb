@@ -1,4 +1,3 @@
-# Service for logging business events in structured format
 class BusinessEventLogger
   def self.log(event_type, case_id:, user_id: nil, metadata: {})
     event_data = {
@@ -65,4 +64,3 @@ class BusinessEventLogger
         })
   end
 end
-

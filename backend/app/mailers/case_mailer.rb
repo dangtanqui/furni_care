@@ -5,12 +5,9 @@ class CaseMailer < ApplicationMailer
     @client = case_record.client
     @site = case_record.site
     
-    # Get recipient email from contact
     recipient_email = @contact&.email.presence
-    
     return unless recipient_email.present?
     
-    # Header information
     @priority = case_record.priority
     @attempt_number = case_record.attempt_number
     
