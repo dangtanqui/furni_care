@@ -5,7 +5,8 @@ class Api::AuthController < ApplicationController
   skip_before_action :authorize_request, only: [:login, :register]
   
   def login
-    remember_me = params[:remember_me] == true || params[:remember_me] == "true" # TODO: Thống nhất sử dụng "true" cho tất cả các endpoints
+    # Normalize remember_me to boolean: accept boolean true or string "true", everything else is false
+    remember_me = params[:remember_me] == true || params[:remember_me].to_s.downcase == "true"
     expires_in = remember_me ? REMEMBER_ME_EXPIRATION_DAYS.days : DEFAULT_EXPIRATION_DAYS.day
     
     result = AuthService.new.login(

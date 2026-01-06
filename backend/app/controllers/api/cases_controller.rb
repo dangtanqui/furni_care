@@ -2,7 +2,7 @@ class Api::CasesController < ApplicationController
   include Authorizable
   include ServiceResponse
   
-  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :approve_final_cost, :reject_final_cost, :cancel_case]
+  before_action :set_case, only: [:show, :update, :destroy, :advance_stage, :approve_cost, :reject_cost, :approve_final_cost, :reject_final_cost, :cancel_case, :redo_case]
   
   def index
     result = CaseQueryService.call(params: params, current_user: current_user)
@@ -53,7 +53,6 @@ class Api::CasesController < ApplicationController
   end
   
   def redo_case
-    @case = Case.find(params[:id]) # TODO: Tại sao lại cần tìm lại case?
     authorize_case_action(:redo, @case)
     result = CaseService.new(case_record: @case, current_user: current_user).redo_case
     render_service_result(result, serializer: CaseSerializer, detail: true)
@@ -67,8 +66,6 @@ class Api::CasesController < ApplicationController
 
   def approve_final_cost
     authorize_case_action(:approve_final_cost)
-    # TODO: Tại sao lại cần reload case ở đây?
-    @case.reload # Ensure we have the latest data before calling service
     result = CaseService.new(case_record: @case, current_user: current_user).approve_final_cost
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end

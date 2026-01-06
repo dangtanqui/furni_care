@@ -21,7 +21,7 @@ class CaseCostService < BaseService
       )
       
       BusinessEventLogger.log_cost_approved(case_id: @case.id, user_id: @current_user.id)
-      success(@case.reload)
+      success(@case)
     end
   end
 
@@ -34,7 +34,7 @@ class CaseCostService < BaseService
         status: CaseConstants::STATUSES[:REJECTED]
       )
       BusinessEventLogger.log_cost_rejected(case_id: @case.id, user_id: @current_user.id)
-      success(@case.reload)
+      success(@case)
     end
   end
 
@@ -46,8 +46,6 @@ class CaseCostService < BaseService
     
     # If cost fields are updated and cost was previously approved, reset cost_status
     # This allows Technician to update cost and re-submit for approval
-    # Note: This check happens after the rejected check, so we need to reload
-    @case.reload # TODO: Tại sao lại cần reload case?
     if @case.cost_status == CaseConstants::COST_STATUSES[:APPROVED]
       @case.update(cost_status: nil, status: CaseConstants::STATUSES[:PENDING], cost_approved_by_id: nil)
     end

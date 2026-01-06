@@ -135,6 +135,6 @@ export const uploadAttachments = (
   form.append('stage', String(stage));
   if (attachmentType) form.append('attachment_type', attachmentType);
   files.forEach(file => form.append('files[]', file));
-  return api.post(`/cases/${id}/attachments`, form);
+  return api.post(`/cases/${id}/case_attachments`, form);
 };
 

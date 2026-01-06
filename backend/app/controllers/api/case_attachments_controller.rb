@@ -10,7 +10,7 @@ class Api::CaseAttachmentsController < ApplicationController
       attachment_type: params[:attachment_type]
     )
     
-    render_service_result(result, status: :created) # TODO: Test this
+    render_service_result(result, status: :created)
   end
 
   def destroy
@@ -28,11 +28,10 @@ class Api::CaseAttachmentsController < ApplicationController
   private
 
   def set_case
-    # For create: params[:id] is the case id
-    # For destroy: params[:case_id] is the case id, params[:id] is the attachment id
-    case_id = params[:case_id] || params[:id] # TODO: Thống nhất sử dụng case_id cho tất cả các endpoints
+    # Both create and destroy use :case_id from nested route
+    case_id = params[:case_id]
     @case = Case.find(case_id)
   rescue ActiveRecord::RecordNotFound
-    render json: { error: "Case not found by id: #{params[:case_id] || params[:id]}" }, status: :not_found
+    render json: { error: "Case not found by id: #{case_id}" }, status: :not_found
   end
 end

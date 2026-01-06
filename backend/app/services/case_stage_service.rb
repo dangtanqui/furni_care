@@ -7,8 +7,6 @@ class CaseStageService < BaseService
   end
 
   def advance_stage
-    @case.reload # TODO: Tại sao lại cần reload case?
-    
     old_stage = @case.current_stage
     return failure(['Already at final stage']) if old_stage >= STAGE_5
     
@@ -35,10 +33,8 @@ class CaseStageService < BaseService
     ActiveRecord::Base.transaction do
       return failure(@case.errors.messages) unless @case.update(update_attrs)
 
-      result_case = @case.reload # TODO: Tại sao lại cần reload case?
-      
       BusinessEventLogger.log_stage_advanced(
-        case_id: result_case.id,
+        case_id: @case.id,
         user_id: @current_user.id,
         from_stage: old_stage,
         to_stage: new_stage
@@ -46,7 +42,7 @@ class CaseStageService < BaseService
       
       send_execution_summary_email if old_stage == STAGE_4
       
-      success(result_case)
+      success(@case)
     end
   end
 
@@ -63,7 +59,7 @@ class CaseStageService < BaseService
       }
       
       if @case.update(update_params)
-        success(@case.reload) # TODO: Tại sao lại cần reload case?
+        success(@case)
       else
         failure(@case.errors.messages)
       end

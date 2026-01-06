@@ -26,7 +26,7 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
     context 'with valid files' do
       it 'creates attachments successfully' do
         post :create, params: {
-          id: case_record.id,
+          case_id: case_record.id,
           files: [file1, file2],
           stage: 1,
           attachment_type: 'document'
@@ -45,7 +45,7 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
 
       it 'uses default attachment_type when not provided' do
         post :create, params: {
-          id: case_record.id,
+          case_id: case_record.id,
           files: [file1],
           stage: 2
         }
@@ -57,7 +57,7 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
 
       it 'creates attachments with correct stage' do
         post :create, params: {
-          id: case_record.id,
+          case_id: case_record.id,
           files: [file1],
           stage: 3
         }
@@ -73,7 +73,7 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
     context 'with invalid params' do
       it 'returns error when no files provided' do
         post :create, params: {
-          id: case_record.id,
+          case_id: case_record.id,
           stage: 1
         }
 
@@ -84,14 +84,35 @@ RSpec.describe Api::CaseAttachmentsController, type: :controller do
 
       it 'returns 404 when case does not exist' do
         post :create, params: {
-          id: 99999,
+          case_id: 99999,
           files: [file1],
           stage: 1
         }
 
         expect(response).to have_http_status(:not_found)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('Record not found')
+        expect(json_response['error']).to include('Case not found')
+      end
+    end
+
+    context 'with Redis error handling' do
+      before do
+        # Mock Redis connection error
+        allow_any_instance_of(CaseAttachmentService).to receive(:serialize_attachment).and_raise(Redis::CannotConnectError.new('Connection refused'))
+      end
+
+      it 'handles Redis errors gracefully and cleans up attachments' do
+        expect {
+          post :create, params: {
+            case_id: case_record.id,
+            files: [file1],
+            stage: 1
+          }
+        }.not_to change { CaseAttachment.count }
+
+        expect(response).to have_http_status(:service_unavailable)
+        json_response = JSON.parse(response.body)
+        expect(json_response['error'] || json_response['errors']).to be_present
       end
     end
   end

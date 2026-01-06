@@ -8,7 +8,7 @@ class CaseUpdateService < BaseService
 
   def update(case_params)
     cost_fields_updated = detect_cost_fields_update(case_params)
-    final_cost_updated, old_final_cost_status = detect_final_cost_update(case_params)
+    final_cost_updated = detect_final_cost_update(case_params)
     stage1_fields_updated = detect_stage1_fields_update(case_params)
     assigned_to_changed = detect_assigned_to_change(case_params)
     
@@ -22,6 +22,7 @@ class CaseUpdateService < BaseService
     ActiveRecord::Base.transaction do
       old_assigned_to_id = @case.assigned_to_id
       old_status = @case.status
+      old_final_cost_status = @case.final_cost_status
       is_closing = case_params[:status] == CaseConstants::STATUSES[:CLOSED]
       
       if @case.update(update_params)
@@ -60,16 +61,19 @@ class CaseUpdateService < BaseService
     case_params.key?(:cost_required) || case_params.key?(:estimated_cost)
   end
 
-  def detect_final_cost_update(case_params) # TODO: giá trị trả về thứ 2 có thể tự xác định riêng được nên chỉ cần trả về giá trị thứ 1   
-    return [false, nil] unless case_params.key?(:final_cost)
+  def detect_final_cost_update(case_params)
+    return false unless case_params.key?(:final_cost)
     
     old_final_cost_status = @case.final_cost_status
     old_final_cost = @case.final_cost
-    new_final_cost = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f # TODO: Nếu nil thì xuống dưới call .to_f sẽ raise error và nếu tồn tại thì call .to_f 2 lần
+    
+    # Handle nil/blank values properly
+    new_final_cost_value = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f
+    old_final_cost_value = old_final_cost.nil? ? nil : old_final_cost.to_f
     
     # Check if value changed OR if it was rejected (need to reset status even if value unchanged)
-    updated = old_final_cost.to_f != new_final_cost.to_f || old_final_cost_status == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
-    [updated, old_final_cost_status]
+    updated = old_final_cost_value != new_final_cost_value || old_final_cost_status == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
+    updated
   end
 
   def detect_stage1_fields_update(case_params)

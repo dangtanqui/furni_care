@@ -19,12 +19,12 @@ Rails.application.routes.draw do
   end
   
   if Rails.env.production?
-    # Sidekiq Web UI
+    # Sidekiq Web UI with authentication
     require 'sidekiq/web'
-    # TODO: Add authentication middleware before mounting Sidekiq::Web in production
-    # Example: authenticate :user, ->(u) { u.admin? } do
-    #   mount Sidekiq::Web => '/sidekiq'
-    # end
+    require_relative '../app/middleware/sidekiq_auth'
+    
+    # Add authentication middleware to Sidekiq Web UI
+    Sidekiq::Web.use SidekiqAuth::Middleware
     mount Sidekiq::Web => '/sidekiq'
   end
   
@@ -44,9 +44,8 @@ Rails.application.routes.draw do
         post :reject_final_cost
         post :redo_case
         post :cancel_case
-        post :attachments, to: 'case_attachments#create'
       end
-      resources :case_attachments, only: [:destroy], controller: 'case_attachments', param: :id
+      resources :case_attachments, only: [:create, :destroy], controller: 'case_attachments', param: :id
     end
     
     resources :clients, only: [:index] do

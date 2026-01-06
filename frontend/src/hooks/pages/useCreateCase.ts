@@ -75,7 +75,7 @@ export function useCreateCase() {
         if (processingStatus.success > 0 && processingStatus.error === 0) {
           // All attachments succeeded
           showSuccess(processingStatus.success === 1 
-            ? 'Attachments uploaded successfully' 
+            ? 'Attachment uploaded successfully' 
             : `${processingStatus.success} attachments uploaded successfully`);
         } else if (processingStatus.error > 0 && processingStatus.success === 0) {
           // All attachments failed
@@ -90,23 +90,48 @@ export function useCreateCase() {
       }
     };
     
+    // Filter out duplicate files before processing
+    const duplicateCount = selectedFiles.filter(file => {
+      if (file.type.startsWith('image/')) {
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        return processedFilesRef.current.has(fileKey);
+      }
+      return false;
+    }).length;
+    
+    const uniqueFiles = selectedFiles.filter(file => {
+      if (file.type.startsWith('image/')) {
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        if (processedFilesRef.current.has(fileKey)) {
+          processingStatus.error++;
+          processingStatus.completed++;
+          return false; // Skip duplicate
+        }
+        return true; // Include unique file
+      }
+      return true; // Include non-image files
+    });
+    
+    // Show error for duplicates only once
+    if (duplicateCount > 0) {
+      showError('Duplicate image detected. Please upload a different image.');
+    }
+    
+    if (uniqueFiles.length === 0) {
+      // All files were duplicates, already showed error above
+      return;
+    }
+    
     // Update files state
     setFiles(prev => {
       const startFileIndex = prev.length;
-      const newFiles = [...prev, ...selectedFiles];
+      const newFiles = [...prev, ...uniqueFiles];
       
       // Process files
-      selectedFiles.forEach((file, idx) => {
+      uniqueFiles.forEach((file, idx) => {
         if (file.type.startsWith('image/')) {
           // Create unique identifier for this file (name + size + lastModified)
           const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-          
-          // Skip if already processed
-          if (processedFilesRef.current.has(fileKey)) {
-            processingStatus.success++;
-            checkAndShowToast();
-            return;
-          }
           
           // Mark as processed
           processedFilesRef.current.add(fileKey);
@@ -124,6 +149,8 @@ export function useCreateCase() {
               setPreviewToFileIndex(prevMapping => [...prevMapping, fileIndex]);
               processingStatus.success++;
             } else {
+              // Remove from processed set on error so it can be retried
+              processedFilesRef.current.delete(fileKey);
               processingStatus.error++;
             }
             checkAndShowToast();
@@ -249,8 +276,29 @@ export function useCreateCase() {
       case_type: form.case_type,
       priority: form.priority,
     } as Partial<CaseDetail>);
+      
       if (files.length) {
-        await uploadAttachments(res.data.id, 1, files, 'case_creation');
+        try {
+          await uploadAttachments(res.data.id, 1, files, 'case_creation');
+        } catch (uploadError) {
+          // If attachment upload fails, show error but don't fail the entire operation
+          // The case was created successfully, attachments just failed
+          if (axios.isAxiosError(uploadError)) {
+            const errorMessage = uploadError.response?.data?.error || 
+                                uploadError.response?.data?.message || 
+                                'Failed to upload attachments.';
+            showError(`Case created successfully, but ${errorMessage}`);
+          } else {
+            showError('Case created successfully, but failed to upload attachments.');
+          }
+          // Still return success since case was created
+          queryClient.invalidateQueries({ queryKey: ['cases'] });
+          setFiles([]);
+          setPreviews([]);
+          setPreviewToFileIndex([]);
+          processedFilesRef.current.clear();
+          return { success: true, caseId: res.data.id };
+        }
       }
       // Invalidate case list cache to ensure new case appears immediately
       queryClient.invalidateQueries({ queryKey: ['cases'] });

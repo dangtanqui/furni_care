@@ -1,4 +1,4 @@
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import Select from '../../Select';
 import FileUpload from '../../FileUpload';
 import Button from '../../Button';
@@ -13,10 +13,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
 
   const hasError = (keys: string[]) => {
     return keys.some(k => !!errors?.[k]);
-  };
-
-  const hasSuccess = (keys: string[], formValue: string) => {
-    return !hasError(keys) && formValue && formValue !== '';
   };
 
   // Check if all required fields are filled
@@ -36,9 +32,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           Client *
           {hasError(['client', 'client_id']) && (
             <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
-          )}
-          {hasSuccess(['client', 'client_id'], form.client_id) && (
-            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
           )}
         </label>
         <div className="case-form-field-wrapper">
@@ -68,9 +61,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           {hasError(['site', 'site_id']) && (
             <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
           )}
-          {hasSuccess(['site', 'site_id'], form.site_id) && (
-            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
-          )}
         </label>
         <div className="case-form-field-wrapper">
           <Select
@@ -98,9 +88,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           Contact Person *
           {hasError(['contact', 'contact_id']) && (
             <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
-          )}
-          {hasSuccess(['contact', 'contact_id'], form.contact_id) && (
-            <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
           )}
         </label>
         <div className="case-form-field-wrapper">
@@ -152,9 +139,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
             {hasError(['case_type']) && (
               <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
             )}
-            {hasSuccess(['case_type'], form.case_type) && (
-              <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
-            )}
           </label>
           <div className="case-form-field-wrapper">
             <Select
@@ -185,9 +169,6 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
             Priority *
             {hasError(['priority']) && (
               <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
-            )}
-            {hasSuccess(['priority'], form.priority) && (
-              <CheckCircle2 className="case-form-label-icon case-form-label-icon-success" aria-hidden="true" />
             )}
           </label>
           <div className="case-form-field-wrapper">

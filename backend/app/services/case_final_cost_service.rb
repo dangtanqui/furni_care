@@ -7,7 +7,6 @@ class CaseFinalCostService < BaseService
   end
 
   def approve_final_cost
-    @case.reload # TODO: Tại sao lại cần reload case?
     unless @case.current_stage == STAGE_5
       return failure(['Final cost can only be approved in Stage 5'], status: :unprocessable_entity)
     end
@@ -26,7 +25,7 @@ class CaseFinalCostService < BaseService
         status: CaseConstants::STATUSES[:COMPLETED] # but CS still needs to close the case
       )
       BusinessEventLogger.log_final_cost_approved(case_id: @case.id, user_id: @current_user.id)
-      success(@case.reload)
+      success(@case)
     end
   end
 
@@ -43,12 +42,11 @@ class CaseFinalCostService < BaseService
         status: CaseConstants::STATUSES[:REJECTED]
       )
       BusinessEventLogger.log_final_cost_rejected(case_id: @case.id, user_id: @current_user.id)
-      success(@case.reload)
+      success(@case)
     end
   end
 
   def handle_final_cost_update(old_final_cost_status = nil)
-    @case.reload # TODO: Tại sao lại cần reload case?
     
     # Don't update final_cost_status if case is being closed
     # When closing, final_cost_status should remain as approved
