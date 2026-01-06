@@ -1,10 +1,12 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
 import FileUpload from '../../../FileUpload';
 import EmptyState from '../../../EmptyState';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
+import { useToast } from '../../../../contexts/ToastContext';
+import { filterDuplicateFiles } from '../../../../utils/fileDuplicateCheck';
 import { TIMING } from '../../../../constants/timing';
 import { getCase } from '../../../../api/cases';
 import '../../../../styles/components/pages/case_details/stages/Stage2Content.css';
@@ -16,6 +18,8 @@ interface Stage2ContentProps {
 
 function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
   const { caseData, isCS, isLeader, handleUpdate, handleAdvance, handleAttachmentsUpload, handleAttachmentDelete } = useCaseDetailsContext();
+  const { showError } = useToast();
+  const processedFilesRef = useRef<Set<string>>(new Set());
   
   if (!caseData) return null;
   
@@ -31,6 +35,11 @@ function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
   const isCurrent = nonNullCaseData.current_stage === 2;
   const checklistItems = ['Check furniture condition', 'Document damage areas', 'Take measurements'];
   const attachments = nonNullCaseData.stage_attachments?.['2'] || [];
+  
+  // Reset processed files when case changes
+  useEffect(() => {
+    processedFilesRef.current.clear();
+  }, [nonNullCaseData.id]);
 
   // Sync state with caseData when component mounts or caseData changes
   useEffect(() => {
@@ -51,8 +60,12 @@ function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     if (!selectedFiles.length) return;
-    await handleAttachmentsUpload(2, selectedFiles);
     e.target.value = '';
+    
+    const uniqueFiles = filterDuplicateFiles(selectedFiles, processedFilesRef, showError);
+    if (uniqueFiles.length === 0) return;
+    
+    await handleAttachmentsUpload(2, uniqueFiles);
   };
 
   const handleFinish = async () => {

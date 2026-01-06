@@ -72,7 +72,7 @@ function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
 
       <div>
         <label className="stage1-label">Photos / Attachments</label>
-        {attachments.length === 0 && !canEdit ? (
+        {attachments.length === 0 ? (
           <EmptyState
             icon={<Paperclip />}
             title="No attachments"

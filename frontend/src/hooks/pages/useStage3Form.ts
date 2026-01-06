@@ -38,6 +38,17 @@ export function useStage3Form({
   });
   const [checklist, setChecklist] = useState<boolean[]>([]);
   const [shouldValidateCost, setShouldValidateCost] = useState<boolean>(false);
+  
+  // Track initial values to detect changes
+  const [initialValues, setInitialValues] = useState<{
+    estimated_cost: number | null;
+    cost_description: string;
+    cost_attachments_count: number;
+  }>({
+    estimated_cost: null,
+    cost_description: '',
+    cost_attachments_count: 0,
+  });
 
   // Initialize form from caseData
   useEffect(() => {
@@ -57,6 +68,16 @@ export function useStage3Form({
     } catch {
       setChecklist([false, false]);
     }
+    
+    // Track initial values for cost fields
+    const costAttachments = (caseData.stage_attachments?.['3'] || []).filter(
+      (att: any) => att.attachment_type === 'cost'
+    );
+    setInitialValues({
+      estimated_cost: caseData.estimated_cost ?? null,
+      cost_description: caseData.cost_description || '',
+      cost_attachments_count: costAttachments.length,
+    });
   }, [
     caseData?.id,
     caseData?.root_cause,
@@ -66,6 +87,7 @@ export function useStage3Form({
     caseData?.estimated_cost,
     caseData?.cost_description,
     caseData?.solution_checklist,
+    caseData?.stage_attachments,
   ]);
 
   const checklistItems = useMemo(() => ['Prepare materials', 'Schedule with client'], []);
@@ -190,6 +212,32 @@ export function useStage3Form({
     [form, checklist, caseData?.status]
   );
 
+  // Check if cost fields have changed from initial values
+  const hasCostChanges = useMemo(() => {
+    if (!form.cost_required) return false;
+    
+    const currentEstimatedCost = form.estimated_cost ? Number(form.estimated_cost) : null;
+    const currentCostDescription = form.cost_description || '';
+    
+    // Compare estimated_cost (handle null and number comparison)
+    const estimatedCostChanged = 
+      (currentEstimatedCost === null && initialValues.estimated_cost !== null) ||
+      (currentEstimatedCost !== null && initialValues.estimated_cost === null) ||
+      (currentEstimatedCost !== null && initialValues.estimated_cost !== null && 
+       Math.abs(currentEstimatedCost - initialValues.estimated_cost) >= 0.01);
+    
+    // Compare cost_description
+    const costDescriptionChanged = currentCostDescription !== initialValues.cost_description;
+    
+    return estimatedCostChanged || costDescriptionChanged;
+  }, [form.cost_required, form.estimated_cost, form.cost_description, initialValues]);
+
+  // Check if cost has been saved before (has initial estimated_cost)
+  const hasSavedCost = useMemo(
+    () => initialValues.estimated_cost !== null,
+    [initialValues.estimated_cost]
+  );
+
   return {
     form,
     setForm: updateForm,
@@ -206,6 +254,9 @@ export function useStage3Form({
     validateCost,
     getUpdateData,
     canEditStage3,
+    hasCostChanges,
+    hasSavedCost,
+    initialValues,
   };
 }
 

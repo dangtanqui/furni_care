@@ -41,6 +41,7 @@ function Stage5Content({ canEdit, onCloseAccordion }: Stage5ContentProps) {
     showSaveButton,
     savedFinalCost,
     getUpdateData,
+    hasFinalCostChanged,
   } = useStage5Form({
     caseData,
     isCS,
@@ -244,6 +245,7 @@ function Stage5Content({ canEdit, onCloseAccordion }: Stage5ContentProps) {
             finalCostMissing={finalCostMissing ?? false}
             finalCostPendingApproval={finalCostPendingApproval ?? false}
             savedFinalCost={savedFinalCost}
+            hasFinalCostChanged={hasFinalCostChanged}
             form={form}
             caseData={caseData}
             getUpdateData={getUpdateData}

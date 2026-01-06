@@ -30,6 +30,9 @@ export function useStage5Form({
     final_rating: 5,
     final_cost: '',
   });
+  
+  // Track initial final_cost value to detect changes
+  const [initialFinalCost, setInitialFinalCost] = useState<number | null>(null);
 
   // Initialize form from caseData
   useEffect(() => {
@@ -41,6 +44,9 @@ export function useStage5Form({
       final_rating: caseData.final_rating || 5,
       final_cost: caseData.final_cost ? String(caseData.final_cost) : '',
     });
+    
+    // Track initial final_cost value
+    setInitialFinalCost(caseData.final_cost ?? null);
   }, [
     caseData?.id,
     caseData?.cs_notes,
@@ -278,6 +284,14 @@ export function useStage5Form({
     [form, estimatedCost, caseData?.final_cost_status, approvedFinalCost, costsEqual]
   );
 
+  // Check if final_cost has changed from initial value
+  const hasFinalCostChanged = useMemo(() => {
+    if (!showFinalCostSection) return false;
+    if (formFinalCost === null && initialFinalCost === null) return false;
+    if (formFinalCost === null || initialFinalCost === null) return true;
+    return !costsEqual(formFinalCost, initialFinalCost);
+  }, [showFinalCostSection, formFinalCost, initialFinalCost, costsEqual]);
+
   return {
     form,
     setForm,
@@ -294,6 +308,8 @@ export function useStage5Form({
     formFinalCostEqualsEstimated,
     getUpdateData,
     canEditStage5Fallback,
+    hasFinalCostChanged,
+    initialFinalCost,
   };
 }
 

@@ -26,12 +26,12 @@
 }
 
 .stage1-assign-container {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col md:flex-row md:items-end gap-4;
 }
 
 /* Button width is handled by common CSS in utilities.css (w-full md:w-auto) */
 .stage1-assign-container > button {
-  @apply md:self-start;
+  @apply md:self-end;
 }
 
 .stage1-assign-row {

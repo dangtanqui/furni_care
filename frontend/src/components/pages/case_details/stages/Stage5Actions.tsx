@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 import Button from '../../../Button';
 import type { CaseDetail } from '../../../../api/cases';
@@ -11,6 +11,7 @@ interface Stage5ActionsProps {
   finalCostMissing: boolean;
   finalCostPendingApproval: boolean;
   savedFinalCost: number | null;
+  hasFinalCostChanged: boolean;
   form: {
     cs_notes: string;
     final_feedback: string;
@@ -34,6 +35,7 @@ function Stage5Actions({
   finalCostMissing,
   finalCostPendingApproval,
   savedFinalCost,
+  hasFinalCostChanged,
   caseData,
   getUpdateData,
   onUpdate,
@@ -41,6 +43,12 @@ function Stage5Actions({
   onRedo,
   onCloseAccordion,
 }: Stage5ActionsProps) {
+  // Disable Update button if final_cost hasn't changed from initial value
+  const shouldDisableUpdate = useMemo(() => {
+    if (!showSaveButton || !showFinalCostSection) return false;
+    // If there's a saved final cost, button should be disabled if no changes
+    return savedFinalCost !== null && !hasFinalCostChanged;
+  }, [showSaveButton, showFinalCostSection, savedFinalCost, hasFinalCostChanged]);
   const handleSave = useCallback(async () => {
     // Use getUpdateData from hook which handles approved_final_cost logic correctly
     const updateData = getUpdateData(true);
@@ -54,7 +62,7 @@ function Stage5Actions({
     <>
       <div className="stage5-actions">
         {showSaveButton && showFinalCostSection ? (
-          <Button onClick={handleSave} variant="primary" alwaysAutoWidth>
+          <Button onClick={handleSave} variant="primary" alwaysAutoWidth disabled={shouldDisableUpdate}>
             {savedFinalCost !== null ? 'Update' : 'Save'}
           </Button>
         ) : (

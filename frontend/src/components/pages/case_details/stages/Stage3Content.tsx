@@ -1,4 +1,4 @@
-import { useMemo, useCallback, memo } from 'react';
+import { useMemo, useCallback, useRef, useEffect, memo } from 'react';
 import { Paperclip } from 'lucide-react';
 import Button from '../../../Button';
 import AttachmentGrid from '../../../AttachmentGrid';
@@ -9,6 +9,8 @@ import SolutionFormFields from './SolutionFormFields';
 import Stage3Actions from './Stage3Actions';
 import { useCaseDetailsContext } from '../../../../contexts/CaseDetailsContext';
 import { useStage3Form } from '../../../../hooks/pages/useStage3Form';
+import { useToast } from '../../../../contexts/ToastContext';
+import { filterDuplicateFiles } from '../../../../utils/fileDuplicateCheck';
 import { TIMING } from '../../../../constants/timing';
 import { CASE_STATUS, COST_STATUS } from '../../../../constants/caseStatus';
 import { ATTACHMENT_TYPE } from '../../../../constants/attachmentTypes';
@@ -34,8 +36,17 @@ function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }: Stage3Content
     handleAttachmentsUpload,
     handleAttachmentDelete,
   } = useCaseDetailsContext();
+  const { showError } = useToast();
+  const processedFilesRef = useRef<Set<string>>(new Set());
+  const processedCostFilesRef = useRef<Set<string>>(new Set());
 
   if (!caseData) return null;
+  
+  // Reset processed files when case changes
+  useEffect(() => {
+    processedFilesRef.current.clear();
+    processedCostFilesRef.current.clear();
+  }, [caseData.id]);
 
   // Use custom hook for form management
   const {
@@ -53,6 +64,9 @@ function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }: Stage3Content
     setShouldValidateCost,
     validateCost,
     canEditStage3,
+    hasCostChanges,
+    hasSavedCost,
+    initialValues,
   } = useStage3Form({
     caseData,
     isTechnician,
@@ -84,20 +98,28 @@ function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }: Stage3Content
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFiles = Array.from(e.target.files || []);
       if (!selectedFiles.length) return;
-      await handleAttachmentsUpload(3, selectedFiles);
       e.target.value = '';
+      
+      const uniqueFiles = filterDuplicateFiles(selectedFiles, processedFilesRef, showError);
+      if (uniqueFiles.length === 0) return;
+      
+      await handleAttachmentsUpload(3, uniqueFiles);
     },
-    [handleAttachmentsUpload]
+    [handleAttachmentsUpload, showError]
   );
 
   const handleCostFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFiles = Array.from(e.target.files || []);
       if (!selectedFiles.length) return;
-      await handleAttachmentsUpload(3, selectedFiles, 'cost');
       e.target.value = '';
+      
+      const uniqueFiles = filterDuplicateFiles(selectedFiles, processedCostFilesRef, showError);
+      if (uniqueFiles.length === 0) return;
+      
+      await handleAttachmentsUpload(3, uniqueFiles, 'cost');
     },
-    [handleAttachmentsUpload]
+    [handleAttachmentsUpload, showError]
   );
 
   const handleCancel = useCallback(async () => {
@@ -249,6 +271,10 @@ function Stage3Content({ canEdit, onCloseAccordion, onOpenStage }: Stage3Content
           onOpenStage={onOpenStage}
           onValidateCost={validateCost}
           onResetValidation={() => setShouldValidateCost(false)}
+          hasCostChanges={hasCostChanges}
+          hasSavedCost={hasSavedCost}
+          currentCostAttachmentsCount={costAttachments.length}
+          initialCostAttachmentsCount={initialValues.cost_attachments_count}
         />
       )}
 
