@@ -7,6 +7,8 @@ import 'core/services/auth_service.dart';
 import 'core/services/case_service.dart';
 import 'core/services/data_service.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'shared/providers/toast_provider.dart';
+import 'shared/widgets/toast_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider(create: (_) => ToastProvider()),
         Provider.value(value: caseService),
         Provider.value(value: dataService),
       ],
@@ -53,6 +56,14 @@ class FurniCareApp extends StatelessWidget {
         useMaterial3: true,
       ),
       routerConfig: AppRoutes.createRouter(authProvider),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            const ToastContainer(),
+          ],
+        );
+      },
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../../shared/widgets/text_field.dart';
 import '../../../shared/widgets/app_header_back.dart';
 import '../../../shared/widgets/custom_select.dart';
 import '../../../shared/widgets/file_upload.dart';
+import '../../../shared/utils/toast_helper.dart';
 import '../providers/create_case_provider.dart';
 
 class CreateCaseScreen extends StatefulWidget {
@@ -367,15 +368,9 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                               if (!mounted) return; // Check if widget is still mounted
                               
                               if (success) {
-                                // Show success message before navigation
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Case created successfully'),
-                                    backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                                // Wait a bit for SnackBar to show, then navigate
+                                // Show success toast
+                                ToastHelper.showSuccess(context, 'Case created successfully', duration: const Duration(seconds: 2));
+                                // Wait a bit for toast to show, then navigate
                                 await Future.delayed(const Duration(milliseconds: 300));
                                 if (!mounted) return; // Check again before navigation
                                 
@@ -385,13 +380,8 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                                   context.go('/');
                                 }
                               } else {
-                                // Show error message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to create case'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
+                                // Show error toast
+                                ToastHelper.showError(context, 'Failed to create case');
                               }
                             }
                           : null,

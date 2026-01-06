@@ -8,6 +8,7 @@ import '../../../features/case_details/providers/case_details_provider.dart';
 import '../../../shared/widgets/custom_select.dart';
 import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/image_viewer.dart';
+import '../../../shared/utils/toast_helper.dart';
 import 'stage_helpers.dart';
 
 class Stage1Content extends StatefulWidget {
@@ -286,21 +287,14 @@ class _Stage1ContentState extends State<Stage1Content> {
                             }
                             
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(widget.isCurrent ? 'Case completed and advanced to Stage 2' : 'Case updated'),
-                                  backgroundColor: Colors.green,
-                                ),
+                              ToastHelper.showSuccess(
+                                context,
+                                widget.isCurrent ? 'Case completed and advanced to Stage 2' : 'Case updated',
                               );
                             }
                           } catch (e) {
                             if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to assign technician: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              ToastHelper.showError(context, 'Failed to assign technician: ${e.toString()}');
                             }
                           } finally {
                             if (mounted) {

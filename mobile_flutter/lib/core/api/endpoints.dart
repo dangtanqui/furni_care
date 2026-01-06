@@ -13,7 +13,7 @@ class ApiEndpoints {
   static String caseRejectFinalCost(int id) => '/cases/$id/reject_final_cost';
   static String caseRedo(int id) => '/cases/$id/redo_case';
   static String caseCancel(int id) => '/cases/$id/cancel_case';
-  static String caseAttachments(int id) => '/cases/$id/attachments';
+  static String caseAttachments(int id) => '/cases/$id/case_attachments';
   static String caseAttachment(int caseId, int attachmentId) => '/cases/$caseId/case_attachments/$attachmentId';
   
   // Data endpoints
