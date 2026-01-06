@@ -49,6 +49,12 @@ app.*.map.json
 .env.local
 .env.*.local
 
+# Keystore files (DO NOT COMMIT)
+android/key.properties
+android/keystore/
+*.jks
+*.keystore
+
 # Generated files
 *.g.dart
 *.freezed.dart
