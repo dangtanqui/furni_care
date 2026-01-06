@@ -10,7 +10,6 @@ import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/app_header.dart';
 import '../providers/case_list_provider.dart';
 import '../widgets/case_table.dart';
-import '../widgets/case_table_new.dart';
 import '../widgets/case_filters.dart';
 
 class CaseListScreen extends StatelessWidget {
@@ -108,7 +107,7 @@ class CaseListScreen extends StatelessWidget {
                               title: 'No cases found',
                               description: 'Try adjusting your filters or create a new case to get started.',
                             )
-                          : const CaseTableNew(),
+                          : const CaseTable(),
                 ),
               ],
             );

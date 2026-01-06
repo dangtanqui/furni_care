@@ -18,17 +18,20 @@ class AppRoutes {
         final isAuthenticated = authProvider.isAuthenticated;
         final isLoginRoute = state.matchedLocation == login;
         
-        // If not authenticated and not on login page, redirect to login
         if (!isAuthenticated && !isLoginRoute) {
           return login;
         }
         
-        // If authenticated and on login page, redirect to home
         if (isAuthenticated && isLoginRoute) {
           return caseList;
         }
         
         return null;
+      },
+      errorBuilder: (context, state) {
+        return authProvider.isAuthenticated
+            ? const CaseListScreen()
+            : const LoginScreen();
       },
       routes: [
         GoRoute(
@@ -44,7 +47,7 @@ class AppRoutes {
           builder: (context, state) => const CreateCaseScreen(),
         ),
         GoRoute(
-          path: '/cases/:id',
+          path: caseDetails,
           builder: (context, state) {
             final id = int.parse(state.pathParameters['id']!);
             return CaseDetailsScreen(caseId: id);
