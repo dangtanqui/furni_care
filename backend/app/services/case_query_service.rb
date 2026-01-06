@@ -108,8 +108,6 @@ class CaseQueryService < BaseService
     per_page = @params[:per_page]&.to_i || DEFAULT_PER_PAGE
     per_page = [per_page, MAX_PER_PAGE].min
     
-    # Use count(:all) for better performance with large datasets
-    # This avoids loading all records into memory
     total = cases.count(:all)
     paginated_cases = cases.offset((page - 1) * per_page).limit(per_page)
     

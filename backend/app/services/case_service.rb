@@ -11,8 +11,6 @@ class CaseService < BaseService
     @case.created_by = @current_user
     @case.current_stage = STAGE_1
     @case.status = CaseConstants::STATUSES[:OPEN]
-    # assigned_to_id can be set during creation if explicitly provided in params
-    # If not provided, it will remain nil (no auto-assignment)
     
     if @case.save
       BusinessEventLogger.log_case_created(case_id: @case.id, user_id: @current_user.id)
@@ -23,27 +21,22 @@ class CaseService < BaseService
   end
 
   def update(case_params)
-    # Delegate to CaseUpdateService
     CaseUpdateService.new(case_record: @case, current_user: @current_user).update(case_params)
   end
 
   def advance_stage
-    # Delegate to CaseStageService
     CaseStageService.new(case_record: @case, current_user: @current_user).advance_stage
   end
 
   def approve_cost
-    # Delegate to CaseCostService
     CaseCostService.new(case_record: @case, current_user: @current_user).approve_cost
   end
 
   def reject_cost
-    # Delegate to CaseCostService
     CaseCostService.new(case_record: @case, current_user: @current_user).reject_cost
   end
 
   def redo_case
-    # Delegate to CaseStageService
     CaseStageService.new(case_record: @case, current_user: @current_user).redo_case
   end
 
@@ -89,12 +82,10 @@ class CaseService < BaseService
   end
 
   def approve_final_cost
-    # Delegate to CaseFinalCostService
     CaseFinalCostService.new(case_record: @case, current_user: @current_user).approve_final_cost
   end
 
   def reject_final_cost
-    # Delegate to CaseFinalCostService
     CaseFinalCostService.new(case_record: @case, current_user: @current_user).reject_final_cost
   end
 end

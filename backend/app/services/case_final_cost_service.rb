@@ -7,8 +7,7 @@ class CaseFinalCostService < BaseService
   end
 
   def approve_final_cost
-    # Authorization is handled by controller via Policy
-    @case.reload # Ensure we have the latest data
+    @case.reload # TODO: Tại sao lại cần reload case?
     unless @case.current_stage == STAGE_5
       return failure(['Final cost can only be approved in Stage 5'], status: :unprocessable_entity)
     end
@@ -33,7 +32,7 @@ class CaseFinalCostService < BaseService
 
   def reject_final_cost
     # Authorization is handled by controller via Policy
-    # When final cost is rejected, set status to 'rejected' (similar to Stage 3 cost rejection)
+    # When final cost is rejected, set status to 'rejected'
     unless @case.current_stage == STAGE_5
       return failure(['Final cost can only be rejected in Stage 5'])
     end
@@ -41,7 +40,7 @@ class CaseFinalCostService < BaseService
     ActiveRecord::Base.transaction do
       @case.update(
         final_cost_status: CaseConstants::FINAL_COST_STATUSES[:REJECTED],
-        status: CaseConstants::STATUSES[:REJECTED] # similar to Stage 3 cost rejection
+        status: CaseConstants::STATUSES[:REJECTED]
       )
       BusinessEventLogger.log_final_cost_rejected(case_id: @case.id, user_id: @current_user.id)
       success(@case.reload)
@@ -49,7 +48,7 @@ class CaseFinalCostService < BaseService
   end
 
   def handle_final_cost_update(old_final_cost_status = nil)
-    @case.reload
+    @case.reload # TODO: Tại sao lại cần reload case?
     
     # Don't update final_cost_status if case is being closed
     # When closing, final_cost_status should remain as approved

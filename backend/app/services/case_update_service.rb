@@ -7,7 +7,6 @@ class CaseUpdateService < BaseService
   end
 
   def update(case_params)
-    # Detect what fields are being updated
     cost_fields_updated = detect_cost_fields_update(case_params)
     final_cost_updated, old_final_cost_status = detect_final_cost_update(case_params)
     stage1_fields_updated = detect_stage1_fields_update(case_params)
@@ -57,30 +56,24 @@ class CaseUpdateService < BaseService
 
   private
 
-  # Detect if cost-related fields are being updated
   def detect_cost_fields_update(case_params)
-    case_params.key?(:estimated_cost) || 
-    case_params.key?(:cost_description) || 
-    case_params.key?(:cost_required)
+    case_params.key?(:cost_required) || case_params.key?(:estimated_cost)
   end
 
-  # Detect if final_cost is being updated and return update status
-  def detect_final_cost_update(case_params)
+  def detect_final_cost_update(case_params) # TODO: giá trị trả về thứ 2 có thể tự xác định riêng được nên chỉ cần trả về giá trị thứ 1   
     return [false, nil] unless case_params.key?(:final_cost)
     
     old_final_cost_status = @case.final_cost_status
     old_final_cost = @case.final_cost
-    new_final_cost = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f
+    new_final_cost = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f # TODO: Nếu nil thì xuống dưới call .to_f sẽ raise error và nếu tồn tại thì call .to_f 2 lần
     
     # Check if value changed OR if it was rejected (need to reset status even if value unchanged)
     updated = old_final_cost.to_f != new_final_cost.to_f || old_final_cost_status == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
     [updated, old_final_cost_status]
   end
 
-  # Detect if Stage 1 fields are being updated
   def detect_stage1_fields_update(case_params)
-    stage1_fields = [:assigned_to_id, :description]
-    stage1_fields.any? { |field| case_params.key?(field) }
+    case_params.key?(:assigned_to_id)
   end
 
   # Detect if assigned_to_id is being changed
@@ -148,14 +141,12 @@ class CaseUpdateService < BaseService
   end
 
   def handle_cost_update(cost_fields_updated)
-    # Delegate to CaseCostService
     CaseCostService.new(case_record: @case, current_user: @current_user).handle_cost_update
   end
 
   def handle_final_cost_update(final_cost_updated, old_final_cost_status = nil)
     return unless final_cost_updated
     
-    # Delegate to CaseFinalCostService
     CaseFinalCostService.new(case_record: @case, current_user: @current_user).handle_final_cost_update(old_final_cost_status)
   end
 
