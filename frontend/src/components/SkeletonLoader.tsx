@@ -35,12 +35,12 @@ export default function SkeletonLoader({
   }
 
   const variantClass = `skeleton-${variant}`;
-  const styleProps: React.CSSProperties = {};
+  const styleProps: React.CSSProperties & Record<string, string> = {};
   if (width) {
-    styleProps['--skeleton-width' as string] = width;
+    styleProps['--skeleton-width'] = width;
   }
   if (height) {
-    styleProps['--skeleton-height' as string] = height;
+    styleProps['--skeleton-height'] = height;
   }
 
   return (
