@@ -50,7 +50,8 @@ export function useStage3Form({
     cost_attachments_count: 0,
   });
 
-  // Initialize form from caseData
+  // Initialize form from caseData - only reset when case ID changes
+  // This prevents form from resetting when attachments are uploaded
   useEffect(() => {
     if (!caseData) return;
     
@@ -78,17 +79,21 @@ export function useStage3Form({
       cost_description: caseData.cost_description || '',
       cost_attachments_count: costAttachments.length,
     });
-  }, [
-    caseData?.id,
-    caseData?.root_cause,
-    caseData?.solution_description,
-    caseData?.planned_execution_date,
-    caseData?.cost_required,
-    caseData?.estimated_cost,
-    caseData?.cost_description,
-    caseData?.solution_checklist,
-    caseData?.stage_attachments,
-  ]);
+  }, [caseData?.id]); // Only reset when case ID changes
+
+  // Update initialValues when attachments change (for tracking cost changes)
+  // But don't reset form fields
+  useEffect(() => {
+    if (!caseData) return;
+    
+    const costAttachments = (caseData.stage_attachments?.['3'] || []).filter(
+      (att: any) => att.attachment_type === 'cost'
+    );
+    setInitialValues(prev => ({
+      ...prev,
+      cost_attachments_count: costAttachments.length,
+    }));
+  }, [caseData?.stage_attachments]);
 
   const checklistItems = useMemo(() => ['Prepare materials', 'Schedule with client'], []);
   const isCurrent = useMemo(() => caseData?.current_stage === STAGE.STAGE_3, [caseData?.current_stage]);

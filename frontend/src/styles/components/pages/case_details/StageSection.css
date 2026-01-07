@@ -16,7 +16,11 @@
 }
 
 .stage-section-header:focus {
-  @apply outline-none ring-2 ring-[#0d9488] ring-offset-2;
+  @apply outline-none;
+}
+
+.stage-section-header:focus-visible {
+  @apply outline-none;
 }
 
 .stage-section-header-left {

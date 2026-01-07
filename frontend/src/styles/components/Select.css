@@ -53,6 +53,7 @@
 .select-button {
   @apply w-full px-3 py-2 pr-10 border rounded-lg flex items-center justify-between transition-all text-left relative;
   outline: none;
+  border-color: rgb(209 213 219); /* Same as input/textarea border */
 }
 
 .select-button:disabled {

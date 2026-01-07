@@ -22,7 +22,7 @@
 }
 
 .stage1-assign-section {
-  @apply pt-4 border-t;
+  @apply pt-4;
 }
 
 .stage1-assign-container {
