@@ -50,6 +50,10 @@
   @apply flex items-center gap-2;
 }
 
+.case-header-field.case-header-order-3 {
+  @apply flex-wrap;
+}
+
 .case-header-label {
   @apply text-sm font-medium text-gray-700;
 }
@@ -97,15 +101,15 @@
 }
 
 .case-header-progress {
-  @apply mt-6 flex items-center gap-1 md:gap-2;
+  @apply mt-6 flex items-center gap-1 md:gap-2 flex-wrap;
 }
 
 .case-header-progress-item {
-  @apply flex items-center;
+  @apply flex items-center flex-shrink-0;
 }
 
 .case-header-progress-circle {
-  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium;
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0;
 }
 
 .case-header-progress-circle-completed {
@@ -121,7 +125,7 @@
 }
 
 .case-header-progress-connector {
-  @apply w-8 md:w-12 h-1;
+  @apply w-8 md:w-12 h-1 flex-shrink;
 }
 
 .case-header-progress-connector-completed {

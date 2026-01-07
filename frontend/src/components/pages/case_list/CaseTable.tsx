@@ -1,7 +1,7 @@
 import { memo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Clock, CheckCircle, Inbox } from 'lucide-react';
-import { getStatusColorClass, getPriorityColorClass, formatCaseStatus, getStatusIcon, getPriorityIcon } from '../../../utils/caseHelpers';
+import { getStatusColorClass, getPriorityColorClass, formatCaseStatus, formatPriority, getStatusIcon, getPriorityIcon } from '../../../utils/caseHelpers';
 import SortIcon from '../../SortIcon';
 import Pagination from '../../Pagination';
 import EmptyState from '../../EmptyState';
@@ -192,7 +192,7 @@ function CaseTable({ cases, loading, sort, onSort, pagination, onPageChange }: C
                         const PriorityIcon = getPriorityIcon(c.priority);
                         return <PriorityIcon className="case-table-priority-icon" aria-hidden="true" />;
                       })()}
-                      {c.priority}
+                      {formatPriority(c.priority)}
                     </span>
                   </td>
                   <td className="case-table-cell-assigned" data-label="Assigned">{c.assigned_to || '-'}</td>

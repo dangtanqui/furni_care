@@ -132,7 +132,7 @@
 }
 
 .case-table-header-content {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-2 whitespace-nowrap;
 }
 
 .case-table-empty-cell {
@@ -178,7 +178,7 @@
 }
 
 .case-table-stage-container {
-  @apply flex items-center gap-1;
+  @apply flex items-center gap-1 whitespace-nowrap;
 }
 
 .case-table-stage-icon-clock {

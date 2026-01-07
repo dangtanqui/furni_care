@@ -20,7 +20,9 @@
 }
 
 .stage-section-number-circle {
-  @apply w-8 h-8 rounded-full flex items-center justify-center;
+  @apply w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0;
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .stage-section-number-completed {

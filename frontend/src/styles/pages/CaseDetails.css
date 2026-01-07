@@ -8,6 +8,14 @@
   @apply p-6;
 }
 
+.case-details-header {
+  @apply mb-6;
+}
+
+.case-details-title {
+  @apply text-2xl font-bold text-[#1e3a5f];
+}
+
 .case-details-back-button {
   @apply text-[var(--accent)] mb-6 hover:text-[var(--accent-dark)] !w-auto;
   @apply relative z-10;

@@ -120,6 +120,19 @@
 
 .stage4-signature-canvas {
   @apply border border-gray-200 rounded bg-white cursor-crosshair w-full touch-none;
+  height: 150px;
+}
+
+@media (min-width: 768px) {
+  .stage4-signature-canvas {
+    height: 200px;
+  }
+}
+
+@media (max-width: 767px) {
+  .stage4-signature-canvas {
+    height: 180px;
+  }
 }
 
 .stage4-signature-controls {

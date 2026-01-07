@@ -3,20 +3,33 @@ import type { PaginationProps } from '../types/components/Pagination';
 import '../styles/components/Pagination.css';
 
 export default function Pagination({ pagination, onPageChange, itemName = 'items' }: PaginationProps) {
-  if (pagination.total_pages <= 1) return null;
+  const paginationInfo = (
+    <div className="pagination-info">
+      Showing {(pagination.page - 1) * pagination.per_page + 1} to {Math.min(pagination.page * pagination.per_page, pagination.total)} of {pagination.total} {itemName}
+    </div>
+  );
+
+  // If only 1 page, show only the info text without controls
+  if (pagination.total_pages <= 1) {
+    return (
+      <div className="pagination-container">
+        {paginationInfo}
+      </div>
+    );
+  }
 
   return (
     <div className="pagination-container">
-      <div className="pagination-info">
-        Showing {(pagination.page - 1) * pagination.per_page + 1} to {Math.min(pagination.page * pagination.per_page, pagination.total)} of {pagination.total} {itemName}
-      </div>
+      {paginationInfo}
       <div className="pagination-controls">
         <button
           onClick={() => onPageChange(pagination.page - 1)}
           disabled={pagination.page === 1}
           className="pagination-button"
+          aria-label="Previous page"
         >
-          <ChevronLeft className="pagination-icon" /> Previous
+          <ChevronLeft className="pagination-icon" />
+          <span className="pagination-button-text">Previous</span>
         </button>
         <div className="pagination-page-numbers">
           {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
@@ -45,8 +58,10 @@ export default function Pagination({ pagination, onPageChange, itemName = 'items
           onClick={() => onPageChange(pagination.page + 1)}
           disabled={pagination.page >= pagination.total_pages}
           className="pagination-button"
+          aria-label="Next page"
         >
-          Next <ChevronRight className="pagination-icon" />
+          <span className="pagination-button-text">Next</span>
+          <ChevronRight className="pagination-icon" />
         </button>
       </div>
     </div>

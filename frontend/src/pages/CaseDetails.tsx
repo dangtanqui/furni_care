@@ -153,6 +153,10 @@ export default function CaseDetail() {
           Back
         </Button>
 
+        <div className="case-details-header">
+          <h1 className="case-details-title">Case Details</h1>
+        </div>
+
         <CaseHeader caseData={nonNullCaseData} />
 
         {error && (

@@ -28,12 +28,36 @@
   @apply flex items-center gap-4;
 }
 
+.layout-user-info-container {
+  @apply relative;
+}
+
+.layout-user-icon-button {
+  @apply md:hidden p-2 hover:bg-white/10 rounded-lg cursor-pointer flex items-center justify-center;
+}
+
+.layout-user-info-desktop {
+  @apply hidden md:flex items-center gap-2 text-sm;
+}
+
 .layout-user-info {
   @apply flex items-center gap-2 text-sm;
 }
 
 .layout-user-icon {
-  @apply w-4 h-4;
+  @apply w-5 h-5;
+}
+
+.layout-user-menu {
+  @apply absolute right-0 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[160px] z-50;
+}
+
+.layout-user-menu-item {
+  @apply px-4 py-2;
+}
+
+.layout-user-menu-name {
+  @apply text-sm font-medium text-gray-900;
 }
 
 .layout-user-role {
