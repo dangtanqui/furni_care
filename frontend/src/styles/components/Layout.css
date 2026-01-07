@@ -4,6 +4,17 @@
   @apply min-h-screen bg-[#f8fafc];
 }
 
+/* Skip Navigation Link - Hidden by default, visible on focus */
+.skip-navigation-link {
+  @apply absolute left-[-9999px] z-50 bg-[#1e3a5f] text-white px-4 py-2 rounded;
+  top: 1rem;
+}
+
+.skip-navigation-link:focus {
+  @apply left-4;
+  position: absolute;
+}
+
 .layout-header {
   @apply bg-[#1e3a5f] text-white shadow-lg;
 }

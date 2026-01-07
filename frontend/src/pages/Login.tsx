@@ -97,14 +97,14 @@ export default function Login() {
         nofollow={true}
       />
       <div className="login-page">
-        <div className="login-card">
-        <div className="login-header">
-          <Armchair className="login-logo" />
-          <h1 className="login-title">FurniCare</h1>
-        </div>
-        <p className="login-subtitle">Warranty Management System</p>
-        
-        <LoginForm
+        <main className="login-card" role="main">
+          <header className="login-header">
+            <Armchair className="login-logo" aria-hidden="true" />
+            <h1 className="login-title">FurniCare</h1>
+          </header>
+          <p className="login-subtitle">Warranty Management System</p>
+          
+          <LoginForm
           email={email}
           password={password}
           showPassword={showPassword}
@@ -116,8 +116,8 @@ export default function Login() {
           onTogglePassword={() => setShowPassword(!showPassword)}
           onRememberMeChange={handleRememberMeChange}
           onSubmit={handleSubmit}
-        />
-      </div>
+          />
+        </main>
       </div>
     </>
   );

@@ -176,30 +176,38 @@ export default function CaseDetail() {
           leftIcon={<ArrowLeft />}
           alwaysAutoWidth
           className="case-details-back-button"
+          aria-label="Go back to case list"
         >
           Back
         </Button>
 
-        <div className="case-details-header">
-          <h1 className="case-details-title">Case Details</h1>
-        </div>
-
-        <CaseHeader caseData={nonNullCaseData} />
-
-        {error && (
-          <div className="case-details-error">
-            {error}
+        <article aria-labelledby="case-details-heading">
+          <div className="case-details-header">
+            <h1 id="case-details-heading" className="case-details-title">
+              Case Details - {nonNullCaseData.case_number}
+            </h1>
           </div>
-        )}
 
-        {loading && (
-          <div className="case-details-loading-processing">
-            Processing...
-          </div>
-        )}
+          <CaseHeader caseData={nonNullCaseData} />
 
-        {/* Stage Sections */}
-        {stageSections.map(stage => (
+          {error && (
+            <div className="case-details-error" role="alert" aria-live="polite">
+              {error}
+            </div>
+          )}
+
+          {loading && (
+            <div 
+              className="case-details-loading-processing" 
+              aria-live="polite" 
+              aria-busy="true"
+            >
+              Processing...
+            </div>
+          )}
+
+          {/* Stage Sections */}
+          {stageSections.map(stage => (
           <StageSection
             key={stage.num}
             stage={stage}
@@ -208,7 +216,8 @@ export default function CaseDetail() {
             onOpenStage={handleOpenStage}
             canEdit={stage.canEdit}
           />
-        ))}
+          ))}
+        </article>
       </div>
       </CaseDetailsProvider>
     </>

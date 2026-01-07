@@ -41,37 +41,45 @@ export default function CaseList() {
         ])}
       />
       <div className="case-list-page">
-      <div className="case-list-header">
-        <h1 className="case-list-title">Case List</h1>
-        {isCS && (
-          <div className="case-list-create-container">
-            <Button variant="primary" to="/cases/new" leftIcon={<Plus />}>
-              Create Case
-            </Button>
+        <section aria-labelledby="case-list-heading">
+          <div className="case-list-header">
+            <h1 id="case-list-heading" className="case-list-title">Case List</h1>
+            {isCS && (
+              <div className="case-list-create-container">
+                <Button variant="primary" to="/cases/new" leftIcon={<Plus />}>
+                  Create Case
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <CaseFilters 
-        filter={filter}
-        technicians={technicians}
-        onFilterChange={handleFilterChange}
-      />
+          <CaseFilters 
+            filter={filter}
+            technicians={technicians}
+            onFilterChange={handleFilterChange}
+          />
 
-      {error && (
-        <div className="case-list-error">
-          {error}
-        </div>
-      )}
+          {error && (
+            <div className="case-list-error" role="alert" aria-live="polite">
+              {error}
+            </div>
+          )}
 
-      <CaseTable 
-        cases={cases}
-        loading={loading}
-        sort={sort}
-        onSort={handleSort}
-        pagination={pagination}
-        onPageChange={handlePageChange}
-      />
+          {loading && (
+            <div aria-live="polite" aria-busy="true" className="sr-only">
+              Loading cases...
+            </div>
+          )}
+
+          <CaseTable 
+            cases={cases}
+            loading={loading}
+            sort={sort}
+            onSort={handleSort}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
+        </section>
       </div>
     </>
   );

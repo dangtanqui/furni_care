@@ -20,6 +20,8 @@ interface SelectProps {
   name?: string;
   error?: boolean;
   onOpen?: () => void;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
 }
 
 export default function Select({
@@ -33,6 +35,8 @@ export default function Select({
   name,
   error = false,
   onOpen,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -177,6 +181,8 @@ export default function Select({
         aria-labelledby={id ? `${id}-label` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid !== undefined ? ariaInvalid : error}
         role="combobox"
         onClick={handleToggle}
         onMouseDown={(e) => {

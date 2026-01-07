@@ -10,9 +10,13 @@
 }
 
 .stage-section-header {
-  @apply p-4 flex items-center justify-between cursor-pointer;
+  @apply p-4 flex items-center justify-between cursor-pointer w-full text-left bg-transparent border-none;
   min-height: 44px; /* Better touch target for mobile */
   touch-action: manipulation; /* Prevent double-tap zoom on mobile */
+}
+
+.stage-section-header:focus {
+  @apply outline-none ring-2 ring-[#0d9488] ring-offset-2;
 }
 
 .stage-section-header-left {
@@ -38,7 +42,9 @@
 }
 
 .stage-section-title {
-  @apply font-medium text-[#1e3a5f];
+  @apply font-medium text-[#1e3a5f] m-0;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .stage-section-header-right {

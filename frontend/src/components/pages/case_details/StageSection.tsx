@@ -33,10 +33,16 @@ export default function StageSection({
   const isCompleted = !isCurrent && (stage.num < nonNullCaseData.current_stage || (nonNullCaseData.status === 'closed' && stage.num === 5));
 
   return (
-    <div className={`stage-section-card ${isCurrent ? 'stage-section-card-current' : ''}`}>
-      <div
+    <section 
+      className={`stage-section-card ${isCurrent ? 'stage-section-card-current' : ''}`}
+      aria-labelledby={`stage-${stage.num}-heading`}
+    >
+      <button
         className="stage-section-header"
         onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={`stage-${stage.num}-content`}
+        aria-label={`${expanded ? 'Collapse' : 'Expand'} Stage ${stage.num} - ${stage.name}`}
       >
         <div className="stage-section-header-left">
           <div className={`stage-section-number-circle ${
@@ -46,16 +52,20 @@ export default function StageSection({
           }`}>
             {isCompleted ? <Check className="stage-section-check-icon" /> : stage.num}
           </div>
-          <span className="stage-section-title">Stage {stage.num} - {stage.name}</span>
+          <h2 id={`stage-${stage.num}-heading`} className="stage-section-title">Stage {stage.num} - {stage.name}</h2>
         </div>
         <div className="stage-section-header-right">
           {isCompleted && <span className="stage-section-badge-completed">Completed</span>}
           {isCurrent && <span className="stage-section-badge-current">Current</span>}
-          {expanded ? <ChevronUp className="stage-section-chevron-icon" /> : <ChevronDown className="stage-section-chevron-icon" />}
+          {expanded ? <ChevronUp className="stage-section-chevron-icon" aria-hidden="true" /> : <ChevronDown className="stage-section-chevron-icon" aria-hidden="true" />}
         </div>
-      </div>
+      </button>
 
-      <div className={`stage-section-content ${expanded ? '' : 'stage-section-content-hidden'}`}>
+      <div 
+        id={`stage-${stage.num}-content`}
+        className={`stage-section-content ${expanded ? '' : 'stage-section-content-hidden'}`}
+        aria-hidden={!expanded}
+      >
         {stage.num === 1 && (
           <Stage1Content
             canEdit={canEdit}
@@ -88,6 +98,6 @@ export default function StageSection({
           />
         )}
       </div>
-    </div>
+    </section>
   );
 }

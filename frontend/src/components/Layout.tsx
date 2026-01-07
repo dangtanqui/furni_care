@@ -34,11 +34,16 @@ export default function Layout() {
 
   return (
     <div className="layout-container">
+      {/* Skip Navigation Link */}
+      <a href="#main-content" className="skip-navigation-link">
+        Skip to main content
+      </a>
+      
       {/* Header */}
       <header className="layout-header">
-        <div className="layout-header-content">
-          <Link to="/" className="layout-logo-link">
-            <Armchair className="layout-logo-icon" />
+        <nav className="layout-header-content" aria-label="Main navigation">
+          <Link to="/" className="layout-logo-link" aria-label="FurniCare home">
+            <Armchair className="layout-logo-icon" aria-hidden="true" />
             <span className="layout-logo-text">FurniCare</span>
           </Link>
           
@@ -67,15 +72,19 @@ export default function Layout() {
                 <span className="layout-user-role">{user?.role}</span>
               </div>
             </div>
-            <button onClick={handleLogout} className="layout-logout-button">
-              <LogOut className="layout-logout-icon" />
+            <button 
+              onClick={handleLogout} 
+              className="layout-logout-button"
+              aria-label="Logout"
+            >
+              <LogOut className="layout-logout-icon" aria-hidden="true" />
             </button>
           </div>
-        </div>
+        </nav>
       </header>
 
       {/* Main Content */}
-      <main className="layout-main">
+      <main id="main-content" className="layout-main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

@@ -28,7 +28,10 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
   return (
     <form onSubmit={onSubmit} className="case-form">
       <div>
-        <label htmlFor="client_id" className={`case-form-label ${hasError(['client', 'client_id']) ? 'case-form-label-error' : ''}`}>
+        <label 
+          htmlFor="client_id" 
+          className={`case-form-label ${hasError(['client', 'client_id']) ? 'case-form-label-error' : ''}`}
+        >
           Client *
           {hasError(['client', 'client_id']) && (
             <AlertCircle className="case-form-label-icon case-form-label-icon-error" aria-hidden="true" />
@@ -45,10 +48,17 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
             disabled={loading}
             error={hasError(['client', 'client_id'])}
             onOpen={() => onClearFieldError?.(['client', 'client_id'])}
+            aria-describedby={hasError(['client', 'client_id']) ? 'client_id-error' : undefined}
+            aria-invalid={hasError(['client', 'client_id'])}
           />
         </div>
         {getFieldError(['client', 'client_id']) && (
-          <p className="case-form-field-error">
+          <p 
+            id="client_id-error"
+            className="case-form-field-error" 
+            role="alert"
+            aria-live="polite"
+          >
             <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Client {getFieldError(['client', 'client_id'])}
           </p>
@@ -73,10 +83,17 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
             disabled={!form.client_id || loading}
             error={hasError(['site', 'site_id'])}
             onOpen={() => onClearFieldError?.(['site', 'site_id'])}
+            aria-describedby={hasError(['site', 'site_id']) ? 'site_id-error' : undefined}
+            aria-invalid={hasError(['site', 'site_id'])}
           />
         </div>
         {getFieldError(['site', 'site_id']) && (
-          <p className="case-form-field-error">
+          <p 
+            id="site_id-error"
+            className="case-form-field-error"
+            role="alert"
+            aria-live="polite"
+          >
             <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Site {getFieldError(['site', 'site_id'])}
           </p>
@@ -101,10 +118,17 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
             disabled={!form.site_id || loading}
             error={hasError(['contact', 'contact_id'])}
             onOpen={() => onClearFieldError?.(['contact', 'contact_id'])}
+            aria-describedby={hasError(['contact', 'contact_id']) ? 'contact_id-error' : undefined}
+            aria-invalid={hasError(['contact', 'contact_id'])}
           />
         </div>
         {getFieldError(['contact', 'contact_id']) && (
-          <p className="case-form-field-error">
+          <p 
+            id="contact_id-error"
+            className="case-form-field-error"
+            role="alert"
+            aria-live="polite"
+          >
             <AlertCircle className="case-form-error-icon" aria-hidden="true" />
             Contact Person {getFieldError(['contact', 'contact_id'])}
           </p>
@@ -122,9 +146,16 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
           placeholder="Describe the issue..."
           autoComplete="off"
           disabled={loading}
+          aria-describedby={hasError(['description']) ? 'description-error' : undefined}
+          aria-invalid={hasError(['description'])}
         />
         {getFieldError(['description']) && (
-          <p className="case-form-field-error">
+          <p 
+            id="description-error"
+            className="case-form-field-error"
+            role="alert"
+            aria-live="polite"
+          >
             Description {getFieldError(['description'])}
           </p>
         )}
@@ -155,10 +186,17 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
               disabled={loading}
               error={hasError(['case_type'])}
               onOpen={() => onClearFieldError?.(['case_type'])}
+              aria-describedby={hasError(['case_type']) ? 'case_type-error' : undefined}
+              aria-invalid={hasError(['case_type'])}
             />
           </div>
           {getFieldError(['case_type']) && (
-            <p className="case-form-field-error">
+            <p 
+              id="case_type-error"
+              className="case-form-field-error"
+              role="alert"
+              aria-live="polite"
+            >
               <AlertCircle className="case-form-error-icon" aria-hidden="true" />
               Type {getFieldError(['case_type'])}
             </p>
@@ -186,10 +224,17 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
               disabled={loading}
               error={hasError(['priority'])}
               onOpen={() => onClearFieldError?.(['priority'])}
+              aria-describedby={hasError(['priority']) ? 'priority-error' : undefined}
+              aria-invalid={hasError(['priority'])}
             />
           </div>
           {getFieldError(['priority']) && (
-            <p className="case-form-field-error">
+            <p 
+              id="priority-error"
+              className="case-form-field-error"
+              role="alert"
+              aria-live="polite"
+            >
               <AlertCircle className="case-form-error-icon" aria-hidden="true" />
               Priority {getFieldError(['priority'])}
             </p>

@@ -53,34 +53,37 @@ export default function CreateCase() {
         ])}
       />
       <div className="create-case-page">
-      <Button
-        variant="tertiary"
-        onClick={() => window.history.back()}
-        leftIcon={<ArrowLeft />}
-        alwaysAutoWidth
-        className="create-case-back-button"
-      >
-        Back
-      </Button>
-      
-      <div className="create-case-card">
-        <h1 className="create-case-title">Create New Case</h1>
+        <Button
+          variant="tertiary"
+          onClick={() => window.history.back()}
+          leftIcon={<ArrowLeft />}
+          alwaysAutoWidth
+          className="create-case-back-button"
+          aria-label="Go back to case list"
+        >
+          Back
+        </Button>
         
-        <CaseForm
-          form={form}
-          clients={clients}
-          sites={sites}
-          contacts={contacts}
-          previews={previews}
-          onFormChange={handleFormChange}
-          onFileChange={handleFileChange}
-          onDeletePreview={handleDeletePreview}
-          onSubmit={onSubmit}
-          errors={errors}
-          onClearFieldError={clearFieldError}
-          loading={loading}
-        />
-      </div>
+        <section aria-labelledby="create-case-heading">
+          <div className="create-case-card">
+            <h1 id="create-case-heading" className="create-case-title">Create New Case</h1>
+            
+            <CaseForm
+              form={form}
+              clients={clients}
+              sites={sites}
+              contacts={contacts}
+              previews={previews}
+              onFormChange={handleFormChange}
+              onFileChange={handleFileChange}
+              onDeletePreview={handleDeletePreview}
+              onSubmit={onSubmit}
+              errors={errors}
+              onClearFieldError={clearFieldError}
+              loading={loading}
+            />
+          </div>
+        </section>
       </div>
     </>
   );
