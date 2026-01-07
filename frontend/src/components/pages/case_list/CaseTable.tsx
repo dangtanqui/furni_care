@@ -216,4 +216,3 @@ function CaseTable({ cases, loading, sort, onSort, pagination, onPageChange }: C
 }
 
 export default memo(CaseTable);
-

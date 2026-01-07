@@ -35,6 +35,7 @@ module SidekiqAuth
         # Verify user exists and is admin/leader (optional - adjust based on your requirements)
         user = User.find_by(id: user_id)
         return false unless user
+
         # Only allow CS or Leader roles to access Sidekiq (adjust as needed)
         ['cs', 'leader'].include?(user.role.downcase)
       rescue JWT::DecodeError, JWT::ExpiredSignature, ActiveRecord::RecordNotFound
@@ -43,4 +44,3 @@ module SidekiqAuth
     end
   end
 end
-

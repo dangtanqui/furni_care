@@ -22,4 +22,3 @@ export default function SortIcon({ column, currentColumn, direction }: SortIconP
     ? <ArrowUp className="sort-icon-active" />
     : <ArrowDown className="sort-icon-active" />;
 }
-

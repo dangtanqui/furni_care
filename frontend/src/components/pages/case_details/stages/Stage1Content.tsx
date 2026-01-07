@@ -184,4 +184,3 @@ function Stage1Content({ canEdit, onOpenStage }: Stage1ContentProps) {
 }
 
 export default memo(Stage1Content);
-

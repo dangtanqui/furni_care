@@ -7,4 +7,3 @@ export const register = (data: { email: string; password: string; name: string; 
   api.post('/auth/register', data);
 
 export const getMe = () => api.get('/auth/me');
-

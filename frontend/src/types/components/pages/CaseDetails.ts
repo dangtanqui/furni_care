@@ -82,5 +82,3 @@ export interface Stage5Props {
   onUpdate: (data: Partial<CaseDetailType>) => void;
   onRedo: () => void;
 }
-
-

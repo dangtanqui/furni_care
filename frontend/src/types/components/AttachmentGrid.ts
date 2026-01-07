@@ -9,4 +9,3 @@ export interface AttachmentGridProps {
   canEdit?: boolean;
   onDelete?: (attachmentId: number) => void;
 }
-

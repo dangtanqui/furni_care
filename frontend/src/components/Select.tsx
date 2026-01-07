@@ -196,32 +196,19 @@ export default function Select({
         }}
         disabled={disabled}
         className={`
-          w-full px-3 py-2 pr-10 border rounded-lg
-          flex items-center justify-between
-          ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white cursor-pointer'}
-          ${error ? 'border-red-500' : 'border-gray-300'}
-          transition-all text-left relative
+          select-button
+          ${error ? 'select-button-error' : ''}
+          ${isFocused && isOpen ? 'select-button-focused' : ''}
+          ${error && (isFocused || isOpen) ? 'select-button-error-focused' : ''}
         `}
-        style={{
-          boxShadow: isFocused && isOpen ? 'inset 0 0 0 2px var(--accent)' : error ? 'inset 0 0 0 1px rgb(239 68 68)' : 'none',
-          borderColor: error ? 'rgb(239 68 68)' : (isFocused && isOpen ? 'transparent' : 'rgb(209 213 219)'),
-          outline: 'none',
-        }}
       >
         <span 
-          className={`flex-1 truncate text-left pr-2 whitespace-nowrap ${isPlaceholder ? 'text-gray-400' : 'text-gray-900'}`}
-          style={isPlaceholder ? { color: 'rgb(156 163 175)' } : undefined}
+          className={`select-button-text ${isPlaceholder ? 'select-button-text-placeholder' : 'select-button-text-value'}`}
         >
           {isPlaceholder ? placeholder : (selectedOption?.label || placeholder)}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform`}
-          style={{ 
-            position: 'absolute', 
-            right: '0.75rem', 
-            top: '50%', 
-            transform: `translateY(-50%) ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}` 
-          }}
+          className={`select-chevron ${isOpen ? 'select-chevron-open' : ''}`}
         />
       </button>
 
@@ -230,23 +217,12 @@ export default function Select({
           <div
             ref={dropdownRef}
             className="select-dropdown"
+            data-position={dropdownPosition.showAbove ? 'above' : 'below'}
             style={{
-              top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left}px`,
-              width: `${dropdownPosition.width}px`,
-              minWidth: '120px',
-              maxHeight: '240px', // max-h-60
-              zIndex: 99999,
-              display: 'block',
-              visibility: 'visible',
-              opacity: 1,
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              // Adjust shadow based on position
-              boxShadow: dropdownPosition.showAbove 
-                ? '0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06)' // Shadow above
-                : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Shadow below
-            }}
+              '--select-dropdown-top': `${dropdownPosition.top}px`,
+              '--select-dropdown-left': `${dropdownPosition.left}px`,
+              '--select-dropdown-width': `${dropdownPosition.width}px`,
+            } as React.CSSProperties}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -284,4 +260,3 @@ export default function Select({
     </div>
   );
 }
-

@@ -71,7 +71,6 @@ export default function FinalCostSection({
     nonNullCaseData.estimated_cost &&
     nonNullCaseData.final_cost === nonNullCaseData.estimated_cost;
   
-
   return (
     <div className="stage5-final-cost-section">
       <h4 className="stage5-final-cost-title">Final Cost</h4>

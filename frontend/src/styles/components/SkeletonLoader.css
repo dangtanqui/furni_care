@@ -12,6 +12,14 @@
   background-size: 200% 100%;
 }
 
+.skeleton[data-width] {
+  width: var(--skeleton-width);
+}
+
+.skeleton[data-height] {
+  height: var(--skeleton-height);
+}
+
 .skeleton-rectangular {
   @apply rounded;
 }
@@ -23,6 +31,14 @@
 .skeleton-text {
   @apply rounded;
   height: 1rem;
+}
+
+.skeleton-text[data-width] {
+  width: var(--skeleton-width);
+}
+
+.skeleton-text[data-height] {
+  height: var(--skeleton-height);
 }
 
 .skeleton-text-container {

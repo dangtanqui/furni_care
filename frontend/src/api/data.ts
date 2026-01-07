@@ -23,4 +23,3 @@ export const getClients = () => api.get<Client[]>('/clients');
 export const getSites = (clientId: number) => api.get<Site[]>(`/clients/${clientId}/sites`);
 export const getContacts = (siteId: number) => api.get<Contact[]>(`/sites/${siteId}/contacts`);
 export const getTechnicians = () => api.get<{ id: number; name: string }[]>('/users/technicians');
-

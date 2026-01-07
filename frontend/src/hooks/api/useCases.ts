@@ -38,4 +38,3 @@ export function useCases(params: UseCasesParams = {}) {
     enabled: true,
   });
 }
-

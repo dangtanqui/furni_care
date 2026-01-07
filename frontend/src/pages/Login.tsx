@@ -4,6 +4,7 @@ import { login as loginApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Armchair } from 'lucide-react';
 import LoginForm from '../components/pages/login/LoginForm';
+import SEO from '../components/SEO';
 import '../styles/pages/Login.css';
 
 const REMEMBERED_EMAIL_KEY = 'remembered_email';
@@ -88,8 +89,15 @@ export default function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <>
+      <SEO
+        title="Login"
+        description="Login to FurniCare Warranty Management System"
+        noindex={true}
+        nofollow={true}
+      />
+      <div className="login-page">
+        <div className="login-card">
         <div className="login-header">
           <Armchair className="login-logo" />
           <h1 className="login-title">FurniCare</h1>
@@ -110,7 +118,7 @@ export default function Login() {
           onSubmit={handleSubmit}
         />
       </div>
-    </div>
+      </div>
+    </>
   );
 }
-

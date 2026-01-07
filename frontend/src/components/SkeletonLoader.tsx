@@ -22,29 +22,35 @@ export default function SkeletonLoader({
           <div
             key={index}
             className="skeleton skeleton-text"
+            data-width={index === lines - 1 ? '80%' : '100%'}
+            data-height={height || '1rem'}
             style={{
-              width: index === lines - 1 ? '80%' : '100%',
-              height: height || '1rem',
-            }}
+              '--skeleton-width': index === lines - 1 ? '80%' : '100%',
+              '--skeleton-height': height || '1rem',
+            } as React.CSSProperties}
           />
         ))}
       </div>
     );
   }
 
-  const style: React.CSSProperties = {};
-  if (width) style.width = width;
-  if (height) style.height = height;
-
   const variantClass = `skeleton-${variant}`;
+  const styleProps: React.CSSProperties = {};
+  if (width) {
+    styleProps['--skeleton-width' as string] = width;
+  }
+  if (height) {
+    styleProps['--skeleton-height' as string] = height;
+  }
 
   return (
     <div
       className={`skeleton ${variantClass} ${className}`}
-      style={style}
+      data-width={width ? 'true' : undefined}
+      data-height={height ? 'true' : undefined}
+      style={Object.keys(styleProps).length > 0 ? styleProps : undefined}
       aria-label="Loading..."
       role="status"
     />
   );
 }
-

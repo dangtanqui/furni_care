@@ -2,6 +2,7 @@ import { memo } from 'react';
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/utilities.css';
+import '../styles/components/Button.css';
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -92,8 +93,7 @@ function Button({
     return (
       <Link
         to={to}
-        className={buttonClasses}
-        style={alwaysAutoWidth ? { width: 'auto', display: 'inline-flex' } : undefined}
+        className={`${buttonClasses} ${alwaysAutoWidth ? 'btn-button-auto-width' : ''}`}
         {...(props as Omit<React.ComponentProps<typeof Link>, keyof BaseButtonProps>)}
       >
         {buttonContent}

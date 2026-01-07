@@ -1,6 +1,3 @@
-/**
- * Case status constants
- */
 export const CASE_STATUS = {
   OPEN: 'open',
   PENDING: 'pending',
@@ -13,9 +10,6 @@ export const CASE_STATUS = {
 
 export type CaseStatus = typeof CASE_STATUS[keyof typeof CASE_STATUS];
 
-/**
- * Cost status constants
- */
 export const COST_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -24,9 +18,6 @@ export const COST_STATUS = {
 
 export type CostStatus = typeof COST_STATUS[keyof typeof COST_STATUS];
 
-/**
- * Final cost status constants
- */
 export const FINAL_COST_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -34,4 +25,3 @@ export const FINAL_COST_STATUS = {
 } as const;
 
 export type FinalCostStatus = typeof FINAL_COST_STATUS[keyof typeof FINAL_COST_STATUS];
-

@@ -3,4 +3,3 @@ export interface SortIconProps {
   currentColumn: string | Array<{ column: string; direction: 'asc' | 'desc' }>;
   direction: 'asc' | 'desc';
 }
-

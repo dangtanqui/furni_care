@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+.btn-button-auto-width {
+  width: auto !important;
+  display: inline-flex !important;
+}
+

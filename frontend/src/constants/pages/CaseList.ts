@@ -45,4 +45,3 @@ export const TOAST_MESSAGES = {
 export const TOAST_DURATION = {
   FILTERS_APPLIED: 2000,
 } as const;
-

@@ -67,4 +67,3 @@ export default function Pagination({ pagination, onPageChange, itemName = 'items
     </div>
   );
 }
-

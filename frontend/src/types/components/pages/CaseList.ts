@@ -14,5 +14,3 @@ export interface CaseTableProps {
   pagination: { page: number; per_page: number; total: number; total_pages: number };
   onPageChange: (page: number) => void;
 }
-
-

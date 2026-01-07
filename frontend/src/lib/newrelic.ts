@@ -42,4 +42,3 @@ if (licenseKey && appId && accountId) {
 }
 
 export default {}
-

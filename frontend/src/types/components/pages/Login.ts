@@ -11,4 +11,3 @@ export interface LoginFormProps {
   onRememberMeChange: (rememberMe: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
-

@@ -53,7 +53,7 @@ class Api::CasesController < ApplicationController
   end
   
   def redo_case
-    authorize_case_action(:redo, @case)
+    authorize_case_action(:redo)
     result = CaseService.new(case_record: @case, current_user: current_user).redo_case
     render_service_result(result, serializer: CaseSerializer, detail: true)
   end

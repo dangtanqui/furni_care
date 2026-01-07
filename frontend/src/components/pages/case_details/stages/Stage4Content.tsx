@@ -229,4 +229,3 @@ function Stage4Content({ canEdit, onOpenStage }: Stage4ContentProps) {
 }
 
 export default memo(Stage4Content);
-

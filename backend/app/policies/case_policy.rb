@@ -13,7 +13,7 @@ class CasePolicy
 
   def closed_or_cancelled?
     @case.status == CaseConstants::STATUSES[:CLOSED] || 
-    @case.status == CaseConstants::STATUSES[:CANCELLED]
+      @case.status == CaseConstants::STATUSES[:CANCELLED]
   end
 
   def rejected?
@@ -21,8 +21,7 @@ class CasePolicy
   end
 
   def is_assigned_technician?
-    @user.technician? && 
-    @case.assigned_to_id == @user.id
+    @user.technician? && @case.assigned_to_id == @user.id
   end
 
   def cost_rejected?
@@ -57,6 +56,7 @@ class CasePolicy
 
   def can_approve_cost?
     return false if closed_or_cancelled?
+
     @user.leader? && @case.current_stage == STAGE_3 && @case.cost_required
   end
 
@@ -67,6 +67,7 @@ class CasePolicy
 
   def can_cancel?
     return false if closed_or_cancelled?
+
     @user.cs? && @case.current_stage == STAGE_3 && @case.cost_required && cost_rejected?
   end
 
@@ -98,6 +99,7 @@ class CasePolicy
 
   def can_redo?
     return false if closed_or_cancelled?
+
     @user.cs? && @case.current_stage == STAGE_5
   end
 
@@ -111,11 +113,13 @@ class CasePolicy
 
   def can_approve_final_cost?
     return false if closed_or_cancelled?
+
     @user.leader? && @case.current_stage == STAGE_5
   end
 
   def can_reject_final_cost?
     return false if closed_or_cancelled?
+    
     @user.leader? && @case.current_stage == STAGE_5
   end
 end

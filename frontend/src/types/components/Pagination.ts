@@ -4,4 +4,3 @@ export interface PaginationProps {
   /** Item name for display (e.g., "cases", "items", "records"). Default: "items" */
   itemName?: string;
 }
-

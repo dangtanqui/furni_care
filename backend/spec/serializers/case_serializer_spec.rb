@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe CaseSerializer, type: :service do
+RSpec.describe CaseSerializer, type: :serializer do
   let(:cs_user) { create(:user, :cs) }
   let(:technician_user) { create(:user, :technician) }
   let(:leader_user) { create(:user, :leader) }

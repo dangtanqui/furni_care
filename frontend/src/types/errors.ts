@@ -50,4 +50,3 @@ export const ErrorSeverity = {
 } as const;
 
 export type ErrorSeverity = typeof ErrorSeverity[keyof typeof ErrorSeverity];
-

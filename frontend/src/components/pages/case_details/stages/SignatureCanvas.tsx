@@ -198,8 +198,7 @@ export default function SignatureCanvas({ value, onChange, canEdit }: SignatureC
           ref={signatureRef}
           width={600}
           height={200}
-          className="stage4-signature-canvas"
-          style={{ touchAction: 'none', cursor: canEdit ? 'crosshair' : 'default' }}
+          className={`stage4-signature-canvas ${canEdit ? 'stage4-signature-canvas-editable' : 'stage4-signature-canvas-readonly'}`}
           aria-label="Client signature canvas"
           aria-labelledby="signature-canvas-label"
           role="img"

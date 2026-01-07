@@ -39,15 +39,10 @@ class CaseCostService < BaseService
   end
 
   def handle_cost_update
-    # If cost fields are updated and cost was previously rejected, reset cost_status
-    if @case.cost_status == CaseConstants::COST_STATUSES[:REJECTED]
-      @case.update(cost_status: nil, status: CaseConstants::STATUSES[:PENDING])
-    end
-    
-    # If cost fields are updated and cost was previously approved, reset cost_status
-    # This allows Technician to update cost and re-submit for approval
-    if @case.cost_status == CaseConstants::COST_STATUSES[:APPROVED]
-      @case.update(cost_status: nil, status: CaseConstants::STATUSES[:PENDING], cost_approved_by_id: nil)
-    end
+    @case.update(
+      cost_status: nil, 
+      status: CaseConstants::STATUSES[:PENDING],
+      cost_approved_by_id: nil
+    )
   end
 end

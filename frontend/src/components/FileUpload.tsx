@@ -100,4 +100,3 @@ function FileUpload({
 }
 
 export default memo(FileUpload);
-

@@ -47,13 +47,6 @@ class CaseFinalCostService < BaseService
   end
 
   def handle_final_cost_update(old_final_cost_status = nil)
-    
-    # Don't update final_cost_status if case is being closed
-    # When closing, final_cost_status should remain as approved
-    if @case.status == CaseConstants::STATUSES[:CLOSED]
-      return
-    end
-    
     # Use provided old_final_cost_status or fallback to current status if not provided
     was_rejected = (old_final_cost_status || @case.final_cost_status) == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
     

@@ -5,4 +5,3 @@ export const STAGES = [
   { num: 4, name: 'Execution' },
   { num: 5, name: 'Closing' },
 ];
-

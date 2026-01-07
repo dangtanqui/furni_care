@@ -123,3 +123,4 @@ class CaseSerializer
     end
   end
 end
+

@@ -9,7 +9,7 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
   const hasActiveFilters = filter.status || filter.case_type || filter.assigned_to;
 
   return (
-    <div className="case-filters-card" style={{ overflow: 'visible' }}>
+    <div className="case-filters-card">
       <button
         className="case-filters-toggle"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -27,7 +27,7 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
           <ChevronDown className="case-filters-chevron" aria-hidden="true" />
         )}
       </button>
-      <div className={`case-filters-container ${isExpanded ? 'case-filters-container-expanded' : 'case-filters-container-collapsed'}`} style={{ overflowY: 'visible' }}>
+      <div className={`case-filters-container ${isExpanded ? 'case-filters-container-expanded' : 'case-filters-container-collapsed'}`}>
         {/* Desktop: Show Filter label with icon */}
         <div className="case-filters-label-desktop">
           <Filter className="case-filters-icon" />
@@ -76,4 +76,3 @@ export default function CaseFilters({ filter, technicians, onFilterChange }: Cas
     </div>
   );
 }
-

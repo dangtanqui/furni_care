@@ -1,6 +1,3 @@
-/**
- * Case stage constants
- */
 export const STAGE = {
   STAGE_1: 1,
   STAGE_2: 2,
@@ -10,4 +7,3 @@ export const STAGE = {
 } as const;
 
 export type Stage = typeof STAGE[keyof typeof STAGE];
-

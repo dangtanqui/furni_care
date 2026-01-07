@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../components/Button';
 import SkeletonLoader from '../components/SkeletonLoader';
@@ -7,9 +8,12 @@ import { useCaseDetails } from '../hooks/pages/useCaseDetails';
 import { CaseDetailsProvider } from '../contexts/CaseDetailsContext';
 import CaseHeader from '../components/pages/case_details/CaseHeader';
 import StageSection from '../components/pages/case_details/StageSection';
+import SEO from '../components/SEO';
+import StructuredData, { generateBreadcrumbSchema } from '../components/StructuredData';
 import '../styles/pages/CaseDetails.css';
 
 export default function CaseDetail() {
+  const { id } = useParams<{ id: string }>();
   const {
     caseData,
     expandedStage,
@@ -117,9 +121,32 @@ export default function CaseDetail() {
 
   // TypeScript: caseData is guaranteed to be non-null here due to check above
   const nonNullCaseData = caseData;
+  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://furnicare.example.com';
+  const caseUrl = `/cases/${id}`;
+  
+  // Generate SEO data from case
+  const seoTitle = `Case ${nonNullCaseData.case_number} - ${nonNullCaseData.client.name}`;
+  const seoDescription = nonNullCaseData.description 
+    ? `${nonNullCaseData.description.substring(0, 155)}...`
+    : `Warranty case ${nonNullCaseData.case_number} for ${nonNullCaseData.client.name} - Status: ${nonNullCaseData.status}`;
 
   return (
-    <CaseDetailsProvider
+    <>
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        url={caseUrl}
+        noindex={true}
+        nofollow={true}
+      />
+      <StructuredData
+        data={generateBreadcrumbSchema([
+          { name: 'Home', url: `${siteUrl}/` },
+          { name: 'Case List', url: `${siteUrl}/` },
+          { name: `Case ${nonNullCaseData.case_number}`, url: `${siteUrl}${caseUrl}` },
+        ])}
+      />
+      <CaseDetailsProvider
       value={{
         caseData: nonNullCaseData,
         technicians,
@@ -183,7 +210,7 @@ export default function CaseDetail() {
           />
         ))}
       </div>
-    </CaseDetailsProvider>
+      </CaseDetailsProvider>
+    </>
   );
 }
-

@@ -28,10 +28,8 @@ class Api::CaseAttachmentsController < ApplicationController
   private
 
   def set_case
-    # Both create and destroy use :case_id from nested route
-    case_id = params[:case_id]
-    @case = Case.find(case_id)
+    @case = Case.find(params[:case_id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: "Case not found by id: #{case_id}" }, status: :not_found
+    render json: { error: "Case not found by id: #{params[:case_id]}" }, status: :not_found
   end
 end

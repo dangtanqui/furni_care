@@ -7,7 +7,6 @@ class AuthService < BaseService
     user = User.find_by(email: email)
     
     if user&.authenticate(password)
-      # Add expiration time to JWT payload
       expires_at = expires_in.from_now.to_i
       token = encode_token({ 
         user_id: user.id,
@@ -31,8 +30,8 @@ class AuthService < BaseService
     end
   end
 
-  def current_user_data
-    success({ user: serialize_user(@current_user) })
+  def current_user_data(current_user)
+    success({ user: serialize_user(current_user) })
   end
 
   private

@@ -3,8 +3,6 @@ class CaseExecutionSummaryJob < ApplicationJob
 
   def perform(case_id)
     case_record = Case.find(case_id)
-    return unless case_record.current_stage == StageConstants::STAGE_5
-    
     contact_email = case_record.contact&.email.presence
     return unless contact_email.present?
     

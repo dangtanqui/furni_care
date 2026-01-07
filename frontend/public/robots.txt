@@ -1,0 +1,15 @@
+# Robots.txt for FurniCare Warranty Management System
+
+# Since this is an internal application requiring authentication,
+# we disallow all crawlers from indexing the site
+User-agent: *
+Disallow: /
+
+# If you want to allow indexing of specific public pages in the future,
+# you can add exceptions like:
+# User-agent: *
+# Disallow: /
+# Allow: /public-page
+
+# Sitemap location (if you decide to enable indexing later)
+# Sitemap: https://furnicare.example.com/sitemap.xml

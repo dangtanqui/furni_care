@@ -119,8 +119,17 @@
 }
 
 .stage4-signature-canvas {
-  @apply border border-gray-200 rounded bg-white cursor-crosshair w-full touch-none;
+  @apply border border-gray-200 rounded bg-white w-full;
+  touch-action: none;
   height: 150px;
+}
+
+.stage4-signature-canvas-editable {
+  cursor: crosshair;
+}
+
+.stage4-signature-canvas-readonly {
+  cursor: default;
 }
 
 @media (min-width: 768px) {

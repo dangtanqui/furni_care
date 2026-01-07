@@ -23,12 +23,10 @@ class CaseUpdateService < BaseService
       old_assigned_to_id = @case.assigned_to_id
       old_status = @case.status
       old_final_cost_status = @case.final_cost_status
-      is_closing = case_params[:status] == CaseConstants::STATUSES[:CLOSED]
       
       if @case.update(update_params)
         handle_cost_update(cost_fields_updated) if cost_fields_updated
-        # Don't handle final_cost_update when closing case - preserve final_cost_status
-        handle_final_cost_update(final_cost_updated, old_final_cost_status) if final_cost_updated && !is_closing
+        handle_final_cost_update(old_final_cost_status) if final_cost_updated
         handle_stage_rollback
         
         updated_case = @case.reload
@@ -67,13 +65,10 @@ class CaseUpdateService < BaseService
     old_final_cost_status = @case.final_cost_status
     old_final_cost = @case.final_cost
     
-    # Handle nil/blank values properly
     new_final_cost_value = case_params[:final_cost].blank? ? nil : case_params[:final_cost].to_f
     old_final_cost_value = old_final_cost.nil? ? nil : old_final_cost.to_f
     
-    # Check if value changed OR if it was rejected (need to reset status even if value unchanged)
-    updated = old_final_cost_value != new_final_cost_value || old_final_cost_status == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
-    updated
+    old_final_cost_value != new_final_cost_value || old_final_cost_status == CaseConstants::FINAL_COST_STATUSES[:REJECTED]
   end
 
   def detect_stage1_fields_update(case_params)
@@ -111,7 +106,6 @@ class CaseUpdateService < BaseService
   def apply_technician_reassignment(update_params, assigned_to_changed)
     return unless assigned_to_changed
     
-    # Set status to 'in_progress' when reassigning
     update_params[:status] = CaseConstants::STATUSES[:IN_PROGRESS] unless update_params.key?(:status)
     
     # Handle cost_status reset based on current stage
@@ -148,9 +142,7 @@ class CaseUpdateService < BaseService
     CaseCostService.new(case_record: @case, current_user: @current_user).handle_cost_update
   end
 
-  def handle_final_cost_update(final_cost_updated, old_final_cost_status = nil)
-    return unless final_cost_updated
-    
+  def handle_final_cost_update(old_final_cost_status = nil)
     CaseFinalCostService.new(case_record: @case, current_user: @current_user).handle_final_cost_update(old_final_cost_status)
   end
 

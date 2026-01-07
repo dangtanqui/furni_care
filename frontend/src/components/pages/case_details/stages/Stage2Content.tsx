@@ -168,4 +168,3 @@ function Stage2Content({ canEdit, onOpenStage }: Stage2ContentProps) {
 }
 
 export default memo(Stage2Content);
-

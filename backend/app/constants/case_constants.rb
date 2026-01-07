@@ -16,7 +16,6 @@ module CaseConstants
     REJECTED: 'rejected',
     CANCELLED: 'cancelled'
   }.freeze
-
   STATUSES_ARRAY = STATUSES.values.freeze
 
   COST_STATUSES = {
@@ -24,7 +23,6 @@ module CaseConstants
     APPROVED: 'approved',
     REJECTED: 'rejected'
   }.freeze
-
   COST_STATUSES_ARRAY = COST_STATUSES.values.freeze
 
   FINAL_COST_STATUSES = {
@@ -32,7 +30,6 @@ module CaseConstants
     APPROVED: 'approved',
     REJECTED: 'rejected'
   }.freeze
-
   FINAL_COST_STATUSES_ARRAY = FINAL_COST_STATUSES.values.freeze
 
   CASE_TYPES = %w[repair maintenance installation].freeze

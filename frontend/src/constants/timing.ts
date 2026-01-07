@@ -1,6 +1,3 @@
-/**
- * Timing constants for delays and timeouts
- */
 export const TIMING = {
   ACCORDION_CLOSE_DELAY: 100,
   SELECT_BLUR_DELAY: 100,

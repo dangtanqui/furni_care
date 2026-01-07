@@ -63,6 +63,7 @@
 
 .image-viewer-image {
   @apply max-w-full max-h-full object-contain transition-transform duration-200 cursor-zoom-in;
+  transform: scale(var(--image-zoom, 1));
 }
 
 .image-viewer-counter {

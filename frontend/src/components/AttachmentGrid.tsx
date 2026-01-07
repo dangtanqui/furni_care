@@ -93,4 +93,3 @@ function AttachmentGrid({ attachments, canEdit = false, onDelete }: AttachmentGr
 }
 
 export default memo(AttachmentGrid);
-

@@ -137,4 +137,3 @@ export const uploadAttachments = (
   files.forEach(file => form.append('files[]', file));
   return api.post(`/cases/${id}/case_attachments`, form);
 };
-

@@ -23,12 +23,8 @@ class CaseAttachmentService < BaseService
           attachment = @case.case_attachments.create!(stage: stage_num, attachment_type: attachment_type)
           attachment.file.attach(upload)
           created_attachments << attachment
-          
-          # Try to serialize attachment - if this fails, we need to clean up
-          serialized = serialize_attachment(attachment)
-          attachments << serialized
+          attachments << serialize_attachment(attachment)
         rescue => e
-          # If attachment creation or serialization fails, clean up this attachment
           attachment&.destroy
           Rails.logger.error("Failed to create attachment: #{e.message}")
           Rails.logger.error(e.backtrace.join("\n"))
@@ -36,10 +32,8 @@ class CaseAttachmentService < BaseService
         end
       end
     rescue => e
-      # If any attachment fails, clean up all created attachments
       created_attachments.each(&:destroy)
       error_message = e.message
-      # Provide a more user-friendly error message for Redis errors
       if error_message.include?('Redis') || error_message.include?('ECONNREFUSED')
         return failure(['Redis is not available. Please start Redis server and try again.'], status: :service_unavailable)
       end

@@ -201,4 +201,3 @@ export default function CaseForm({ form, clients, sites, contacts, previews, onF
     </form>
   );
 }
-

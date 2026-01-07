@@ -19,4 +19,3 @@ export interface FileUploadProps {
   /** Upload area text */
   uploadText?: string;
 }
-

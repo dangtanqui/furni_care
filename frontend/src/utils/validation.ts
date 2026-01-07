@@ -134,4 +134,3 @@ export const ValidationRules = {
     ),
   cost: (message = 'is required') => createRule(validateCost, message),
 };
-

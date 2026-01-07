@@ -108,10 +108,10 @@ RSpec.describe AuthService, type: :service do
 
   describe '#current_user_data' do
     let(:user) { create(:user) }
-    let(:service) { AuthService.new(current_user: user) }
+    let(:service) { AuthService.new }
 
     it 'returns current user data' do
-      result = service.current_user_data
+      result = service.current_user_data(user)
 
       expect(result).to be_success
       expect(result.data[:user][:id]).to eq(user.id)

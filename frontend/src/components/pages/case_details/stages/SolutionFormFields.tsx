@@ -71,4 +71,3 @@ function SolutionFormFields({ form, setForm, editable, caseData }: SolutionFormF
 }
 
 export default memo(SolutionFormFields);
-

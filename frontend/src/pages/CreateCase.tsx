@@ -2,6 +2,8 @@ import { ArrowLeft } from 'lucide-react';
 import Button from '../components/Button';
 import { useCreateCase } from '../hooks/pages/useCreateCase';
 import CaseForm from '../components/pages/create_case/CaseForm';
+import SEO from '../components/SEO';
+import StructuredData, { generateBreadcrumbSchema } from '../components/StructuredData';
 import '../styles/pages/CreateCase.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -32,8 +34,25 @@ export default function CreateCase() {
     // Error toast is handled by hook, no action needed here
   };
 
+  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://furnicare.example.com';
+  
   return (
-    <div className="create-case-page">
+    <>
+      <SEO
+        title="Create New Case"
+        description="Create a new warranty case in the FurniCare system"
+        url="/cases/new"
+        noindex={true}
+        nofollow={true}
+      />
+      <StructuredData
+        data={generateBreadcrumbSchema([
+          { name: 'Home', url: `${siteUrl}/` },
+          { name: 'Case List', url: `${siteUrl}/` },
+          { name: 'Create Case', url: `${siteUrl}/cases/new` },
+        ])}
+      />
+      <div className="create-case-page">
       <Button
         variant="tertiary"
         onClick={() => window.history.back()}
@@ -62,7 +81,7 @@ export default function CreateCase() {
           loading={loading}
         />
       </div>
-    </div>
+      </div>
+    </>
   );
 }
-

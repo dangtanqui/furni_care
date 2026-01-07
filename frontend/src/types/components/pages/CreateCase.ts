@@ -22,5 +22,3 @@ export interface CaseFormProps {
   onClearFieldError?: (keys: string[]) => void;
   loading?: boolean;
 }
-
-

@@ -163,7 +163,7 @@ export default function ImageViewer({ images, currentIndex: initialIndex, onClos
             src={images[currentIndex]}
             alt={`Image ${currentIndex + 1} of ${images.length}`}
             className="image-viewer-image"
-            style={{ transform: `scale(${zoom})` }}
+            style={{ '--image-zoom': zoom } as React.CSSProperties}
             onDoubleClick={handleResetZoom}
           />
         </div>
@@ -177,4 +177,3 @@ export default function ImageViewer({ images, currentIndex: initialIndex, onClos
     </div>
   );
 }
-

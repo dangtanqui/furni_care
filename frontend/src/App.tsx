@@ -1,11 +1,13 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import { queryClient } from './lib/react-query';
+import './styles/App.css';
 
 // Lazy load routes for code splitting
 const Login = lazy(() => import('./pages/Login'));
@@ -16,12 +18,7 @@ const CaseDetail = lazy(() => import('./pages/CaseDetails'));
 // Loading component for lazy routes
 function LoadingFallback() {
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh' 
-    }}>
+    <div className="app-loading-fallback">
       <div>Loading...</div>
     </div>
   );
@@ -34,14 +31,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function NotFound() {
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column',
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      gap: '1rem'
-    }}>
+    <div className="app-not-found">
       <h1>404 - Not Found</h1>
       <p>The page you're looking for doesn't exist.</p>
     </div>
@@ -78,15 +68,17 @@ function AppRoutes() {
 export default function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
-          </BrowserRouter>
-        </ToastProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <AppRoutes />
+              </AuthProvider>
+            </BrowserRouter>
+          </ToastProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }
