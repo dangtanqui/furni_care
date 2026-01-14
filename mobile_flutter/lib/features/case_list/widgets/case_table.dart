@@ -111,14 +111,29 @@ class CaseTable extends StatelessWidget {
     return Column(
       children: [
         // Table with horizontal scroll
-        SizedBox(
-          height: actualHeight,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              child: DataTable(
-                showCheckboxColumn: false,
-                headingRowColor: MaterialStateProperty.all(Colors.grey.shade50),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              height: actualHeight,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  child: DataTable(
+                    showCheckboxColumn: false,
+                    headingRowColor: MaterialStateProperty.all(Colors.grey.shade50),
                 columns: [
                   DataColumn(
                     label: GestureDetector(
@@ -302,6 +317,8 @@ class CaseTable extends StatelessWidget {
                     ],
                   );
                 }).toList(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -309,7 +326,7 @@ class CaseTable extends StatelessWidget {
         
         // Pagination info and controls
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           decoration: BoxDecoration(
             border: Border(top: BorderSide(color: Colors.grey.shade200)),
             color: Colors.grey.shade50,
@@ -330,20 +347,17 @@ class CaseTable extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Previous button
-                    TextButton.icon(
+                    // Previous button - icon only on mobile
+                    IconButton(
                       onPressed: provider.currentPage > 1
                           ? () => provider.handlePageChange(provider.currentPage - 1)
                           : null,
-                      icon: const Icon(Icons.chevron_left, size: 18),
-                      label: const Text('Previous'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: provider.currentPage > 1 
-                            ? const Color(0xFF0d9488) 
-                            : Colors.grey,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: const Size(0, 32),
-                      ),
+                      icon: const Icon(Icons.chevron_left, size: 24),
+                      color: provider.currentPage > 1 
+                          ? const Color(0xFF0d9488) 
+                          : Colors.grey,
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                     ),
                     const SizedBox(width: 4),
                     // Page numbers
@@ -396,26 +410,17 @@ class CaseTable extends StatelessWidget {
                       },
                     ),
                     const SizedBox(width: 4),
-                    // Next button - icon on right side
-                    TextButton(
+                    // Next button - icon only on mobile
+                    IconButton(
                       onPressed: provider.currentPage < provider.totalPages
                           ? () => provider.handlePageChange(provider.currentPage + 1)
                           : null,
-                      style: TextButton.styleFrom(
-                        foregroundColor: provider.currentPage < provider.totalPages 
-                            ? const Color(0xFF0d9488) 
-                            : Colors.grey,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: const Size(0, 32),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Next'),
-                          SizedBox(width: 4),
-                          Icon(Icons.chevron_right, size: 18),
-                        ],
-                      ),
+                      icon: const Icon(Icons.chevron_right, size: 24),
+                      color: provider.currentPage < provider.totalPages 
+                          ? const Color(0xFF0d9488) 
+                          : Colors.grey,
+                      padding: const EdgeInsets.all(8),
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),

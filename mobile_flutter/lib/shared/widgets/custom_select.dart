@@ -54,9 +54,11 @@ class _CustomSelectState extends State<CustomSelect> {
       // Return null to show placeholder, don't try to find empty option
       return null;
     }
+    // Use firstWhere with orElse (like frontend uses find)
     try {
       return widget.options.firstWhere(
         (opt) => opt.value == widget.value,
+        orElse: () => throw Exception('Not found'),
       );
     } catch (e) {
       // If option not found, return null to show placeholder
@@ -81,13 +83,23 @@ class _CustomSelectState extends State<CustomSelect> {
         select._closeDropdown();
       }
     }
+    
+    // Close existing overlay if any
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    }
+    
     _openSelects.add(this);
     
     setState(() {
       _isOpen = true;
     });
 
+    // Calculate position and create overlay (like frontend does)
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isOpen || !mounted) return;
+      
       final RenderBox? renderBox = _buttonKey.currentContext?.findRenderObject() as RenderBox?;
       if (renderBox == null || !_isOpen) return;
 
@@ -112,26 +124,32 @@ class _CustomSelectState extends State<CustomSelect> {
           ? offset.dy - actualDropdownHeight + size.height + offsetAdjustment
           : offset.dy + size.height + 2;
 
-      // Create overlay with tap outside to close
+      // Create overlay with tap outside to close (using Listener for better event handling)
       _overlayEntry = OverlayEntry(
-        builder: (context) => Stack(
-          children: [
-            // Full screen tap detector
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _closeDropdown,
-                child: Container(color: Colors.transparent),
+        builder: (context) => Material(
+          type: MaterialType.transparency, // Make overlay background transparent
+          child: Stack(
+            children: [
+              // Full screen tap detector to close dropdown
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: _closeDropdown,
+                  behavior: HitTestBehavior.translucent,
+                  child: Container(color: Colors.transparent),
+                ),
               ),
-            ),
-            // Dropdown content
-            Positioned(
-              left: offset.dx,
-              top: topPosition,
-              width: size.width,
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(8),
-                shadowColor: Colors.black.withOpacity(0.2),
+              // Dropdown content - wrapped in GestureDetector to prevent closing when clicking inside
+              Positioned(
+                left: offset.dx,
+                top: topPosition,
+                width: size.width,
+                child: GestureDetector(
+                  onTap: () {}, // Prevent tap from propagating to parent
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(8),
+                    shadowColor: Colors.black.withOpacity(0.2),
+                    color: Colors.transparent,
                 child: Container(
                   constraints: BoxConstraints(maxHeight: maxDropdownHeight),
                   decoration: BoxDecoration(
@@ -192,12 +210,16 @@ class _CustomSelectState extends State<CustomSelect> {
                   ),
                 ),
               ),
+              ),
             ),
-          ],
+            ],
+          ),
         ),
       );
 
-      Overlay.of(context).insert(_overlayEntry!);
+      // Insert overlay into Overlay
+      final overlay = Overlay.of(context);
+      overlay.insert(_overlayEntry!);
     });
   }
 

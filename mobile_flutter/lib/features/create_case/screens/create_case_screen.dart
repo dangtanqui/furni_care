@@ -8,7 +8,7 @@ import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../shared/widgets/button.dart';
 import '../../../shared/widgets/text_field.dart';
-import '../../../shared/widgets/app_header_back.dart';
+import '../../../shared/widgets/app_header.dart';
 import '../../../shared/widgets/custom_select.dart';
 import '../../../shared/widgets/file_upload.dart';
 import '../../../shared/utils/toast_helper.dart';
@@ -66,7 +66,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeaderBack(),
+      appBar: const AppHeader(),
       body: ChangeNotifierProvider(
         create: (context) {
           final caseService = Provider.of<CaseService>(context, listen: false);
@@ -81,11 +81,44 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
             }
             
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               child: Form(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Back button
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/');
+                            }
+                          },
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                size: 20,
+                                color: Color(0xFF0d9488),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Back',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF0d9488),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     // Title
                     const Text(
                       'Create New Case',

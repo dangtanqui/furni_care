@@ -49,13 +49,48 @@ List<String> filterDuplicateFiles(
   for (final filePath in filePaths) {
     if (isImageFile(filePath)) {
       final fileKey = createFileKey(filePath);
-      if (fileKey != null && processedFiles.contains(fileKey)) {
-        duplicateCount++;
-        continue; // Skip duplicate
-      }
-      // Add to processed set if it's a unique image
+      print('🔍 [DUPLICATE CHECK] File: ${filePath.split('/').last}, Key: $fileKey');
+      print('🔍 [DUPLICATE CHECK] Processed files count: ${processedFiles.length}');
+      
       if (fileKey != null) {
-        processedFiles.add(fileKey);
+        final file = File(filePath);
+        if (file.existsSync()) {
+          final stat = file.statSync();
+          final fileSize = stat.size;
+          
+          // Since iOS creates different file names for same image, check by size only
+          // Also check existing processed files by size
+          bool isDuplicate = false;
+          for (final processedKey in processedFiles) {
+            // Extract size from processed key (format: name-size-timestamp or name-size)
+            final parts = processedKey.split('-');
+            if (parts.length >= 2) {
+              try {
+                final processedSize = int.tryParse(parts[parts.length - 2]); // Second to last part is usually size
+                if (processedSize == fileSize) {
+                  isDuplicate = true;
+                  print('❌ [DUPLICATE CHECK] DUPLICATE DETECTED by size!');
+                  print('   Current file size: $fileSize');
+                  print('   Matched processed key: $processedKey');
+                  break;
+                }
+              } catch (e) {
+                // Continue checking other keys
+              }
+            }
+          }
+          
+          if (isDuplicate) {
+            duplicateCount++;
+            continue; // Skip duplicate
+          }
+          
+          print('✅ [DUPLICATE CHECK] Unique file (size: $fileSize), adding to processed set');
+          // Add key with size for future checking
+          processedFiles.add(fileKey);
+          // Also add size-only key for easier matching
+          processedFiles.add('size-$fileSize');
+        }
       }
     }
     // Always include non-image files and unique images

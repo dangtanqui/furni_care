@@ -91,14 +91,18 @@ class CaseListScreen extends StatelessWidget {
                 ),
                 
                 // Case table - scrollable
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: provider.isLoading && provider.cases.isEmpty
-                      ? ListView.builder(
-                          itemCount: 5,
-                          itemBuilder: (context, index) => const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: SkeletonLoader(height: 60),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                    child: provider.isLoading && provider.cases.isEmpty
+                      ? SizedBox(
+                          height: 300,
+                          child: ListView.builder(
+                            itemCount: 5,
+                            itemBuilder: (context, index) => const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: SkeletonLoader(height: 60),
+                            ),
                           ),
                         )
                       : provider.cases.isEmpty
@@ -108,6 +112,7 @@ class CaseListScreen extends StatelessWidget {
                               description: 'Try adjusting your filters or create a new case to get started.',
                             )
                           : const CaseTable(),
+                  ),
                 ),
               ],
             );

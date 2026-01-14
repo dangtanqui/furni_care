@@ -30,6 +30,22 @@ class _StageSectionsState extends State<StageSections> {
     _expandedStages[widget.caseData.currentStage] = true;
   }
   
+  @override
+  void didUpdateWidget(StageSections oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update expanded stages when case data changes (e.g., after stage completion)
+    if (widget.caseData.currentStage != oldWidget.caseData.currentStage) {
+      setState(() {
+        // Close all stages
+        for (int i = 1; i <= 5; i++) {
+          _expandedStages[i] = false;
+        }
+        // Open new current stage
+        _expandedStages[widget.caseData.currentStage] = true;
+      });
+    }
+  }
+  
   String _getStageName(int stage) {
     switch (stage) {
       case 1:
@@ -79,20 +95,190 @@ class _StageSectionsState extends State<StageSections> {
             });
           },
           onStageUpdated: (targetStage) {
-            // Expand target stage after update
+            // Close all stages, then expand target stage after update
             setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
               _expandedStages[targetStage] = true;
             });
           },
         );
       case 2:
-        return Stage2Content(caseData: caseData);
+        final isCurrent = caseData.currentStage == 2;
+        final currentUserId = authProvider.user?.id;
+        // Check both assignedToId and assignedTo.id (like frontend checks assigned_to?.id)
+        final assignedToId = caseData.assignedToId ?? caseData.assignedTo?.id;
+        // Only allow edit if currentStage >= stage (stage has been reached) and stage <= currentStage (cannot edit future stages)
+        final canEdit = caseData.currentStage >= 2 &&
+                       caseData.currentStage <= 2 &&
+                       caseData.status != CaseStatus.closed && 
+                       caseData.status != CaseStatus.cancelled &&
+                       assignedToId != null &&
+                       currentUserId != null &&
+                       authProvider.isTechnician &&
+                       assignedToId == currentUserId;
+        
+        print('🔵 [STAGE2 PERMISSION] Checking edit permission');
+        print('   currentStage: ${caseData.currentStage}, isCurrent: $isCurrent');
+        print('   caseData.assignedToId: ${caseData.assignedToId}');
+        print('   caseData.assignedTo?.id: ${caseData.assignedTo?.id}');
+        print('   assignedToId (final): $assignedToId');
+        print('   currentUserId: $currentUserId');
+        print('   isTechnician: ${authProvider.isTechnician}');
+        print('   status: ${caseData.status}');
+        print('   canEdit: $canEdit');
+        print('   Match check: assignedToId == currentUserId = ${assignedToId == currentUserId}');
+        
+        return Stage2Content(
+          caseData: caseData,
+          isCurrent: isCurrent,
+          canEdit: canEdit,
+          onStageAdvanced: () {
+            // Close all stages and open Stage 3
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[3] = true;
+            });
+          },
+          onStageUpdated: (targetStage) {
+            // Close all stages and open target stage
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[targetStage] = true;
+            });
+          },
+        );
       case 3:
-        return Stage3Content(caseData: caseData);
+        final isCurrent = caseData.currentStage == 3;
+        final currentUserId = authProvider.user?.id;
+        // Check both assignedToId and assignedTo.id (like frontend checks assigned_to?.id)
+        final assignedToId = caseData.assignedToId ?? caseData.assignedTo?.id;
+        // Only allow edit if currentStage >= stage (stage has been reached) and stage <= currentStage (cannot edit future stages)
+        // Stage 3: Only check if technician is assigned, don't require exact match
+        final canEdit = caseData.currentStage >= 3 &&
+                       caseData.currentStage <= 3 &&
+                       caseData.status != CaseStatus.closed && 
+                       caseData.status != CaseStatus.cancelled &&
+                       assignedToId != null &&
+                       currentUserId != null &&
+                       authProvider.isTechnician;
+        
+        print('🔵 [STAGE3 PERMISSION] Checking edit permission');
+        print('   currentStage: ${caseData.currentStage}, isCurrent: $isCurrent');
+        print('   caseData.assignedToId: ${caseData.assignedToId}');
+        print('   caseData.assignedTo?.id: ${caseData.assignedTo?.id}');
+        print('   assignedToId (final): $assignedToId');
+        print('   currentUserId: $currentUserId');
+        print('   isTechnician: ${authProvider.isTechnician}');
+        print('   status: ${caseData.status}');
+        print('   canEdit: $canEdit');
+        
+        return Stage3Content(
+          caseData: caseData,
+          isCurrent: isCurrent,
+          canEdit: canEdit,
+          onStageAdvanced: () {
+            // Close all stages and open Stage 4
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[4] = true;
+            });
+          },
+          onStageUpdated: (targetStage) {
+            // Close all stages and open target stage
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[targetStage] = true;
+            });
+          },
+        );
       case 4:
-        return Stage4Content(caseData: caseData);
+        final isCurrent = caseData.currentStage == 4;
+        final currentUserId = authProvider.user?.id;
+        // Check both assignedToId and assignedTo.id (like frontend checks assigned_to?.id)
+        final assignedToId = caseData.assignedToId ?? caseData.assignedTo?.id;
+        // Only allow edit if currentStage >= stage (stage has been reached) and stage <= currentStage (cannot edit future stages)
+        final canEdit = caseData.currentStage >= 4 &&
+                       caseData.currentStage <= 4 &&
+                       caseData.status != CaseStatus.closed && 
+                       caseData.status != CaseStatus.cancelled &&
+                       assignedToId != null &&
+                       currentUserId != null &&
+                       authProvider.isTechnician &&
+                       assignedToId == currentUserId;
+        
+        print('🔵 [STAGE4 PERMISSION] Checking edit permission');
+        print('   currentStage: ${caseData.currentStage}, isCurrent: $isCurrent');
+        print('   caseData.assignedToId: ${caseData.assignedToId}');
+        print('   caseData.assignedTo?.id: ${caseData.assignedTo?.id}');
+        print('   assignedToId (final): $assignedToId');
+        print('   currentUserId: $currentUserId');
+        print('   isTechnician: ${authProvider.isTechnician}');
+        print('   status: ${caseData.status}');
+        print('   canEdit: $canEdit');
+        print('   Match check: assignedToId == currentUserId = ${assignedToId == currentUserId}');
+        
+        return Stage4Content(
+          caseData: caseData,
+          isCurrent: isCurrent,
+          canEdit: canEdit,
+          onStageAdvanced: () {
+            // Close all stages and open Stage 5
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[5] = true;
+            });
+          },
+          onStageUpdated: (targetStage) {
+            // Close all stages and open target stage
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[targetStage] = true;
+            });
+          },
+        );
       case 5:
-        return Stage5Content(caseData: caseData);
+        final isCurrent = caseData.currentStage == 5;
+        // Only allow edit if currentStage >= 5 (stage has been reached) and stage <= currentStage (cannot edit future stages)
+        final canEdit = caseData.currentStage >= 5 &&
+                       caseData.currentStage <= 5 &&
+                       authProvider.isCS &&
+                       caseData.status != CaseStatus.closed &&
+                       caseData.status != CaseStatus.cancelled;
+        return Stage5Content(
+          caseData: caseData,
+          isCurrent: isCurrent,
+          canEdit: canEdit,
+          onStageClosed: () {
+            // Close accordion when case is closed
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+            });
+          },
+          onRedoToStage3: () {
+            setState(() {
+              for (int i = 1; i <= 5; i++) {
+                _expandedStages[i] = false;
+              }
+              _expandedStages[3] = true;
+            });
+          },
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -120,6 +306,7 @@ class _StageSectionsState extends State<StageSections> {
               dividerColor: Colors.transparent, // Remove divider line
             ),
             child: ExpansionTile(
+              key: ValueKey('stage-$stage-${_expandedStages[stage]}'),
               tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -158,30 +345,23 @@ class _StageSectionsState extends State<StageSections> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Badge for Current/Completed/Not Started
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isCompleted
-                          ? Colors.green.shade50
-                          : isCurrent
-                              ? const Color(0xFF0d9488).withOpacity(0.1) // Teal background
-                              : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      isCompleted
-                          ? 'Completed'
-                          : isCurrent
-                              ? 'Current'
-                              : 'Not Started',
-                      style: TextStyle(
-                        fontSize: 12,
+                  // Badge for Current/Completed
+                  if (isCompleted || isCurrent)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
                         color: isCompleted
-                            ? Colors.green.shade700
-                            : isCurrent
-                                ? const Color(0xFF0d9488) // Teal text
-                                : Colors.grey.shade600,
+                            ? Colors.green.shade50
+                            : const Color(0xFF0d9488).withOpacity(0.1), // Teal background
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        isCompleted ? 'Completed' : 'Current',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isCompleted
+                              ? Colors.green.shade700
+                              : const Color(0xFF0d9488), // Teal text
                         fontWeight: FontWeight.w500,
                       ),
                     ),

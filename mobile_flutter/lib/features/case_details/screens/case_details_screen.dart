@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/services/case_service.dart';
 import '../../../core/services/data_service.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/app_header_back.dart';
+import '../../../shared/widgets/app_header.dart';
 import '../providers/case_details_provider.dart';
 import '../widgets/case_header.dart';
 import '../widgets/stage_sections.dart';
@@ -20,7 +20,7 @@ class CaseDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppHeaderBack(),
+      appBar: const AppHeader(),
       body: ChangeNotifierProvider(
         create: (context) {
           final caseService = Provider.of<CaseService>(context, listen: false);
@@ -43,10 +43,43 @@ class CaseDetailsScreen extends StatelessWidget {
             }
             
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Back button
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/');
+                          }
+                        },
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.arrow_back,
+                              size: 20,
+                              color: Color(0xFF0d9488),
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Back',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF0d9488),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   // Title
                   const Text(
                     'Case Details',

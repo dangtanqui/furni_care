@@ -162,6 +162,7 @@ class _FileUploadState extends State<FileUpload> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
               decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
             child: Column(

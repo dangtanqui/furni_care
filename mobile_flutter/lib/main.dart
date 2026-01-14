@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import 'config/app_config.dart';
 import 'config/routes.dart';
 import 'core/api/api_client.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/case_service.dart';
 import 'core/services/data_service.dart';
+import 'core/utils/http_overrides.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'shared/providers/toast_provider.dart';
 import 'shared/widgets/toast_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Setup HTTP overrides for SSL certificate handling (debug mode only)
+  HttpOverrides.global = MyHttpOverrides();
   
   // Load environment configuration
   await AppConfig.load();

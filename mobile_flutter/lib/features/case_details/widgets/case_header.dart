@@ -110,14 +110,17 @@ class CaseHeader extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             
-            // Current stage
-            Row(
+            // Current stage - wrap text
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 const Text(
                   'Current Stage: ',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.black, // Changed to black
+                    color: Colors.black,
                   ),
                 ),
                 Text('${caseData.currentStage} - ${caseData.stageName}'),
@@ -191,65 +194,56 @@ class CaseHeader extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             
-            // Stage progress indicator
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // Calculate available width and adjust connector width
-                final totalConnectorWidth = (constraints.maxWidth - (32 * 5) - (4 * 4)) / 4; // 5 circles, 4 gaps
-                final connectorWidth = totalConnectorWidth.clamp(20.0, 40.0);
+            // Stage progress indicator - wrap if not enough space
+            Wrap(
+              spacing: 4,
+              runSpacing: 8,
+              children: List.generate(5, (index) {
+                final stageNum = index + 1;
+                final isCompleted = stageNum < caseData.currentStage;
+                final isCurrent = stageNum == caseData.currentStage && 
+                    caseData.status != CaseStatus.closed;
                 
                 return Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: List.generate(5, (index) {
-                    final stageNum = index + 1;
-                    final isCompleted = stageNum < caseData.currentStage;
-                    final isCurrent = stageNum == caseData.currentStage && 
-                        caseData.status != CaseStatus.closed;
-                    
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isCompleted
-                                ? Colors.green.shade500
-                                : isCurrent
-                                    ? const Color(0xFF0d9488) // Teal color for current stage
-                                    : Colors.grey.shade300,
-                          ),
-                          child: Center(
-                            child: isCompleted
-                                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                                : Text(
-                                    '$stageNum',
-                                    style: TextStyle(
-                                      color: isCurrent ? Colors.white : Colors.grey.shade600,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                          ),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted
+                            ? Colors.green.shade500
+                            : isCurrent
+                                ? const Color(0xFF0d9488) // Teal color for current stage
+                                : Colors.grey.shade300,
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(Icons.check, color: Colors.white, size: 20)
+                            : Text(
+                                '$stageNum',
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white : Colors.grey.shade600,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                      ),
+                    ),
+                    if (index < 4)
+                      Container(
+                        margin: const EdgeInsets.only(left: 0),
+                        width: 32,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: isCompleted ? Colors.green.shade500 : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(1.5),
                         ),
-                        if (index < 4)
-                          Container(
-                            margin: const EdgeInsets.only(left: 0), // No gap - connector attached to circle
-                            width: connectorWidth,
-                            height: 3, // Thicker connector line
-                            decoration: BoxDecoration(
-                              color: isCompleted ? Colors.green.shade500 : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(1.5),
-                            ),
-                          ),
-                        if (index < 4)
-                          const SizedBox(width: 4), // Gap before next circle
-                      ],
-                    );
-                  }),
+                      ),
+                  ],
                 );
-              },
+              }),
             ),
           ],
         ),

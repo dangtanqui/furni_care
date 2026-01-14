@@ -7,6 +7,7 @@ import '../../../core/api/models/data_models.dart';
 class CaseListProvider with ChangeNotifier {
   final CaseService _caseService;
   final DataService _dataService;
+  bool _disposed = false;
   
   List<CaseListItem> _cases = [];
   List<Technician> _technicians = [];
@@ -31,6 +32,17 @@ class CaseListProvider with ChangeNotifier {
     _loadTechnicians();
     _loadCases();
   }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (_disposed) return;
+    notifyListeners();
+  }
   
   List<CaseListItem> get cases => _cases;
   List<Technician> get technicians => _technicians;
@@ -48,16 +60,17 @@ class CaseListProvider with ChangeNotifier {
   Future<void> _loadTechnicians() async {
     try {
       _technicians = await _dataService.getTechnicians();
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       // Silently fail - technicians are optional
     }
   }
   
   Future<void> _loadCases() async {
+    if (_disposed) return;
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    _safeNotify();
     
     try {
       final response = await _caseService.getCases(
@@ -75,11 +88,11 @@ class CaseListProvider with ChangeNotifier {
       _total = response.pagination.total;
       
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
     } catch (e) {
       _isLoading = false;
       _error = e.toString();
-      notifyListeners();
+      _safeNotify();
     }
   }
   

@@ -144,21 +144,45 @@ class CreateCaseProvider with ChangeNotifier {
   }
   
   void addFiles(List<String> filePaths, BuildContext context) {
-    // Check for duplicates using the utility function
+    print('🟢 [DUPLICATE UPLOAD] addFiles called with ${filePaths.length} files');
+    print('   Current _filePaths count: ${_filePaths.length}');
+    print('   Current _processedFiles count: ${_processedFiles.length}');
+    
+    for (final path in filePaths) {
+      final fileName = path.split('/').last;
+      print('   File: $fileName');
+    }
+    
+    // Use filterDuplicateFiles utility first (like frontend does)
+    // It checks against _processedFiles and shows error message
     final uniqueFiles = filterDuplicateFiles(
       filePaths,
       _processedFiles,
       context,
     );
     
+    print('🟢 [DUPLICATE UPLOAD] After filterDuplicateFiles:');
+    print('   Unique files count: ${uniqueFiles.length}');
+    print('   _processedFiles count after: ${_processedFiles.length}');
+    
     if (uniqueFiles.isEmpty) {
+      print('❌ [DUPLICATE UPLOAD] All files were duplicates');
       // All files were duplicates, already showed error toast
       return;
     }
     
     // Add unique files
     _filePaths.addAll(uniqueFiles);
+    print('✅ [DUPLICATE UPLOAD] Added ${uniqueFiles.length} unique files');
+    print('   Total _filePaths count: ${_filePaths.length}');
     notifyListeners();
+    
+    // Show success toast
+    final count = uniqueFiles.length;
+    final message = count == 1 
+        ? 'File uploaded successfully' 
+        : '$count files uploaded successfully';
+    ToastHelper.showSuccess(context, message);
   }
   
   void removeFile(int index) {
